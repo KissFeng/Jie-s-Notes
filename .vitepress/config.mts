@@ -42,7 +42,8 @@ export default defineConfig({
         text: '日常吐槽',
         collapsed: true,
         items: [
-          { text: '总览', link: '/docs/日常吐槽/' }
+          { text: '总览', link: '/docs/日常吐槽/' },
+          { text: '第一篇笔记', link: '/docs/日常吐槽/第一篇笔记' }
         ]
       },
       {
