@@ -15,6 +15,7 @@ export default defineConfig({
         collapsed: true,
         items: [
           { text: '总览', link: '/docs/VitePress使用说明/' },
+          { text: '从零搭建指南', link: '/docs/VitePress使用说明/从零搭建指南' },
           { text: '踩坑记录', link: '/docs/VitePress使用说明/踩坑记录' }
         ]
       },
