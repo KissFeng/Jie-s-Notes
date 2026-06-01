@@ -52,6 +52,14 @@ export default defineConfig({
         items: [
           { text: '总览', link: '/docs/只有我自己看得明白/' }
         ]
+      },
+      {
+        text: 'VitePress 使用说明',
+        collapsed: true,
+        items: [
+          { text: '总览', link: '/docs/VitePress使用说明/' },
+          { text: '踩坑记录', link: '/docs/VitePress使用说明/踩坑记录' }
+        ]
       }
     ],
 
