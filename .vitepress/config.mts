@@ -3,6 +3,7 @@ import { defineConfig } from 'vitepress'
 export default defineConfig({
   title: "Jie's Notes",
   description: '我的个人公开知识库',
+  ignoreDeadLinks: true,
   themeConfig: {
     nav: [
       { text: '首页', link: '/' },
@@ -23,7 +24,8 @@ export default defineConfig({
         text: '期末复习',
         collapsed: true,
         items: [
-          { text: '总览', link: '/docs/期末复习/' }
+          { text: '总览', link: '/docs/期末复习/' },
+          { text: 'JavaWeb 习题库', link: '/docs/期末复习/JavaWeb/JavaWeb应用开发习题库（2026）_破解版_答案+解析' }
         ]
       },
       {
