@@ -25,13 +25,14 @@ jobs:
           npm run build
 
       - name: Deploy to Server
-        uses: easingthemes/ssh-deploy@main
-        with:
+        env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           REMOTE_HOST: ${{ secrets.SERVER_HOST }}
           REMOTE_USER: ${{ secrets.SERVER_USER }}
           REMOTE_PORT: ${{ secrets.SERVER_PORT }}
-          SOURCE: ".vitepress/dist/"
-          TARGET: "/www/wwwroot/jie-docs"
-          ARGS: "-rlgoDIVz --delete"
-          SCRIPT_BEFORE: "mkdir -p /www/wwwroot/jie-docs"
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh -p $REMOTE_PORT -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no $REMOTE_USER@$REMOTE_HOST "mkdir -p /www/wwwroot/jie-docs"
+          scp -P $REMOTE_PORT -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -r .vitepress/dist/* $REMOTE_USER@$REMOTE_HOST:/www/wwwroot/jie-docs/
