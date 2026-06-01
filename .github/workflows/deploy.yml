@@ -34,3 +34,4 @@ jobs:
           SOURCE: ".vitepress/dist/"
           TARGET: "/www/wwwroot/jie-docs"
           ARGS: "-rlgoDIVz --delete"
+          SCRIPT_BEFORE: "mkdir -p /www/wwwroot/jie-docs"
