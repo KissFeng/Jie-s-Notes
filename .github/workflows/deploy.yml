@@ -34,5 +34,4 @@ jobs:
           mkdir -p ~/.ssh
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ssh -p $REMOTE_PORT -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no $REMOTE_USER@$REMOTE_HOST "mkdir -p /www/wwwroot/jie-docs"
-          scp -P $REMOTE_PORT -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -r .vitepress/dist/* $REMOTE_USER@$REMOTE_HOST:/www/wwwroot/jie-docs/
+          tar czf - -C .vitepress/dist . | ssh -p $REMOTE_PORT -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no $REMOTE_USER@$REMOTE_HOST "mkdir -p /www/wwwroot/jie-docs && tar xzf - -C /www/wwwroot/jie-docs"
