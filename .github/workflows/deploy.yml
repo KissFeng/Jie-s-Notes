@@ -30,6 +30,9 @@ jobs:
           REMOTE_HOST: ${{ secrets.SERVER_HOST }}
           REMOTE_USER: ${{ secrets.SERVER_USER }}
           PASSWORD: ${{ secrets.SERVER_PASS }}
+          REMOTE_PORT: ${{ secrets.SERVER_PORT }}
           SOURCE: ".vitepress/dist/"
           TARGET: "/www/wwwroot/jie-docs"
           ARGS: "-rlgoDIVz --delete"
+        env:
+          SSH_CMD: "ssh -p ${{ secrets.SERVER_PORT }}"
