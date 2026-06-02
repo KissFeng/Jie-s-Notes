@@ -59,9 +59,21 @@ export default withMermaid(
         collapsed: true,
         items: [
           { text: '总览', link: '/docs/期末复习/' },
-          { text: 'JavaWeb 习题库', link: '/docs/期末复习/JavaWeb应用开发习题库（2026）_破解版_答案+解析' },
-          { text: '习概选择题', link: '/docs/期末复习/习概' },
-          { text: '习概主观题', link: '/docs/期末复习/习概主观题' }
+          {
+            text: '习概',
+            collapsed: true,
+            items: [
+              { text: '选择题', link: '/docs/期末复习/习概' },
+              { text: '主观题', link: '/docs/期末复习/习概主观题' }
+            ]
+          },
+          {
+            text: 'JavaWeb',
+            collapsed: true,
+            items: [
+              { text: '习题库（2026）', link: '/docs/期末复习/JavaWeb应用开发习题库（2026）_破解版_答案+解析' }
+            ]
+          }
         ]
       },
       {
