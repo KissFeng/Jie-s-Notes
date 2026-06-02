@@ -15,8 +15,8 @@
 3. **自动修复/初始化**：
    - 如果图谱为空，请自动在终端（使用本地 shell 工具）执行：
 ```bash
-     codegraph index
-     ```
+codegraph index
+```
    - 如果项目完全没有初始化（找不到 `.codegraph/` 目录），请先执行 `codegraph init`，再执行 `codegraph index`。
 
 ---
@@ -51,8 +51,8 @@
    - 刚刚在终端里执行了 `git checkout` 或 `git pull` 进行了分支切换/同步。
    - **执行动作**：一旦检测到上述行为，请主动在终端运行强刷命令：
 ```bash
-     codegraph index --force
-     ```
+codegraph index --force
+```
 
 ---
 

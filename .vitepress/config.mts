@@ -69,7 +69,7 @@ export default defineConfig({
         collapsed: true,
         items: [
           { text: '总览', link: '/docs/只有我自己看得明白/' },
-          { text: 'CodeGraph 上下文丢失问题', link: '/docs/只有我自己看得明白/codegraph-context' },
+          { text: 'CodeGraph 知识图谱', link: '/docs/只有我自己看得明白/codegraph-context' },
           { text: 'Gitee 多账号 SSH 配置', link: '/docs/只有我自己看得明白/gitee-multi-account' },
           { text: 'PowerShell 与 Node.js 路径冲突', link: '/docs/只有我自己看得明白/pwsh-node-path' }
         ]
