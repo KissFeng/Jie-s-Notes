@@ -6,7 +6,7 @@ hero:
   text: 个人公开知识库
   tagline: 每一行代码，都有改变世界的力量～
   image:
-    src: /avatar.jpg
+    src: /images/avatar.jpg
     alt: Jie's Avatar
     style: "border-radius: 50%; width: 250px; height: 250px; object-fit: cover;"
   actions:

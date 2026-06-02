@@ -1,5 +1,7 @@
 # Java Web 应用开发习题库（2026）
 
+> 📝 <a href="/exercises/javaweb-quiz-2026.html" target="_blank">👉 点击进入做题版习题库</a>
+
 ---
 
 ## 一、选择题
