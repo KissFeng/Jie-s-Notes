@@ -27,7 +27,6 @@ cp resources/favicons/* /path/to/your/website/public/
 # Claude How To
 
 
-![Icon](resources/icons/claude-howto-icon.svg)
 ```
 
 ## 推荐尺寸

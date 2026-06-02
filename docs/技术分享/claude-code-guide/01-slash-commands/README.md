@@ -353,7 +353,6 @@ sequenceDiagram
 **文件：** [pr.md](pr.md)
 
 **截图：**
-![/pr](pr-slash-command.png)
 
 ### 3. `/generate-api-docs` - API 文档生成器
 
