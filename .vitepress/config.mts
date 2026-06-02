@@ -87,7 +87,25 @@ export default withMermaid(
         text: '技术分享',
         collapsed: true,
         items: [
-          { text: '总览', link: '/docs/技术分享/' }
+          { text: '总览', link: '/docs/技术分享/' },
+          {
+            text: 'Claude Code 使用指南',
+            collapsed: true,
+            items: [
+              { text: '总览', link: '/docs/技术分享/claude-code-guide/' },
+              { text: '安装与使用', link: '/docs/技术分享/claude-code-guide/install-guide' },
+              { text: 'Slash Commands', link: '/docs/技术分享/claude-code-guide/01-slash-commands/README' },
+              { text: 'Memory 记忆', link: '/docs/技术分享/claude-code-guide/02-memory/README' },
+              { text: 'Skills 技能', link: '/docs/技术分享/claude-code-guide/03-skills/README' },
+              { text: 'Subagents 子代理', link: '/docs/技术分享/claude-code-guide/04-subagents/README' },
+              { text: 'MCP 协议', link: '/docs/技术分享/claude-code-guide/05-mcp/README' },
+              { text: 'Hooks 钩子', link: '/docs/技术分享/claude-code-guide/06-hooks/README' },
+              { text: 'Plugins 插件', link: '/docs/技术分享/claude-code-guide/07-plugins/README' },
+              { text: 'Checkpoints', link: '/docs/技术分享/claude-code-guide/08-checkpoints/README' },
+              { text: '高级功能', link: '/docs/技术分享/claude-code-guide/09-advanced-features/README' },
+              { text: 'CLI 命令行', link: '/docs/技术分享/claude-code-guide/10-cli/README' }
+            ]
+          }
         ]
       },
       {
