@@ -16,7 +16,9 @@ export default defineConfig({
         items: [
           { text: '总览', link: '/docs/VitePress使用说明/' },
           { text: '从零搭建指南', link: '/docs/VitePress使用说明/从零搭建指南' },
-          { text: '踩坑记录', link: '/docs/VitePress使用说明/踩坑记录' }
+          { text: '踩坑记录', link: '/docs/VitePress使用说明/踩坑记录' },
+          { text: '插件与组件生态', link: '/docs/VitePress使用说明/插件与组件生态' },
+          { text: '主题美化与视觉增强', link: '/docs/VitePress使用说明/主题美化与视觉增强' }
         ]
       },
       {
