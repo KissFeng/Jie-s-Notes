@@ -19,5 +19,10 @@
     "vitepress": "^1.6.4",
     "vitepress-plugin-mermaid": "^2.0.17",
     "vitepress-plugin-nprogress": "^0.1.1"
+  },
+  "dependencies": {
+    "@tsparticles/engine": "^4.1.2",
+    "@tsparticles/slim": "^4.1.2",
+    "@tsparticles/vue3": "^4.1.2"
   }
 }

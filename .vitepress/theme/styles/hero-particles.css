@@ -1,0 +1,46 @@
+/* ===== tsparticles Hero 粒子效果样式 ===== */
+
+/* .VPHome 作为粒子层的定位参考 */
+.VPHome {
+  position: relative;
+}
+
+/* 粒子容器铺满整个首页 */
+.VPHome > .particles-hero {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* Hero 内容及下方区域全部提到粒子之上 */
+.VPHome > .VPHomeHero,
+.VPHome > .VPHomeFeatures,
+.VPHome > .VPHomeContent {
+  position: relative;
+  z-index: 1;
+}
+
+.VPHero {
+  position: relative;
+  z-index: 1;
+}
+
+.VPHero .container {
+  position: relative;
+  z-index: 1;
+}
+
+.VPHero .main,
+.VPHero .name,
+.VPHero .text,
+.VPHero .tagline,
+.VPHero .actions,
+.VPHero .image-container {
+  position: relative;
+  z-index: 1;
+}
