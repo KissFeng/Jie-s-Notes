@@ -1,8 +1,11 @@
 {
   "name": "myvitepress",
   "version": "1.0.0",
+  "type": "module",
   "description": "",
-  "main": "index.js",
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "dev": "vitepress dev",
     "build": "vitepress build",
@@ -12,6 +15,9 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "vitepress": "^1.6.4"
+    "mermaid": "^11.15.0",
+    "vitepress": "^1.6.4",
+    "vitepress-plugin-mermaid": "^2.0.17",
+    "vitepress-plugin-nprogress": "^0.1.1"
   }
 }

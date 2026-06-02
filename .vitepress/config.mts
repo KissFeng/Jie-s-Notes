@@ -1,15 +1,48 @@
 import { defineConfig } from 'vitepress'
+import { withMermaid } from 'vitepress-plugin-mermaid'
 
-export default defineConfig({
-  title: "Jie's Notes",
-  description: '我的个人公开知识库',
-  ignoreDeadLinks: true,
-  themeConfig: {
-    nav: [
-      { text: '首页', link: '/' }
+export default withMermaid(
+  defineConfig({
+    title: "Jie's Notes",
+    description: '我的个人公开知识库',
+    lang: 'zh-cn',
+    ignoreDeadLinks: true,
+    cleanUrls: true,
+    lastUpdated: true,
+
+    head: [
+      ['link', { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }]
     ],
 
-    sidebar: [
+    themeConfig: {
+      outline: { level: [2, 3] },
+
+      search: {
+        provider: 'local',
+        options: {
+          translations: {
+            button: {
+              buttonText: '搜索文档',
+              buttonAriaLabel: '搜索文档'
+            },
+            modal: {
+              noResultsText: '没有找到相关结果',
+              resetButtonTitle: '清除搜索条件',
+              footer: {
+                selectText: '选择',
+                navigateText: '切换',
+                closeText: '关闭'
+              }
+            }
+          }
+        }
+      },
+
+      nav: [
+        { text: '首页', link: '/' }
+      ],
+
+      sidebar: [
       {
         text: 'VitePress 使用说明',
         collapsed: true,
@@ -83,3 +116,4 @@ export default defineConfig({
     ]
   }
 })
+)
