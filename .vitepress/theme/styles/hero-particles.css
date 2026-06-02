@@ -1,3 +1,37 @@
+/* ===== 头像模糊光晕 ===== */
+:root {
+  --vp-home-hero-image-background-image: linear-gradient(
+    -45deg,
+    #6366f1 30%,
+    #06b6d4 70%
+  );
+  --vp-home-hero-image-filter: blur(28px);
+}
+
+@media (min-width: 640px) {
+  :root {
+    --vp-home-hero-image-filter: blur(36px);
+  }
+}
+
+@media (min-width: 960px) {
+  :root {
+    --vp-home-hero-image-filter: blur(44px);
+  }
+}
+
+.dark {
+  --vp-home-hero-image-background-image: linear-gradient(
+    -45deg,
+    #7c3aed 30%,
+    #00d4ff 70%
+  );
+}
+
+.VPHero .VPImage {
+  filter: drop-shadow(-2px 4px 6px rgba(0, 0, 0, 0.15));
+}
+
 /* ===== tsparticles Hero 粒子效果样式 ===== */
 
 /* .VPHome 作为粒子层的定位参考 */
