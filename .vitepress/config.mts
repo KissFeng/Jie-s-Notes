@@ -6,8 +6,7 @@ export default defineConfig({
   ignoreDeadLinks: true,
   themeConfig: {
     nav: [
-      { text: '首页', link: '/' },
-      { text: '示例', link: '/markdown-examples' }
+      { text: '首页', link: '/' }
     ],
 
     sidebar: [

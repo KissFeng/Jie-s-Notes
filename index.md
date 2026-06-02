@@ -4,7 +4,7 @@ layout: home
 hero:
   name: "Jie's Notes"
   text: 个人公开知识库
-  tagline: 记录学习，沉淀技术，分享思考
+  tagline: 每一行代码，都有改变世界的力量～
   image:
     src: /avatar.jpg
     alt: Jie's Avatar
