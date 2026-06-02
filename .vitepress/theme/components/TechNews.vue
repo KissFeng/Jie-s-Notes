@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 
 interface NewsItem {
   title: string
@@ -9,6 +9,26 @@ interface NewsItem {
   publish_time: string
 }
 
+const props = withDefaults(
+  defineProps<{
+    platform?: string
+  }>(),
+  {
+    platform: 'github'
+  }
+)
+
+const platformLabels: Record<string, string> = {
+  github: 'GitHub',
+  ftpojie: '吾爱破解',
+  bilibili: '哔哩哔哩',
+  douban: '豆瓣',
+  juejin: '掘金',
+  douyin: '抖音'
+}
+
+const platformLabel = computed(() => platformLabels[props.platform] || props.platform)
+
 const items = ref<NewsItem[]>([])
 const loading = ref(true)
 const error = ref('')
@@ -16,13 +36,17 @@ const fetchedAt = ref('')
 
 onMounted(async () => {
   try {
-    const res = await fetch('https://orz.ai/api/v1/dailynews/?platform=github')
+    const res = await fetch(`https://orz.ai/api/v1/dailynews/?platform=${props.platform}`)
     if (!res.ok) {
       throw new Error(`请求失败: ${res.status}`)
     }
     const json = await res.json()
     items.value = json?.data ?? []
-    fetchedAt.value = new Date().toLocaleString()
+    fetchedAt.value = items.value
+      .map(item => item.publish_time)
+      .filter(Boolean)
+      .sort()
+      .at(-1) ?? ''
   } catch (e: any) {
     error.value = e?.message || '加载失败'
   } finally {
@@ -34,7 +58,7 @@ onMounted(async () => {
 <template>
   <div class="tech-news">
     <div class="tech-news-header">
-      <span class="tech-news-source">数据来源：GitHub</span>
+      <span class="tech-news-source">数据来源：{{ platformLabel }}</span>
       <span v-if="fetchedAt" class="tech-news-time">抓取时间：{{ fetchedAt }}</span>
     </div>
 
@@ -44,7 +68,7 @@ onMounted(async () => {
       <div v-for="(item, idx) in items" :key="idx" class="tech-news-card">
         <div class="tech-news-card-head">
           <a :href="item.url" target="_blank" rel="noopener">{{ item.title }}</a>
-          <span class="tech-news-tag">GitHub</span>
+          <span class="tech-news-tag">{{ platformLabel }}</span>
         </div>
         <p class="tech-news-desc">{{ item.content }}</p>
       </div>

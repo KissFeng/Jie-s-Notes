@@ -47,7 +47,13 @@ export default defineConfig({
         text: '技术热点新闻',
         collapsed: true,
         items: [
-          { text: '总览', link: '/docs/技术热点新闻/' }
+          { text: '总览', link: '/docs/技术热点新闻/' },
+          { text: 'GitHub', link: '/docs/技术热点新闻/github' },
+          { text: '吾爱破解', link: '/docs/技术热点新闻/ftpojie' },
+          { text: '哔哩哔哩', link: '/docs/技术热点新闻/bilibili' },
+          { text: '豆瓣', link: '/docs/技术热点新闻/douban' },
+          { text: '掘金', link: '/docs/技术热点新闻/juejin' },
+          { text: '抖音', link: '/docs/技术热点新闻/douyin' }
         ]
       },
       {
