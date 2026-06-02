@@ -78,3 +78,8 @@
   position: relative;
   z-index: 1;
 }
+
+/* 隐藏最后更新时间 */
+.VPLastUpdated {
+  display: none;
+}
