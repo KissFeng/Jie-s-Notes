@@ -1,8 +1,3 @@
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="logos/claude-howto-logo-dark.svg">
-  <img alt="Claude How To" src="logos/claude-howto-logo.svg">
-</picture>
-
 # Claude How To - 品牌资源
 
 这是 Claude How To 项目的完整品牌资源集合，包括 logo、图标和 favicon。所有资源都采用 V3.0 设计：一个带有代码括号（`>`）符号的指南针，象征在代码中引导前进，整体使用黑/白/灰配色，并以亮绿色（`#22C55E`）作为强调色。

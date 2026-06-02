@@ -26,7 +26,6 @@ cp resources/favicons/* /path/to/your/website/public/
 ```markdown
 # Claude How To
 
-![Claude How To Logo](resources/logos/claude-howto-logo.svg)
 
 ![Icon](resources/icons/claude-howto-icon.svg)
 ```
