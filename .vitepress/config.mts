@@ -105,6 +105,57 @@ export default withMermaid(
               { text: '高级功能', link: '/docs/技术分享/claude-code-guide/09-advanced-features/README' },
               { text: 'CLI 命令行', link: '/docs/技术分享/claude-code-guide/10-cli/README' }
             ]
+          },
+          {
+            text: 'Git 教程',
+            collapsed: true,
+            items: [
+              { text: '总览', link: '/docs/技术分享/Git 教程/' },
+              {
+                text: 'Git 基础',
+                collapsed: true,
+                items: [
+                  { text: 'Git 的介绍与安装', link: '/docs/技术分享/Git 教程/chapter01/1.Git的介绍与安装说明' },
+                  { text: 'Git 的配置', link: '/docs/技术分享/Git 教程/chapter01/2.Git的配置' },
+                  { text: '获取 Git 仓库', link: '/docs/技术分享/Git 教程/chapter01/3.获取Git仓库' },
+                  { text: 'Git 图示理解', link: '/docs/技术分享/Git 教程/chapter01/4.git用于理解的图示-1' },
+                  { text: 'Gitee 基础配置', link: '/docs/技术分享/Git 教程/chapter01/5.Gitee基础配置' },
+                  { text: 'Gitee 团队协作流程', link: '/docs/技术分享/Git 教程/chapter01/6.Gitee团队协作流程' }
+                ]
+              },
+              {
+                text: 'Git 日常操作',
+                collapsed: true,
+                items: [
+                  { text: '最基本流程', link: '/docs/技术分享/Git 教程/chapter02/1.Git 最基本流程' },
+                  { text: '状态查看', link: '/docs/技术分享/Git 教程/chapter02/2.Git 状态查看' },
+                  { text: '状态重置与回滚', link: '/docs/技术分享/Git 教程/chapter02/3.Git 状态重置 或者 回滚' },
+                  { text: 'Diff 差异分析', link: '/docs/技术分享/Git 教程/chapter02/4.Git Diff 差异分析' },
+                  { text: '文件删除与重命名', link: '/docs/技术分享/Git 教程/chapter02/5.Git 文件删除、重命名' },
+                  { text: 'gitignore 的使用', link: '/docs/技术分享/Git 教程/chapter02/6.Git之gitignore的使用' }
+                ]
+              },
+              {
+                text: 'Git 分支管理',
+                collapsed: true,
+                items: [
+                  { text: '分支管理', link: '/docs/技术分享/Git 教程/chapter03/1.Git 分支管理' },
+                  { text: '分支处理情景', link: '/docs/技术分享/Git 教程/chapter03/2.情景1： Git的分支处理' },
+                  { text: '分支图示', link: '/docs/技术分享/Git 教程/chapter03/3.Git分支图示' }
+                ]
+              },
+              {
+                text: 'Git 远程协作',
+                collapsed: true,
+                items: [
+                  { text: '远程分支管理', link: '/docs/技术分享/Git 教程/chapter04/1.Git 远程分支管理' },
+                  { text: '本地与远程同步', link: '/docs/技术分享/Git 教程/chapter04/2.Git 本地与远程同步操作' },
+                  { text: '远程分支关联', link: '/docs/技术分享/Git 教程/chapter04/3.Git 远程分支关联' },
+                  { text: '取消文件 Track', link: '/docs/技术分享/Git 教程/chapter04/4.Git对版本库的文件取消track' },
+                  { text: '远程其他操作', link: '/docs/技术分享/Git 教程/chapter04/5.Git远程其他操作' }
+                ]
+              }
+            ]
           }
         ]
       },
