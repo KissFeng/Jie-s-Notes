@@ -80,7 +80,35 @@ export default withMermaid(
         text: '课程笔记',
         collapsed: true,
         items: [
-          { text: '总览', link: '/docs/课程笔记/' }
+          { text: '总览', link: '/docs/课程笔记/' },
+          {
+            text: '发展对象考试',
+            collapsed: true,
+            items: [
+              { text: '总览', link: '/docs/课程笔记/发展对象考试/' },
+              {
+                text: '模拟试题',
+                collapsed: true,
+                items: [
+                  { text: '6.3试题（无答案）', link: '/docs/课程笔记/发展对象考试/6.3试题（无答案版）' },
+                  { text: '6.3试题（带答案）', link: '/docs/课程笔记/发展对象考试/6.3试题（带答案版）' },
+                  { text: '6.5试题（无答案）', link: '/docs/课程笔记/发展对象考试/6.5试题（无答案版）' },
+                  { text: '6.5试题（带答案）', link: '/docs/课程笔记/发展对象考试/6.5试题（带答案版）' }
+                ]
+              },
+              {
+                text: '学习资料',
+                collapsed: true,
+                items: [
+                  { text: '习近平新时代中国特色社会主义思想', link: '/docs/课程笔记/发展对象考试/学习资料/习近平新时代中国特色社会主义思想' },
+                  { text: '党的二十大', link: '/docs/课程笔记/发展对象考试/学习资料/党的二十大' },
+                  { text: '党的二十届四中全会', link: '/docs/课程笔记/发展对象考试/学习资料/党的二十届四中全会' },
+                  { text: '树立正确政绩观学习教育', link: '/docs/课程笔记/发展对象考试/学习资料/树立正确政绩观学习教育' },
+                  { text: '校训与校风', link: '/docs/课程笔记/发展对象考试/学习资料/校训与校风' }
+                ]
+              }
+            ]
+          }
         ]
       },
       {
