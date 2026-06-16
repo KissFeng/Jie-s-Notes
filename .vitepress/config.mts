@@ -130,6 +130,7 @@ export default withMermaid(
             items: [
               { text: '总览', link: '/docs/技术分享/claude-code-guide/' },
               { text: '安装与使用', link: '/docs/技术分享/claude-code-guide/install-guide' },
+              { text: '代理配置与防封指南', link: '/docs/技术分享/claude-code-guide/10-cli/proxy-anti-ban' },
               { text: 'Slash Commands', link: '/docs/技术分享/claude-code-guide/01-slash-commands/README' },
               { text: 'Memory 记忆', link: '/docs/技术分享/claude-code-guide/02-memory/README' },
               { text: 'Skills 技能', link: '/docs/技术分享/claude-code-guide/03-skills/README' },

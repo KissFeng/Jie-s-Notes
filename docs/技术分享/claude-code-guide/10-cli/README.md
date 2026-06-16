@@ -635,3 +635,4 @@ claude --working-directory ./backend --mcp-config ./mcp.json
 - [Slash Commands 中文参考](../01-slash-commands/README.md)
 - [MCP 文档](../05-mcp/README.md)
 - [Claude Code 官方 CLI 文档](https://code.claude.com/docs/en/cli-reference)
+- [代理配置与防封指南](./proxy-anti-ban.md)
