@@ -1,5 +1,7 @@
 # 📖 Jie's Notes
 
+![Deploy](https://github.com/KissFeng/Jie-s-Notes/actions/workflows/deploy.yml/badge.svg)
+
 > 我的个人公开知识库 — 全栈开发与 AI 技术沉淀
 
 嘿，你好呀 👋
