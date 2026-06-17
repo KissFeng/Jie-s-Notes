@@ -1,6 +1,9 @@
 # 📖 Jie's Notes
 
 ![Deploy](https://github.com/KissFeng/Jie-s-Notes/actions/workflows/deploy.yml/badge.svg)
+![Last Commit](https://img.shields.io/github/last-commit/KissFeng/Jie-s-Notes)
+![Repo Size](https://img.shields.io/github/repo-size/KissFeng/Jie-s-Notes)
+![License](https://img.shields.io/github/license/KissFeng/Jie-s-Notes)
 
 > 我的个人公开知识库 — 全栈开发与 AI 技术沉淀
 
