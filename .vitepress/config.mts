@@ -124,6 +124,7 @@ export default withMermaid(
         collapsed: true,
         items: [
           { text: '总览', link: '/docs/技术分享/' },
+          { text: '域名邮箱设置指南', link: '/docs/技术分享/域名邮箱设置指南' },
           {
             text: 'Claude Code 使用指南',
             collapsed: true,
