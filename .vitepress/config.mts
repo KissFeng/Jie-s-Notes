@@ -78,8 +78,7 @@ export default withMermaid(
             text: '软件项目管理',
             collapsed: true,
             items: [
-              { text: '习题库', link: '/docs/期末复习/软项目管' },
-              { text: '做题版', link: '/exercises/spm-quiz' }
+              { text: '习题库', link: '/docs/期末复习/软项目管' }
             ]
           }
         ]
