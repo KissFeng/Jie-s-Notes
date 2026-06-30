@@ -1,0 +1,2423 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>软件项目管理做题版</title>
+<style>
+:root { --bg:#f5f7fb; --card:#fff; --text:#1f2937; --muted:#6b7280; --primary:#2563eb; --ok:#16a34a; --bad:#dc2626; --line:#e5e7eb; --warn:#d97706; }
+* { box-sizing: border-box; }
+body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; color:var(--text); background:linear-gradient(180deg,#eef4ff 0,var(--bg) 260px); }
+header { position:sticky; top:0; z-index:10; background:rgba(255,255,255,.92); backdrop-filter: blur(12px); border-bottom:1px solid var(--line); }
+.header-inner { max-width:1180px; margin:auto; padding:16px 20px; display:flex; gap:16px; justify-content:space-between; align-items:center; flex-wrap:wrap; }
+h1 { font-size:22px; margin:0 0 6px; }
+.subtitle { color:var(--muted); font-size:13px; }
+.toolbar { display:flex; flex-wrap:wrap; gap:8px; }
+button, select { border:1px solid var(--line); background:#fff; color:var(--text); padding:9px 12px; border-radius:10px; cursor:pointer; font-size:14px; }
+button.primary { background:var(--primary); color:#fff; border-color:var(--primary); }
+button.danger { color:var(--bad); }
+button:disabled { opacity:.45; cursor:not-allowed; }
+main { max-width:1180px; margin:22px auto 80px; padding:0 20px; display:grid; grid-template-columns: 250px 1fr; gap:20px; }
+aside { position:sticky; top:92px; align-self:start; background:var(--card); border:1px solid var(--line); border-radius:18px; padding:16px; box-shadow:0 10px 28px rgba(15,23,42,.06); }
+.stats { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.stat { background:#f8fafc; border-radius:12px; padding:12px; }
+.stat b { display:block; font-size:22px; }
+.nav-title { margin:18px 0 10px; font-weight:700; }
+.section-tabs { display:grid; gap:8px; }
+.section-tabs button { text-align:left; }
+.section-tabs button.active { background:#dbeafe; border-color:#93c5fd; color:#1d4ed8; font-weight:700; }
+.content { display:grid; gap:16px; }
+.question-card { background:var(--card); border:1px solid var(--line); border-radius:18px; padding:18px; box-shadow:0 10px 28px rgba(15,23,42,.06); }
+.question-card.correct { border-color:#86efac; }
+.question-card.wrong { border-color:#fca5a5; }
+.q-head { display:flex; justify-content:space-between; gap:12px; margin-bottom:12px; }
+.badge { display:inline-flex; align-items:center; gap:6px; font-size:12px; padding:4px 9px; border-radius:999px; background:#eef2ff; color:#3730a3; white-space:nowrap; }
+.q-title { font-weight:700; line-height:1.7; white-space:pre-wrap; }
+.options { display:grid; gap:9px; margin-top:12px; }
+.option { display:flex; gap:10px; align-items:flex-start; border:1px solid var(--line); border-radius:12px; padding:11px 12px; cursor:pointer; }
+.option:hover { border-color:#93c5fd; background:#f8fbff; }
+.option input { margin-top:3px; }
+textarea { width:100%; min-height:120px; resize:vertical; border:1px solid var(--line); border-radius:12px; padding:12px; font:14px/1.7 ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace; }
+.result { display:none; margin-top:14px; padding:14px; border-radius:12px; background:#f8fafc; border:1px solid var(--line); line-height:1.7; }
+.result.show { display:block; }
+.result .ok { color:var(--ok); font-weight:700; }
+.result .bad { color:var(--bad); font-weight:700; }
+.analysis { margin-top:8px; white-space:pre-wrap; }
+.self-check { display:flex; gap:8px; margin-top:10px; }
+.hidden { display:none !important; }
+.empty { text-align:center; color:var(--muted); padding:44px; background:#fff; border:1px dashed var(--line); border-radius:18px; }
+@media (max-width: 860px) { main { grid-template-columns:1fr; } aside { position:static; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="header-inner">
+    <div>
+      <h1>软件项目管理做题版</h1>
+      <div class="subtitle">单选题/多选题/判断题自动判分，多选题需选中全部正确选项，可导出错题 HTML。</div>
+    </div>
+    <div class="toolbar">
+      <select id="sectionFilter"><option value="全部">全部章节</option></select>
+      <button class="primary" id="submitBtn">提交判分</button>
+      <button id="wrongOnlyBtn">只看错题</button>
+      <button id="exportBtn">导出错题</button>
+      <button class="danger" id="resetBtn">重新做题</button>
+    </div>
+  </div>
+</header>
+<main>
+  <aside>
+    <div class="stats">
+      <div class="stat"><span>总题数</span><b id="totalCount">0</b></div>
+      <div class="stat"><span>已答</span><b id="answeredCount">0</b></div>
+      <div class="stat"><span>正确</span><b id="correctCount">0</b></div>
+      <div class="stat"><span>错题</span><b id="wrongCount">0</b></div>
+    </div>
+    <div class="nav-title">章节导航</div>
+    <div class="section-tabs" id="sectionTabs"></div>
+  </aside>
+  <section class="content" id="questionList"></section>
+</main>
+<script>
+const QUESTIONS = [
+  {
+    "id": "单选题-1",
+    "section": "单选题",
+    "type": "single",
+    "number": 1,
+    "question": "下列关于\"项目\"的定义和特征描述中，错误的是哪个？",
+    "answer": "C",
+    "analysis": "** 项目具有临时性和独特性，批量生产商品是重复性日常运作，不属于项目范畴。",
+    "options": [
+      {
+        "key": "A",
+        "text": "项目是为了创造一个唯一的产品或提供一个唯一的服务而进行的临时性努力"
+      },
+      {
+        "key": "B",
+        "text": "项目的临时性意味着项目组也往往是临时性的，项目结束时就会解散"
+      },
+      {
+        "key": "C",
+        "text": "批量生产商品也属于项目"
+      },
+      {
+        "key": "D",
+        "text": "项目的特征包括目标性、周期性、独特性、约束性和不确定性等"
+      }
+    ]
+  },
+  {
+    "id": "单选题-2",
+    "section": "单选题",
+    "type": "single",
+    "number": 2,
+    "question": "在日常生活与社会活动中存在着许多活动，下列哪项属于\"项目\"的范畴？",
+    "answer": "D",
+    "analysis": "** \"神舟飞船计划\"具有目标性、临时性和独特性，属于典型项目；其余三项都是日常重复性运作。",
+    "options": [
+      {
+        "key": "A",
+        "text": "写字楼每天进行的卫生保洁工作"
+      },
+      {
+        "key": "B",
+        "text": "小区保安的日常巡逻与安全防范"
+      },
+      {
+        "key": "C",
+        "text": "高校班级里每学期固定安排的日常上课"
+      },
+      {
+        "key": "D",
+        "text": "国家实施的\"神舟飞船计划\""
+      }
+    ]
+  },
+  {
+    "id": "单选题-3",
+    "section": "单选题",
+    "type": "single",
+    "number": 3,
+    "question": "项目管理中常常提到\"三项约束\"，它是指在管理项目时需要重点平衡的哪三个维度？",
+    "answer": "A",
+    "analysis": "** 项目管理\"三项约束\"（铁三角）指范围（Scope）、时间（Time）、成本（Cost），三者相互制约需要平衡。",
+    "options": [
+      {
+        "key": "A",
+        "text": "范围、时间、成本"
+      },
+      {
+        "key": "B",
+        "text": "质量、风险、人员"
+      },
+      {
+        "key": "C",
+        "text": "硬件、软件、网络"
+      },
+      {
+        "key": "D",
+        "text": "合同、流程、工具"
+      }
+    ]
+  },
+  {
+    "id": "单选题-4",
+    "section": "单选题",
+    "type": "single",
+    "number": 4,
+    "question": "软件项目除了具有一般项目的共有特征外，还具有自身的特点。下列叙述中不正确的是哪项？",
+    "answer": "B",
+    "analysis": "** 软件开发虽主要面向逻辑层面，但仍受操作系统、运行环境等硬件条件制约，不能说\"完全没依赖\"。",
+    "options": [
+      {
+        "key": "A",
+        "text": "软件是逻辑实体，不是具体的物理实体，具有抽象性"
+      },
+      {
+        "key": "B",
+        "text": "软件的开发基本不受计算机硬件系统的限制，对硬件完全没有依赖"
+      },
+      {
+        "key": "C",
+        "text": "软件具有极高的复杂性特点"
+      },
+      {
+        "key": "D",
+        "text": "软件的开发成本通常比较昂贵，制约因素很多"
+      }
+    ]
+  },
+  {
+    "id": "单选题-5",
+    "section": "单选题",
+    "type": "single",
+    "number": 5,
+    "question": "软件项目管理的核心和关键工作是什么？",
+    "answer": "B",
+    "analysis": "** 软件项目管理的核心是做好项目规划（制定计划）和项目跟踪控制（监控执行），其余选项属于具体技术或辅助工作。",
+    "options": [
+      {
+        "key": "A",
+        "text": "代码编写和界面设计"
+      },
+      {
+        "key": "B",
+        "text": "项目规划和项目跟踪控制"
+      },
+      {
+        "key": "C",
+        "text": "采购高配置的服务器硬件"
+      },
+      {
+        "key": "D",
+        "text": "起草普通民事合同文本"
+      }
+    ]
+  },
+  {
+    "id": "单选题-6",
+    "section": "单选题",
+    "type": "single",
+    "number": 6,
+    "question": "软件行业经常提到\"软件危机\"，下列不属于软件危机本质表现的是哪一项？",
+    "answer": "D",
+    "analysis": "** 软件危机是软件工程范畴的问题，核心在于需求与产能矛盾、过程混乱、过度依赖个人能力，与硬件损坏无关。",
+    "options": [
+      {
+        "key": "A",
+        "text": "弱的软件生产能力和强的业务发展需求之间存在矛盾"
+      },
+      {
+        "key": "B",
+        "text": "软件开发过程随心所欲，时间计划和费用估算缺乏现实基础"
+      },
+      {
+        "key": "C",
+        "text": "软件开发的成败过度建立在个人能力的基础上"
+      },
+      {
+        "key": "D",
+        "text": "计算机硬件频繁损坏导致软件无法运行"
+      }
+    ]
+  },
+  {
+    "id": "单选题-7",
+    "section": "单选题",
+    "type": "single",
+    "number": 7,
+    "question": "在软件项目生命期的测试阶段中，关于各项测试的职责划分，下列说法正确的是哪项？",
+    "answer": "B",
+    "analysis": "** 单元测试和集成测试由开发者完成；系统测试一般由独立的测试团队（QA）执行；确认测试（验收测试）需要用户参与，以验证产品是否满足用户需求。选项 B 表述最接近标准划分，为本题最佳答案。",
+    "options": [
+      {
+        "key": "A",
+        "text": "所有的测试工作都必须由外部的第三方测试机构独立完成"
+      },
+      {
+        "key": "B",
+        "text": "单元测试和集成测试由开发者自己完成，确认测试和系统测试则由用户参与完成"
+      },
+      {
+        "key": "C",
+        "text": "用户需要全程负责单元测试，编写代码内部的测试用例"
+      },
+      {
+        "key": "D",
+        "text": "系统测试只需在开发者的模拟环境中进行，不需要去实际使用环境"
+      }
+    ]
+  },
+  {
+    "id": "单选题-8",
+    "section": "单选题",
+    "type": "single",
+    "number": 8,
+    "question": "在项目管理框架中，\"参与项目或受项目活动影响的人（如项目发起人、客户、用户、项目经理等）\"统称为什么？",
+    "answer": "A",
+    "analysis": "** 利益相关者（Stakeholder），也译作干系人，是指所有参与项目或受项目影响的个人和组织。",
+    "options": [
+      {
+        "key": "A",
+        "text": "利益相关者/干系人"
+      },
+      {
+        "key": "B",
+        "text": "法务合规人员"
+      },
+      {
+        "key": "C",
+        "text": "外部审计师"
+      },
+      {
+        "key": "D",
+        "text": "职能线性管理者"
+      }
+    ]
+  },
+  {
+    "id": "单选题-9",
+    "section": "单选题",
+    "type": "single",
+    "number": 9,
+    "question": "在合同生存期（Lifecycle）的四个阶段中，按先后顺序排列正确的是哪项？",
+    "answer": "B",
+    "analysis": "** 合同生存期的标准流程是：先准备合同内容，再签署，然后进行合同执行管理，最后合同终止。",
+    "options": [
+      {
+        "key": "A",
+        "text": "合同签署→合同准备→合同终止→合同管理"
+      },
+      {
+        "key": "B",
+        "text": "合同准备→合同签署→合同管理→合同终止"
+      },
+      {
+        "key": "C",
+        "text": "合同管理→合同准备→合同签署→合同终止"
+      },
+      {
+        "key": "D",
+        "text": "合同准备→合同管理→合同签署→合同终止"
+      }
+    ]
+  },
+  {
+    "id": "单选题-10",
+    "section": "单选题",
+    "type": "single",
+    "number": 10,
+    "question": "作为供方（乙方/软件开发商）时，什么文件明确了项目的目标与约束，是项目正式开始的标志，同时也是对项目经理有效授权的依据？",
+    "answer": "C",
+    "analysis": "** 项目任务书（Project Charter）明确了项目目标、约束和授权，是项目正式启动和对项目经理授权的正式文件。",
+    "options": [
+      {
+        "key": "A",
+        "text": "招标公告"
+      },
+      {
+        "key": "B",
+        "text": "需求分析评审报告"
+      },
+      {
+        "key": "C",
+        "text": "项目任务书"
+      },
+      {
+        "key": "D",
+        "text": "发票与付款通知"
+      }
+    ]
+  },
+  {
+    "id": "单选题-11",
+    "section": "单选题",
+    "type": "single",
+    "number": 11,
+    "question": "软件质量不仅关注产品本身的缺陷率，还涵盖更广泛的维度。根据质量管理定义，软件质量可以表示为以下哪三个要素的总合？",
+    "answer": "B",
+    "analysis": "** 软件质量综合体现在三个维度：产品内在质量（缺陷率等）、开发过程质量、以及最终的客户满意度，三者共同衡量软件质量水平。",
+    "options": [
+      {
+        "key": "A",
+        "text": "硬件质量、网络质量、代码行数"
+      },
+      {
+        "key": "B",
+        "text": "软件内在质量、过程质量、客户满意度"
+      },
+      {
+        "key": "C",
+        "text": "合同总额、开发时间、人员规模"
+      },
+      {
+        "key": "D",
+        "text": "交付文档、测试用例、界面美观度"
+      }
+    ]
+  },
+  {
+    "id": "单选题-12",
+    "section": "单选题",
+    "type": "single",
+    "number": 12,
+    "question": "在软件质量工作的三大层次中，主要由软件测试人员参与，侧重于技术，其核心任务是对具体工作产品进行检查并提供质量测量工具，这种活动属于以下哪一项？",
+    "answer": "A",
+    "analysis": "** 软件质量控制（SQC）侧重于对具体产品进行检查、测试和缺陷排查，主要由测试人员执行，是技术层面的质量活动。",
+    "options": [
+      {
+        "key": "A",
+        "text": "软件质量控制（SQC）"
+      },
+      {
+        "key": "B",
+        "text": "软件质量保证（SQA）"
+      },
+      {
+        "key": "C",
+        "text": "全面质量管理（SQM）"
+      },
+      {
+        "key": "D",
+        "text": "软件过程改进（SPI）"
+      }
+    ]
+  },
+  {
+    "id": "单选题-13",
+    "section": "单选题",
+    "type": "single",
+    "number": 13,
+    "question": "在进行软件质量度量或评价时，经常需要进行验证（Verification）和确认（Validation）活动。关于这两者的实质，下列核心阐述正确的是哪项？",
+    "answer": "B",
+    "analysis": "** Verification（验证）回答\"是否正确地构造了产品\"（关注过程），Validation（确认）回答\"构造的产品是否正确\"（关注需求满足）。这是经典的区别定义。",
+    "options": [
+      {
+        "key": "A",
+        "text": "验证关注\"我们构造了正确的产品吗\"，确认关注\"我们正确地构造了产品吗\""
+      },
+      {
+        "key": "B",
+        "text": "验证关注\"我们正确地构造了产品吗\"，确认关注\"我们构造了正确的产品吗\""
+      },
+      {
+        "key": "C",
+        "text": "验证完全由用户来做，确认完全由系统分析师来做"
+      },
+      {
+        "key": "D",
+        "text": "验证属于产品发布后的维护，确认属于项目初期的立项"
+      }
+    ]
+  },
+  {
+    "id": "单选题-14",
+    "section": "单选题",
+    "type": "single",
+    "number": 14,
+    "question": "某种质量度量工具是一种特殊的直方图，它要求将统计后的缺陷或问题按照发生频率大小进行降序排列，目的是帮助项目组确定影响质量的关键性因素，这种工具被称为选项中的哪一个？",
+    "answer": "C",
+    "analysis": "** 帕累托图（Pareto Chart）将缺陷按频率降序排列，遵循\"80/20法则\"，帮助团队识别造成大多数问题的少数关键因素。",
+    "options": [
+      {
+        "key": "A",
+        "text": "检查表"
+      },
+      {
+        "key": "B",
+        "text": "鱼骨图"
+      },
+      {
+        "key": "C",
+        "text": "帕累托图"
+      },
+      {
+        "key": "D",
+        "text": "散点图"
+      }
+    ]
+  },
+  {
+    "id": "单选题-15",
+    "section": "单选题",
+    "type": "single",
+    "number": 15,
+    "question": "关于软件测试过程模型中的\"W 模型\"，下列关于其特点与局限性的叙述中，错误的是哪项？",
+    "answer": "C",
+    "analysis": "** W 模型的局限性恰恰在于它假设开发是串行的，无法很好地支持迭代开发和需求频繁变更，因此\"完美支持迭代\"的说法是错误的。",
+    "options": [
+      {
+        "key": "A",
+        "text": "W 模型强调尽早测试和不断测试，体现了静态测试的思想"
+      },
+      {
+        "key": "B",
+        "text": "W 模型将测试和开发紧密结合，测试和开发活动是同步进行的"
+      },
+      {
+        "key": "C",
+        "text": "W 模型完美支持了迭代开发模型，能够非常灵活地应对需求的频繁变更"
+      },
+      {
+        "key": "D",
+        "text": "W 模型仍局限于将软件开发看成是需求、设计、编码等一系列串行的活动"
+      }
+    ]
+  },
+  {
+    "id": "单选题-16",
+    "section": "单选题",
+    "type": "single",
+    "number": 16,
+    "question": "在软件能力成熟度模型（SW-CMM）的阶梯进化框架中，如果一个企业的软件开发过程处于\"无序、混乱状态，项目的成功完全依赖于个别人的杰出努力和机遇\"，则该企业的成熟度等级属于以下哪一级？",
+    "answer": "A",
+    "analysis": "** CMM 初始级（Level 1）的特征是过程无序、混乱，项目成功依赖个人能力和运气，没有稳定的软件过程。",
+    "options": [
+      {
+        "key": "A",
+        "text": "初始级"
+      },
+      {
+        "key": "B",
+        "text": "可重复级"
+      },
+      {
+        "key": "C",
+        "text": "已定义级"
+      },
+      {
+        "key": "D",
+        "text": "已管理级"
+      }
+    ]
+  },
+  {
+    "id": "单选题-17",
+    "section": "单选题",
+    "type": "single",
+    "number": 17,
+    "question": "软件能力成熟度模型集成（CMMI）提供了两种不同的实施方法。其中，主要用来衡量\"一个企业的成熟度阶梯等级\"的是以下哪一种实施方法？",
+    "answer": "B",
+    "analysis": "** CMMI 的阶段式（Staged）模型将企业成熟度分为5个等级，用于衡量企业整体过程成熟度水平；连续式（Continuous）则关注单个过程域的能力等级。",
+    "options": [
+      {
+        "key": "A",
+        "text": "连续式"
+      },
+      {
+        "key": "B",
+        "text": "阶段式"
+      },
+      {
+        "key": "C",
+        "text": "混合式"
+      },
+      {
+        "key": "D",
+        "text": "矩阵式"
+      }
+    ]
+  },
+  {
+    "id": "单选题-18",
+    "section": "单选题",
+    "type": "single",
+    "number": 18,
+    "question": "某种传统的软件开发生命周期模型是典型的\"风险驱动\"模型，它将软件开发活动划分为\"制定计划、风险分析、实施工程、客户评估\"四个象限并反复循环，这种开发模型被称为选项中的哪一个？",
+    "answer": "D",
+    "analysis": "** 螺旋模型（Spiral Model）是风险驱动的迭代模型，每次循环包含制定计划、风险分析、实施工程、客户评估四个象限，特别适合高风险大型项目。",
+    "options": [
+      {
+        "key": "A",
+        "text": "瀑布模型"
+      },
+      {
+        "key": "B",
+        "text": "增量模型"
+      },
+      {
+        "key": "C",
+        "text": "原型模型"
+      },
+      {
+        "key": "D",
+        "text": "螺旋模型"
+      }
+    ]
+  },
+  {
+    "id": "单选题-19",
+    "section": "单选题",
+    "type": "single",
+    "number": 19,
+    "question": "极限编程（XP）作为一种重要的敏捷开发方法，要求将分析、设计、编码和测试混合在一起进行迭代开发。下列不属于极限编程核心思想（四项价值）的是哪一项？",
+    "answer": "D",
+    "analysis": "** 极限编程的四项核心价值是：交流（Communication）、简单（Simplicity）、反馈（Feedback）、勇气（Courage）。\"复杂\"不属于，且与\"简单\"这一价值相悖。",
+    "options": [
+      {
+        "key": "A",
+        "text": "交流"
+      },
+      {
+        "key": "B",
+        "text": "简单"
+      },
+      {
+        "key": "C",
+        "text": "反馈"
+      },
+      {
+        "key": "D",
+        "text": "复杂"
+      }
+    ]
+  },
+  {
+    "id": "单选题-20",
+    "section": "单选题",
+    "type": "single",
+    "number": 20,
+    "question": "在 Rational 统一过程（RUP）软件生命周期的四个阶段中，哪一个阶段的工作目标是\"设计并确定系统的体系结构，制定项目计划，并确定资源需求\"？",
+    "answer": "B",
+    "analysis": "** RUP 的精化阶段（Elaboration）核心目标是确定系统体系结构、制定详细项目计划并确定资源需求，是技术风险最高的阶段。",
+    "options": [
+      {
+        "key": "A",
+        "text": "初始阶段"
+      },
+      {
+        "key": "B",
+        "text": "精化阶段"
+      },
+      {
+        "key": "C",
+        "text": "构建阶段"
+      },
+      {
+        "key": "D",
+        "text": "移交阶段"
+      }
+    ]
+  },
+  {
+    "id": "单选题-21",
+    "section": "单选题",
+    "type": "single",
+    "number": 21,
+    "question": "软件项目团队除了具有临时性、跨职能等特征外，从团队本身的知识和成果考核属性来看，它属于以下哪种类型的团队？",
+    "answer": "B",
+    "analysis": "** 软件项目团队以脑力劳动为主，成员具备高度专业知识，其成果难以用简单劳动量衡量，属于知识型团队。",
+    "options": [
+      {
+        "key": "A",
+        "text": "劳动密集型流水线团队"
+      },
+      {
+        "key": "B",
+        "text": "高度集中的知识型团队"
+      },
+      {
+        "key": "C",
+        "text": "纯体力劳作型施工团队"
+      },
+      {
+        "key": "D",
+        "text": "机械重复性日常运作团队"
+      }
+    ]
+  },
+  {
+    "id": "单选题-22",
+    "section": "单选题",
+    "type": "single",
+    "number": 22,
+    "question": "在软件项目团队的角色分类中，主要从事需求获取和研究，充当项目中\"业务与技术之间沟通桥梁\"的角色是以下哪一个？",
+    "answer": "B",
+    "analysis": "** 系统分析员（System Analyst）的核心职责是获取和分析需求，在业务需求和技术实现之间架起沟通桥梁。",
+    "options": [
+      {
+        "key": "A",
+        "text": "软件开发人员"
+      },
+      {
+        "key": "B",
+        "text": "系统分析员"
+      },
+      {
+        "key": "C",
+        "text": "质量保证人员"
+      },
+      {
+        "key": "D",
+        "text": "软件配置管理人员"
+      }
+    ]
+  },
+  {
+    "id": "单选题-23",
+    "section": "单选题",
+    "type": "single",
+    "number": 23,
+    "question": "在某种项目组织结构形式中，\"项目人员至少有两个上级（项目经理和职能部门经理），双头领导容易造成上级命令的不统一，从而带来管理上的混乱\"。这种组织结构是以下哪一种？",
+    "answer": "C",
+    "analysis": "** 矩阵型组织结构中成员同时接受项目经理和职能部门经理的双重领导，这是该结构最典型的特征，也是其最大的管理风险。",
+    "options": [
+      {
+        "key": "A",
+        "text": "直线型组织结构"
+      },
+      {
+        "key": "B",
+        "text": "职能型组织结构"
+      },
+      {
+        "key": "C",
+        "text": "矩阵型组织结构"
+      },
+      {
+        "key": "D",
+        "text": "模块化组织结构"
+      }
+    ]
+  },
+  {
+    "id": "单选题-24",
+    "section": "单选题",
+    "type": "single",
+    "number": 24,
+    "question": "根据马斯洛需求层次理论，软件技术人员通常属于追求较高层次需求的群体。对该群体而言，以下哪项活动属于最核心、最有效的内部激励因素？",
+    "answer": "C",
+    "analysis": "** 根据马斯洛理论，技术人员主要追求尊重和自我实现等高层次需求，学习机会和创造力环境属于内在激励，最为有效。",
+    "options": [
+      {
+        "key": "A",
+        "text": "提供基础的衣食住行生理满足"
+      },
+      {
+        "key": "B",
+        "text": "办公室提供高强度的物理保安防范"
+      },
+      {
+        "key": "C",
+        "text": "提供良好的学习机会与发挥创造力的环境"
+      },
+      {
+        "key": "D",
+        "text": "制定严厉的考勤扣薪处罚机制"
+      }
+    ]
+  },
+  {
+    "id": "单选题-25",
+    "section": "单选题",
+    "type": "single",
+    "number": 25,
+    "question": "在统一过程（UP）开发中，软件需求通常是根据 FURPS+模型进行分类的。其中，字母 P 代表的质量特性是以下哪一项？",
+    "answer": "D",
+    "analysis": "** FURPS+模型中：F=Functionality（功能性），U=Usability（可用性），R=Reliability（可靠性），P=Performance（性能），S=Supportability（可支持性）。",
+    "options": [
+      {
+        "key": "A",
+        "text": "功能性"
+      },
+      {
+        "key": "B",
+        "text": "可靠性"
+      },
+      {
+        "key": "C",
+        "text": "可支持性"
+      },
+      {
+        "key": "D",
+        "text": "性能"
+      }
+    ]
+  },
+  {
+    "id": "单选题-26",
+    "section": "单选题",
+    "type": "single",
+    "number": 26,
+    "question": "整个需求工程（也称需求过程）是一个持续性的系统化活动。它在结构上主要由以下哪两大部分组成？",
+    "answer": "B",
+    "analysis": "** 需求工程由需求开发（获取、分析、规格说明、验证）和需求管理（变更控制、版本控制、需求跟踪）两大部分组成。",
+    "options": [
+      {
+        "key": "A",
+        "text": "需求调研与编码实现"
+      },
+      {
+        "key": "B",
+        "text": "需求开发与需求管理"
+      },
+      {
+        "key": "C",
+        "text": "概要设计与详细设计"
+      },
+      {
+        "key": "D",
+        "text": "单元测试与系统测试"
+      }
+    ]
+  },
+  {
+    "id": "单选题-27",
+    "section": "单选题",
+    "type": "single",
+    "number": 27,
+    "question": "需求分析工作完成的重要标志是提交一份最终的成果文档。该文档不仅是所有子系列项目规划的基础，也是设计、编码和系统测试的基石。该文档的英文缩写是以下哪一个？",
+    "answer": "C",
+    "analysis": "** SRS（Software Requirements Specification，软件需求规格说明书）是需求分析的核心交付物，是后续设计、开发、测试的基础文件。",
+    "options": [
+      {
+        "key": "A",
+        "text": "WBS"
+      },
+      {
+        "key": "B",
+        "text": "RUP"
+      },
+      {
+        "key": "C",
+        "text": "SRS"
+      },
+      {
+        "key": "D",
+        "text": "CMM"
+      }
+    ]
+  },
+  {
+    "id": "单选题-28",
+    "section": "单选题",
+    "type": "single",
+    "number": 28,
+    "question": "脑力风暴是一种获取新观点或创造性解决方案的需求获取方法。该方法在执行时，通常包含哪两个主要的先后阶段？",
+    "answer": "B",
+    "analysis": "** 头脑风暴（Brainstorming）先进行想法产生阶段（鼓励自由发言，不加评判），再进入想法精化阶段（筛选、合并、分类、评估）。",
+    "options": [
+      {
+        "key": "A",
+        "text": "问卷发放阶段与统计分析阶段"
+      },
+      {
+        "key": "B",
+        "text": "想法产生阶段与想法精化阶段"
+      },
+      {
+        "key": "C",
+        "text": "客户访谈阶段与代码编写阶段"
+      },
+      {
+        "key": "D",
+        "text": "原型设计阶段与系统测试阶段"
+      }
+    ]
+  },
+  {
+    "id": "单选题-29",
+    "section": "单选题",
+    "type": "single",
+    "number": 29,
+    "question": "某个软件项目团队规模较小（7 人），开发周期极短（4 周），且面临客户高频变更需求的挑战。在不计成本、追求极限响应速度的前提下，以下哪种组织结构形式最适合该项目？",
+    "answer": "B",
+    "analysis": "** 直线型组织结构决策链条极短、权力高度集中，在小团队、短期限、高频变更的场景下，响应速度最快，最符合该需求。",
+    "options": [
+      {
+        "key": "A",
+        "text": "职能型组织结构"
+      },
+      {
+        "key": "B",
+        "text": "直线型组织结构"
+      },
+      {
+        "key": "C",
+        "text": "强矩阵型组织结构"
+      },
+      {
+        "key": "D",
+        "text": "弱矩阵型组织结构"
+      }
+    ]
+  },
+  {
+    "id": "单选题-30",
+    "section": "单选题",
+    "type": "single",
+    "number": 30,
+    "question": "在矩阵型项目组织结构中，项目成员通常拥有双重汇报路线。其中，负责把控项目整体进度与交付目标的是以下哪一个角色？",
+    "answer": "C",
+    "analysis": "** 矩阵型组织中，项目经理负责把控项目整体进度、协调资源和达成交付目标；职能部门经理负责技术指导和人才发展。",
+    "options": [
+      {
+        "key": "A",
+        "text": "职能部门经理"
+      },
+      {
+        "key": "B",
+        "text": "外部商务法务专家"
+      },
+      {
+        "key": "C",
+        "text": "项目经理"
+      },
+      {
+        "key": "D",
+        "text": "高级系统测试人员"
+      }
+    ]
+  },
+  {
+    "id": "单选题-31",
+    "section": "单选题",
+    "type": "single",
+    "number": 31,
+    "question": "在职能型组织结构中，工作部门是按专业技能划分的。当项目突然遇到需要跨部门高效协作的紧急突发状况时，最容易出现的潜在弊端是选项中的哪一个？",
+    "answer": "B",
+    "analysis": "** 职能型结构中各部门各自为政，跨部门沟通需层层请示汇报，面对紧急情况时最突出的问题是流程冗长、响应缓慢、互相推诿责任。",
+    "options": [
+      {
+        "key": "A",
+        "text": "决策由项目经理一人独裁，一线员工压力过大"
+      },
+      {
+        "key": "B",
+        "text": "流程冗长、响应缓慢，部门间容易因偏重本部任务而互相推诿"
+      },
+      {
+        "key": "C",
+        "text": "企业内部的技术沉淀和人才长期职业路径被彻底打破"
+      },
+      {
+        "key": "D",
+        "text": "部门经理的权力彻底被架空，无法对成员进行绩效考核"
+      }
+    ]
+  },
+  {
+    "id": "单选题-32",
+    "section": "单选题",
+    "type": "single",
+    "number": 32,
+    "question": "在软件项目管理中，美国软件工程研究所（SEI）将\"风险\"定义为什么？",
+    "answer": "C",
+    "analysis": "** SEI 对风险的定义是\"损失发生的可能性\"，强调风险是一种概率性事件，不是必然结果。",
+    "options": [
+      {
+        "key": "A",
+        "text": "进度延迟的必然性"
+      },
+      {
+        "key": "B",
+        "text": "预算超支的最终结果"
+      },
+      {
+        "key": "C",
+        "text": "损失的可能性"
+      },
+      {
+        "key": "D",
+        "text": "技术转让的商务条款"
+      }
+    ]
+  },
+  {
+    "id": "单选题-33",
+    "section": "单选题",
+    "type": "single",
+    "number": 33,
+    "question": "风险具有两大基本属性，即可能性（发生概率）和损失（后果差异）。在对项目风险进行定量评估时，风险损失值的计算公式通常为以下哪一个？",
+    "answer": "B",
+    "analysis": "** 风险损失值 = 发生概率 × 后果损失，这是风险定量评估的基本公式，用期望值来量化风险严重程度。",
+    "options": [
+      {
+        "key": "A",
+        "text": "风险损失 = 可能性 + 损失"
+      },
+      {
+        "key": "B",
+        "text": "风险损失 = 可能性 × 损失"
+      },
+      {
+        "key": "C",
+        "text": "风险损失 = 可能性 ÷ 损失"
+      },
+      {
+        "key": "D",
+        "text": "风险损失 = 可能性² × 损失"
+      }
+    ]
+  },
+  {
+    "id": "单选题-34",
+    "section": "单选题",
+    "type": "single",
+    "number": 34,
+    "question": "风险管理在项目生命周期中可以分为四个不同的水平层次。如果一个项目组\"事先制定好了风险发生后的补救措施，但平时不制定任何的积极防范措施\"，这种管理层次属于以下哪一项？",
+    "answer": "B",
+    "analysis": "** 风险管理四个层次：①危机管理——风险已发生才被动应对，无任何预案；②风险缓解——事先制定了补救预案，但不采取积极预防措施（介于危机管理和着力预防之间）；③着力预防——主动采取措施降低风险发生概率；④消灭根源——从根本上消除风险。题目描述的\"有补救措施但无积极防范\"对应风险缓解。",
+    "options": [
+      {
+        "key": "A",
+        "text": "危机管理"
+      },
+      {
+        "key": "B",
+        "text": "风险缓解"
+      },
+      {
+        "key": "C",
+        "text": "着力预防"
+      },
+      {
+        "key": "D",
+        "text": "消灭根源"
+      }
+    ]
+  },
+  {
+    "id": "单选题-35",
+    "section": "单选题",
+    "type": "single",
+    "number": 35,
+    "question": "在项目风险识别阶段，有一种方法是由项目风险小组选定与该项目有关的领域专家，建立直接的函询联系，通过多轮匿名函询收集并整理专家意见，逐步使专家意见趋向一致。这种方法被称为选项中的哪一个？",
+    "answer": "B",
+    "analysis": "** 德尔菲法（Delphi Method）通过多轮匿名函询收集专家意见，逐步达成共识，避免了专家之间相互影响，是经典的风险识别方法。",
+    "options": [
+      {
+        "key": "A",
+        "text": "风险条目检查表法"
+      },
+      {
+        "key": "B",
+        "text": "德尔菲法"
+      },
+      {
+        "key": "C",
+        "text": "情景分析法"
+      },
+      {
+        "key": "D",
+        "text": "挣值分析法"
+      }
+    ]
+  },
+  {
+    "id": "单选题-36",
+    "section": "单选题",
+    "type": "single",
+    "number": 36,
+    "question": "在软件项目的各个生命周期阶段中，某阶段由于其任何疏漏造成的损失都会在软件系统的后续阶段被一级级地放大。根据这一特征，在整个软件开发过程中风险最大的阶段是哪一个？",
+    "answer": "A",
+    "analysis": "** 需求分析阶段位于软件开发生命周期最前端，任何需求上的疏漏或错误都会在后续设计、编码、测试阶段不断放大，导致修复成本急剧上升，因此风险最大。",
+    "options": [
+      {
+        "key": "A",
+        "text": "需求分析阶段"
+      },
+      {
+        "key": "B",
+        "text": "系统设计阶段"
+      },
+      {
+        "key": "C",
+        "text": "代码编码阶段"
+      },
+      {
+        "key": "D",
+        "text": "系统测试阶段"
+      }
+    ]
+  },
+  {
+    "id": "单选题-37",
+    "section": "单选题",
+    "type": "single",
+    "number": 37,
+    "question": "从软件工程全生命周期的成本和费用来看，重视系统可维护性能够有效控制项目后期的运营风险。通常情况下，软件维护费用大约占到软件全寿命总费用的多少？",
+    "answer": "C",
+    "analysis": "** 根据软件工程统计数据，软件维护费用通常占到软件全寿命总费用的55%-70%，远超开发阶段成本，体现了维护工作的重要性和长期性。",
+    "options": [
+      {
+        "key": "A",
+        "text": "10%-20%"
+      },
+      {
+        "key": "B",
+        "text": "25%-40%"
+      },
+      {
+        "key": "C",
+        "text": "55%-70%"
+      },
+      {
+        "key": "D",
+        "text": "85%-95%"
+      }
+    ]
+  },
+  {
+    "id": "单选题-38",
+    "section": "单选题",
+    "type": "single",
+    "number": 38,
+    "question": "在项目范围管理中，项目组通常会建立工作分解结构（WBS）来定义整个项目的范围。关于 WBS 的编制原则，下列叙述正确的是哪项？",
+    "answer": "B",
+    "analysis": "** WBS 以可交付成果为导向进行层次分解，不在 WBS 中的工作不属于项目范围（100%规则）。800小时原则只是一个参考指导，并非严格规定。",
+    "options": [
+      {
+        "key": "A",
+        "text": "WBS 应当是面向可交付活动进行分组的，而不是面向可交付成果"
+      },
+      {
+        "key": "B",
+        "text": "WBS 应当是面向可交付成果进行分组的，它组织并定义了整个项目范围"
+      },
+      {
+        "key": "C",
+        "text": "只要项目经理认为重要，不在 WBS 中的工作也默认属于项目的合同范围内"
+      },
+      {
+        "key": "D",
+        "text": "WBS 的最低层次被称为工作包，其开发时间应严格遵循 800 小时完成原则"
+      }
+    ]
+  },
+  {
+    "id": "单选题-39",
+    "section": "单选题",
+    "type": "single",
+    "number": 39,
+    "question": "在项目跟踪控制过程中，经常需要区分\"范围核实\"与\"质量控制\"。关于这两者的核心关注点，下列说法正确的是哪项？",
+    "answer": "B",
+    "analysis": "** 范围核实（验收）关心的是成果是否被客户接受；质量控制关心的是成果是否正确、符合规范。两者侧重点不同：接受 vs 正确。",
+    "options": [
+      {
+        "key": "A",
+        "text": "范围核实关心工作成果的正确，质量控制关心工作成果的接受"
+      },
+      {
+        "key": "B",
+        "text": "范围核实关心工作成果的接受，质量控制关心工作成果的正确"
+      },
+      {
+        "key": "C",
+        "text": "范围核实完全由开发人员执行，质量控制完全由客户代表执行"
+      },
+      {
+        "key": "D",
+        "text": "范围核实旨在满足开发人员的期望，质量控制旨在满足市场人员的期望"
+      }
+    ]
+  },
+  {
+    "id": "单选题-40",
+    "section": "单选题",
+    "type": "single",
+    "number": 40,
+    "question": "根据软件配置管理规范，配置项的版本号与其所处的状态有着严格的对应规则。当某个配置项完成修改，重新通过评审并进行第一次正式发布时，其版本号应当规范设置为以下哪一个？",
+    "answer": "C",
+    "analysis": "** 配置管理版本号规则：草稿版本为0.XX，首次正式发布版本为1.0，后续修改版为1.01、1.02...，第二次发布为2.0。完成修改并首次正式发布对应版本号为1.0。",
+    "options": [
+      {
+        "key": "A",
+        "text": "0.01"
+      },
+      {
+        "key": "B",
+        "text": "0.10"
+      },
+      {
+        "key": "C",
+        "text": "1.0"
+      },
+      {
+        "key": "D",
+        "text": "1.0.1"
+      }
+    ]
+  },
+  {
+    "id": "单选题-41",
+    "section": "单选题",
+    "type": "single",
+    "number": 41,
+    "question": "在配置库分类中，用于\"在某个开发阶段结束时，存放作为该阶段产品及其相关受控信息\"的软件库被称为以下哪一个？",
+    "answer": "B",
+    "analysis": "** 受控库（也称配置库）用于存放各阶段完成后的受控产品及信息，是配置管理的核心库，对变更需要走审批流程。",
+    "options": [
+      {
+        "key": "A",
+        "text": "开发库（工作空间）"
+      },
+      {
+        "key": "B",
+        "text": "受控库（配置库）"
+      },
+      {
+        "key": "C",
+        "text": "产品库（静态库）"
+      },
+      {
+        "key": "D",
+        "text": "历史备份库"
+      }
+    ]
+  },
+  {
+    "id": "单选题-42",
+    "section": "单选题",
+    "type": "single",
+    "number": 42,
+    "question": "在不改变各项活动之间逻辑关系的前提下，通过在关键路径活动上投入更多的资源（如安排加班或增加开发人员），从而缩短关键活动工期的方法在进度管理中被称为以下哪一种？",
+    "answer": "B",
+    "analysis": "** 赶工（Crashing）是在不改变活动逻辑关系的情况下，增加资源投入以缩短关键路径活动工期，通常会增加成本。",
+    "options": [
+      {
+        "key": "A",
+        "text": "快速跟进"
+      },
+      {
+        "key": "B",
+        "text": "赶工"
+      },
+      {
+        "key": "C",
+        "text": "资源平衡"
+      },
+      {
+        "key": "D",
+        "text": "逆向资源分配"
+      }
+    ]
+  },
+  {
+    "id": "单选题-43",
+    "section": "单选题",
+    "type": "single",
+    "number": 43,
+    "question": "在编制项目进度计划时，有时会采用平行作业法（快速跟进）。关于快速跟进的实质，下列叙述正确的是哪项？",
+    "answer": "B",
+    "analysis": "** 快速跟进（Fast Tracking）的本质是改变活动逻辑关系，将原本串行的活动改为并行或搭接执行，会增加返工风险但不增加额外资源成本。",
+    "options": [
+      {
+        "key": "A",
+        "text": "它是指通过削减项目原定的一部分功能范围来缩短工期"
+      },
+      {
+        "key": "B",
+        "text": "它是指改变活动间的逻辑关系，将原本先后顺序执行的活动并行或搭接开展"
+      },
+      {
+        "key": "C",
+        "text": "它是指降低产品质量标准以加快开发人员的编码速度"
+      },
+      {
+        "key": "D",
+        "text": "它是指强制所有人无条件延长每日加班时间"
+      }
+    ]
+  },
+  {
+    "id": "单选题-44",
+    "section": "单选题",
+    "type": "single",
+    "number": 44,
+    "question": "在项目成本管理中，科学地进行成本预算需要理清成本的组成结构。以下关于项目中\"固定成本\"的理解，正确的是哪项？",
+    "answer": "B",
+    "analysis": "** 固定成本是指在一定时期和业务量范围内，不随任务工期或工作量变化而改变的成本，如办公场地租金、固定设备折旧等。",
+    "options": [
+      {
+        "key": "A",
+        "text": "它是指随着任务工期的延长而呈线性等比例增加的员工工资成本"
+      },
+      {
+        "key": "B",
+        "text": "它是指一种不因任务工期长短或资源完成工作量多少而发生改变的成本"
+      },
+      {
+        "key": "C",
+        "text": "它是指随着项目采购服务器数量的增加而不断变动的设备购买成本"
+      },
+      {
+        "key": "D",
+        "text": "它是指根据每个开发人员每天代码编写行数动态计算的绩效成本"
+      }
+    ]
+  },
+  {
+    "id": "单选题-45",
+    "section": "单选题",
+    "type": "single",
+    "number": 45,
+    "question": "在软件项目管理中，项目并非只有在完美成功时才能结束。下列情况中，不属于可以终止项目的合理客观条件的是哪一项？",
+    "answer": "C",
+    "analysis": "** 合理的终止条件包括：目标实现、市场变化失去价值、技术问题导致无限期拖延。员工合理补休申请属于正常人事管理，不是项目终止的客观条件。",
+    "options": [
+      {
+        "key": "A",
+        "text": "项目计划中确定的可交付成果已经出现，项目目标已成功实现"
+      },
+      {
+        "key": "B",
+        "text": "由于市场或大环境变化，该项目在当前已经完全不具备实用价值和竞争力"
+      },
+      {
+        "key": "C",
+        "text": "一线核心编码人员在开发阶段提出了合理的加班补休申请"
+      },
+      {
+        "key": "D",
+        "text": "项目由于技术壁垒或各种复杂原因，导致工期被无限期拖长"
+      }
+    ]
+  },
+  {
+    "id": "单选题-46",
+    "section": "单选题",
+    "type": "single",
+    "number": 46,
+    "question": "在项目接近尾声的收尾阶段，项目经理需要带领团队对从项目开始到结束全过程所支付的全部费用进行核算，并编制报表的过程被称为以下哪一项？",
+    "answer": "C",
+    "analysis": "** 费用决算是对项目全过程实际支出费用进行核算汇总并编制财务报表，是项目收尾阶段的重要财务工作。",
+    "options": [
+      {
+        "key": "A",
+        "text": "范围确认"
+      },
+      {
+        "key": "B",
+        "text": "质量验收"
+      },
+      {
+        "key": "C",
+        "text": "费用决算"
+      },
+      {
+        "key": "D",
+        "text": "合同终结"
+      }
+    ]
+  },
+  {
+    "id": "单选题-47",
+    "section": "单选题",
+    "type": "single",
+    "number": 47,
+    "question": "在项目收尾的末期，从质量控制的阶段来看，项目收尾阶段主要包括以下哪两个必经的子阶段？",
+    "answer": "A",
+    "analysis": "** 项目收尾的两个必经子阶段是项目评估（对整体执行情况进行总结评价）和项目终止（正式关闭项目、释放资源、归档文档）。",
+    "options": [
+      {
+        "key": "A",
+        "text": "项目评估与项目终止"
+      },
+      {
+        "key": "B",
+        "text": "代码审计与代码入库"
+      },
+      {
+        "key": "C",
+        "text": "需求基线化与变更控制"
+      },
+      {
+        "key": "D",
+        "text": "自下而上估算与参数度量"
+      }
+    ]
+  },
+  {
+    "id": "单选题-48",
+    "section": "单选题",
+    "type": "single",
+    "number": 48,
+    "question": "在软件项目正式验收时，必须有明确、权威的考核标准作为依据。关于项目验收的一般标准和主要依据，下列说法正确的是哪项？",
+    "answer": "C",
+    "analysis": "** 项目验收以合同书为标准，以实际工作成果和成果文档为依据，对项目是否达到合同约定的目标进行正式的、权威的审核确认。",
+    "options": [
+      {
+        "key": "A",
+        "text": "验收的标准通常由项目经理个人口头宣布决定"
+      },
+      {
+        "key": "B",
+        "text": "验收时主要依据销售部门的营销宣传口号来进行对比"
+      },
+      {
+        "key": "C",
+        "text": "验收一般选用项目合同书作为标准，主要依据项目的工作成果和成果文档"
+      },
+      {
+        "key": "D",
+        "text": "只要代码能够编译通过，项目就自动视为完全符合国家标准"
+      }
+    ]
+  },
+  {
+    "id": "单选题-49",
+    "section": "单选题",
+    "type": "single",
+    "number": 49,
+    "question": "关于项目\"验收\"与\"移交\"之间的辩证关系，下列哪项陈述是完全正确的？",
+    "answer": "B",
+    "analysis": "** 验收是移交的前提条件——只有通过验收确认成果合格后，才进行正式移交。移交是项目收尾的最后环节，标志着项目管理的正式完结。",
+    "options": [
+      {
+        "key": "A",
+        "text": "项目移交是项目验收的前提，移交完了才能进行验收"
+      },
+      {
+        "key": "B",
+        "text": "项目验收是项目移交的前提；移交是项目收尾的最后工作内容，是项目管理的完结"
+      },
+      {
+        "key": "C",
+        "text": "只要结清了全部项目款项，团队就可以拒绝向客户移交任何文件和实体"
+      },
+      {
+        "key": "D",
+        "text": "验收和移交是完全独立的两个过程，彼此之间没有任何因果和先后顺序关系"
+      }
+    ]
+  },
+  {
+    "id": "单选题-50",
+    "section": "单选题",
+    "type": "single",
+    "number": 50,
+    "question": "软件项目合同在法律和业务分类上，主要属于以下哪种合同？",
+    "answer": "B",
+    "analysis": "** 软件项目合同涉及技术开发、技术服务等，从法律分类上属于技术合同范畴，受《技术合同法》等相关法律法规调整。",
+    "options": [
+      {
+        "key": "A",
+        "text": "劳动人事合同"
+      },
+      {
+        "key": "B",
+        "text": "技术合同"
+      },
+      {
+        "key": "C",
+        "text": "房屋租赁合同"
+      },
+      {
+        "key": "D",
+        "text": "普通民事买卖合同"
+      }
+    ]
+  },
+  {
+    "id": "多选题-1",
+    "section": "多选题",
+    "type": "multi",
+    "number": 1,
+    "question": "在软件开发项目中，项目控制是非常重要的管理活动。如果一个项目完全缺乏有效的跟踪控制，可能会直接导致以下哪些后果？",
+    "answer": "ABCD",
+    "analysis": "** 缺乏项目控制会导致范围蔓延（范围无序膨胀）、成本失控、风险未能及时识别和应对、进度失控延期等全方位问题。",
+    "options": [
+      {
+        "key": "A",
+        "text": "项目的业务需求范围出现不合理的无限制扩张"
+      },
+      {
+        "key": "B",
+        "text": "项目的实施成本成倍增长"
+      },
+      {
+        "key": "C",
+        "text": "项目需要承担的风险大幅度增加"
+      },
+      {
+        "key": "D",
+        "text": "项目的最终交付进度被严重推迟"
+      }
+    ]
+  },
+  {
+    "id": "多选题-2",
+    "section": "多选题",
+    "type": "multi",
+    "number": 2,
+    "question": "在进行软件配置管理时，一个配置项（Configuration Item, CI）在其生命周期中主要包括三种规范的状态。这三种状态指的是选项中的哪几项？",
+    "answer": "ACD",
+    "analysis": "** 配置项生命周期中的三种状态是：草稿（Draft）、正式发布（Released）、正在修改（Changing），它们构成一个完整的状态变迁循环。",
+    "options": [
+      {
+        "key": "A",
+        "text": "草稿"
+      },
+      {
+        "key": "B",
+        "text": "正在测试"
+      },
+      {
+        "key": "C",
+        "text": "正式发布"
+      },
+      {
+        "key": "D",
+        "text": "正在修改"
+      }
+    ]
+  },
+  {
+    "id": "多选题-3",
+    "section": "多选题",
+    "type": "multi",
+    "number": 3,
+    "question": "针对定性与定量评估出来的项目风险结果，为了提高实现项目目标的成功率，项目组通常会制定风险应对策略。下列选项中，属于降低项目风险的主要四大管理策略的是哪些？",
+    "answer": "ABCD",
+    "analysis": "** 四大风险应对策略：回避风险（规避）、转移风险（转嫁，如保险）、损失控制（降低概率或影响）、自留风险（接受并准备应急储备）。",
+    "options": [
+      {
+        "key": "A",
+        "text": "回避风险"
+      },
+      {
+        "key": "B",
+        "text": "转移风险"
+      },
+      {
+        "key": "C",
+        "text": "损失控制"
+      },
+      {
+        "key": "D",
+        "text": "自留风险"
+      }
+    ]
+  },
+  {
+    "id": "多选题-4",
+    "section": "多选题",
+    "type": "multi",
+    "number": 4,
+    "question": "在软件进度计划编制中，当关键路径工期延误、面临紧急交付压力时，项目经理可以采用时间压缩法来缩短工期。时间压缩法常用的两类具体的平行作业与资源平衡技术是哪些？",
+    "answer": "AC",
+    "analysis": "** 时间压缩法的两大技术：赶工（Crashing，增加资源缩短关键路径）和快速跟进（Fast Tracking，并行执行原串行活动）。两者各有优缺点和风险。",
+    "options": [
+      {
+        "key": "A",
+        "text": "赶工"
+      },
+      {
+        "key": "B",
+        "text": "需求蔓延"
+      },
+      {
+        "key": "C",
+        "text": "快速跟进"
+      },
+      {
+        "key": "D",
+        "text": "增加花哨功能"
+      }
+    ]
+  },
+  {
+    "id": "多选题-5",
+    "section": "多选题",
+    "type": "multi",
+    "number": 5,
+    "question": "在项目管理理论中，项目与日常运作（常规业务）有着本质的区别。下列关于两者区别的表述中，正确的有（）。",
+    "answer": "ABC",
+    "analysis": "** D选项说反了：项目成功主要通过目标达成（效果）体现，日常运作成功主要通过效率体现。",
+    "options": [
+      {
+        "key": "A",
+        "text": "项目是一次性的、以目标为导向的，而日常运作是重复进行的"
+      },
+      {
+        "key": "B",
+        "text": "项目是通过项目经理及其团队工作完成的，日常运作主要通过职能式线性管理完成"
+      },
+      {
+        "key": "C",
+        "text": "项目实施过程中存在大量的变更管理，日常运作则基本保持持续的连贯性"
+      },
+      {
+        "key": "D",
+        "text": "项目的成功主要通过效率体现，日常运作的成功主要通过目标达成体现"
+      }
+    ]
+  },
+  {
+    "id": "多选题-6",
+    "section": "多选题",
+    "type": "multi",
+    "number": 6,
+    "question": "关于项目生命周期中与时间相关的核心概念（检查点、里程碑、基线），下列说法正确的有（）。",
+    "answer": "ABC",
+    "analysis": "** D选项错误：里程碑本身只是一个时间节点标志，并不直接消耗核心资源，它主要起到阶段成果确认的作用。",
+    "options": [
+      {
+        "key": "A",
+        "text": "检查点是指在规定的时间间隔内对项目进行检查，比较实际与计划差异并进行调整"
+      },
+      {
+        "key": "B",
+        "text": "里程碑是完成阶段性工作的标志，不同类型的项目里程碑不同"
+      },
+      {
+        "key": "C",
+        "text": "基线是指一个或一组配置项通过正式评审而进入正式受控的一种状态"
+      },
+      {
+        "key": "D",
+        "text": "里程碑需要消耗项目的大量核心人力与物理资源，而检查点和基线不需要"
+      }
+    ]
+  },
+  {
+    "id": "多选题-7",
+    "section": "多选题",
+    "type": "multi",
+    "number": 7,
+    "question": "软件项目技术合同在实际执行过程中（即合同生存期内），通常包含以下哪些必经的流程阶段（）。",
+    "answer": "ABCD",
+    "analysis": "** 合同生存期包含四个必经阶段：合同准备→合同签署→合同管理→合同终止，缺一不可。",
+    "options": [
+      {
+        "key": "A",
+        "text": "合同准备"
+      },
+      {
+        "key": "B",
+        "text": "合同签署"
+      },
+      {
+        "key": "C",
+        "text": "合同管理"
+      },
+      {
+        "key": "D",
+        "text": "合同终止"
+      }
+    ]
+  },
+  {
+    "id": "多选题-8",
+    "section": "多选题",
+    "type": "multi",
+    "number": 8,
+    "question": "在进行软件质量度量与统计分析时，可以采用多种图形或表格类工具。下列工具中，主要用于\"问题识别\"或\"问题分析\"的质量工具有哪些（）？",
+    "answer": "AC",
+    "analysis": "** 帕累托图用于识别主要问题（80/20法则），因果图（鱼骨图）用于分析问题根本原因，两者都是典型的问题识别/分析工具。游程图和控制图主要用于过程监控，散点图用于相关性分析。",
+    "options": [
+      {
+        "key": "A",
+        "text": "帕累托图"
+      },
+      {
+        "key": "B",
+        "text": "游程图与控制图"
+      },
+      {
+        "key": "C",
+        "text": "因果图（鱼骨图）"
+      },
+      {
+        "key": "D",
+        "text": "散点图"
+      }
+    ]
+  },
+  {
+    "id": "多选题-9",
+    "section": "多选题",
+    "type": "multi",
+    "number": 9,
+    "question": "软件测试过程模型用于指导测试的组织与管理。关于\"V 模型\"、\"W 模型\"和\"H 模型\"的核心特点，下列说法正确的有（）。",
+    "answer": "ABC",
+    "analysis": "** D选项错误：V模型和W模型都基于串行开发假设，不能完美支持敏捷迭代；H模型虽独立但也不能完全免于计划调整。",
+    "options": [
+      {
+        "key": "A",
+        "text": "V 模型反映了动态测试行为与开发行为的对应关系"
+      },
+      {
+        "key": "B",
+        "text": "W 模型强调尽早测试、不断测试，并在各阶段引入了静态测试"
+      },
+      {
+        "key": "C",
+        "text": "H 模型将测试活动完全孤立出来，体现了测试流程的独立性与完整性"
+      },
+      {
+        "key": "D",
+        "text": "三种模型都可以完美地支持敏捷迭代开发，需求变更时无需调整计划"
+      }
+    ]
+  },
+  {
+    "id": "多选题-10",
+    "section": "多选题",
+    "type": "multi",
+    "number": 10,
+    "question": "在能力成熟度模型（CMM）中，除第一级外，每一级的关键过程域（KPA）包含的关键实施活动（KP）都统一按公共属性进行组织。下列属于这六个公共属性的有（）。",
+    "answer": "ABC",
+    "analysis": "** CMM的六个公共属性是：目标、执行活动、实施保证、实施能力、度量分析、实施验证。代码行数和薪酬激励不属于公共属性。",
+    "options": [
+      {
+        "key": "A",
+        "text": "目标与执行活动"
+      },
+      {
+        "key": "B",
+        "text": "实施保证与实施能力"
+      },
+      {
+        "key": "C",
+        "text": "度量分析与实施验证"
+      },
+      {
+        "key": "D",
+        "text": "代码行数与薪酬激励"
+      }
+    ]
+  },
+  {
+    "id": "多选题-11",
+    "section": "多选题",
+    "type": "multi",
+    "number": 11,
+    "question": "在 Rational 统一过程（RUP）软件生命周期中，项目被划分为不同的工作流与阶段。下列关于 RUP 四个台阶阶段工作目标的叙述，正确的有（）。",
+    "answer": "ABCD",
+    "analysis": "** RUP四个阶段各有明确目标：初始阶段确定范围和业务模型，精化阶段确定体系结构和计划，构建阶段开发集成并测试，移交阶段交付产品给用户，全部正确。",
+    "options": [
+      {
+        "key": "A",
+        "text": "初始阶段：建立业务模型，定义产品视图并确定项目范围"
+      },
+      {
+        "key": "B",
+        "text": "精化阶段：设计并确定系统的体系结构，制定项目计划"
+      },
+      {
+        "key": "C",
+        "text": "构建阶段：开发出所有构件和应用程序并集成为产品，执行详尽测试"
+      },
+      {
+        "key": "D",
+        "text": "移交阶段：把开发出的最终产品正式提交给用户使用"
+      }
+    ]
+  },
+  {
+    "id": "多选题-12",
+    "section": "多选题",
+    "type": "multi",
+    "number": 12,
+    "question": "软件配置管理（SCM）和质量保证（SQA）是团队组织计划中不可或缺的分工角色。关于这两个岗位的日常职责，下列叙述正确的有（）。",
+    "answer": "AB",
+    "analysis": "** C错误：配置管理人员可以是专职岗位，不需要由架构师兼任；D错误：SQA负责过程监督和质量审计，不负责编写业务代码和单元测试。",
+    "options": [
+      {
+        "key": "A",
+        "text": "软件配置管理人员（SCM）负责策划、协调和实施软件项目的正式配置管理活动"
+      },
+      {
+        "key": "B",
+        "text": "质量保证人员（SQA）负责确保软件开发活动完全遵循建立的软件过程标准"
+      },
+      {
+        "key": "C",
+        "text": "配置管理人员必须由最资深的技术架构师兼任，严禁设立专职岗位"
+      },
+      {
+        "key": "D",
+        "text": "质量保证人员主要负责在线编写底层业务代码并执行高强度的单元测试"
+      }
+    ]
+  },
+  {
+    "id": "多选题-13",
+    "section": "多选题",
+    "type": "multi",
+    "number": 13,
+    "question": "在项目启动阶段，定义和分配工作的过程是一个可重复运行的系统化框架。该框架通常包括以下哪几个核心步骤（）。",
+    "answer": "ABCD",
+    "analysis": "** 定义和分配工作的标准框架包括：确定工作要求、定义执行方法、WBS分解工作、分配职责到组织与个人，四个步骤缺一不可。",
+    "options": [
+      {
+        "key": "A",
+        "text": "最终确定项目的合同与技术工作要求"
+      },
+      {
+        "key": "B",
+        "text": "明确定义工作的执行方法与技术方法"
+      },
+      {
+        "key": "C",
+        "text": "利用工作分解结构（WBS）将工作分解为可管理的部分"
+      },
+      {
+        "key": "D",
+        "text": "制定工作职责并将任务明确指派到对应组织与个人"
+      }
+    ]
+  },
+  {
+    "id": "多选题-14",
+    "section": "多选题",
+    "type": "multi",
+    "number": 14,
+    "question": "从软件工程学的学科划分来看，整个需求工程是一个有机的、持续的闭环。它包含的工作内容主要有（）。",
+    "answer": "AB",
+    "analysis": "** 需求工程由需求开发（获取、分析、规格说明、验证）和需求管理（变更控制、跟踪）两大部分构成。C和D分别属于设计阶段和运维阶段，不属于需求工程范畴。",
+    "options": [
+      {
+        "key": "A",
+        "text": "需求开发"
+      },
+      {
+        "key": "B",
+        "text": "需求管理"
+      },
+      {
+        "key": "C",
+        "text": "系统概要设计与详细类图构建"
+      },
+      {
+        "key": "D",
+        "text": "源代码自动集成部署与服务器网络环境调优"
+      }
+    ]
+  },
+  {
+    "id": "多选题-15",
+    "section": "多选题",
+    "type": "multi",
+    "number": 15,
+    "question": "矩阵型项目组织结构是目前中大型软件企业广泛采用的组织架构形式。下列关于矩阵型结构的特征以及优缺点描述中，正确的有（）。",
+    "answer": "ABC",
+    "analysis": "** D选项描述的是职能型结构的特征，与矩阵型恰恰相反。矩阵型的核心优势正是灵活的资源调配和多项目并行支持能力。",
+    "options": [
+      {
+        "key": "A",
+        "text": "项目成员通常拥有双重汇报机制，需同时向项目经理和职能部门经理汇报"
+      },
+      {
+        "key": "B",
+        "text": "优点是资源复用率极高，能兼顾项目目标达成与职能部门的人才培养"
+      },
+      {
+        "key": "C",
+        "text": "缺点是双重领导容易导致权责不清，跨部门沟通与协调的成本非常高昂"
+      },
+      {
+        "key": "D",
+        "text": "它是最死板、灵活度最低的结构，完全无法支持多项目并行的复杂业务场景"
+      }
+    ]
+  },
+  {
+    "id": "多选题-16",
+    "section": "多选题",
+    "type": "multi",
+    "number": 16,
+    "question": "在软件工程组织设计中，职能型组织结构与直线型组织结构有着截然不同的特点。下列关于这两种结构在实战场景下的对比，正确的有（）。",
+    "answer": "ABC",
+    "analysis": "** D选项错误：直线型结构随着团队规模增大，高层经理面临信息超载问题会愈发严重，其优势主要体现在小团队场景。",
+    "options": [
+      {
+        "key": "A",
+        "text": "直线型结构决策链条极短，权力高度集中，在面对突发危机时响应速度最快"
+      },
+      {
+        "key": "B",
+        "text": "职能型结构按专业技能分工，在处理单一模块的高难度技术 Bug 时往往表现更专业"
+      },
+      {
+        "key": "C",
+        "text": "职能型结构的跨部门沟通成本非常冗长高昂，在紧急赶工场景下容易响应迟缓"
+      },
+      {
+        "key": "D",
+        "text": "直线型结构完美解决了高层经理的信息超载问题，团队规模越大其优势越明显"
+      }
+    ]
+  },
+  {
+    "id": "多选题-17",
+    "section": "多选题",
+    "type": "multi",
+    "number": 17,
+    "question": "在项目开展前期，项目管理层需要对各种潜在风险进行科学的识别。下列属于项目风险识别阶段常用且规范的方法有（）。",
+    "answer": "ABCD",
+    "analysis": "** 风险识别常用方法包括：检查表法（基于历史经验清单）、德尔菲法（匿名专家函询）、情景分析法（构建未来情景评估）、会议讨论法（头脑风暴），四种都是规范的风险识别方法。",
+    "options": [
+      {
+        "key": "A",
+        "text": "风险条目检查表法"
+      },
+      {
+        "key": "B",
+        "text": "德尔菲专家调查法"
+      },
+      {
+        "key": "C",
+        "text": "情景分析法"
+      },
+      {
+        "key": "D",
+        "text": "定期的项目组会议法"
+      }
+    ]
+  },
+  {
+    "id": "多选题-18",
+    "section": "多选题",
+    "type": "multi",
+    "number": 18,
+    "question": "在定性风险分析之后，大中型复杂项目通常会引入定量风险评估来量化每一个风险的可能性及其后果。下列属于常用的定量风险评估方法的有（）。",
+    "answer": "ABCD",
+    "analysis": "** 定量风险评估常用方法包括：访谈法（获取专家量化估计）、盈亏平衡分析、决策树分析（评估不同决策路径的期望值）、模拟法（如蒙特卡洛模拟），四种均为标准定量方法。",
+    "options": [
+      {
+        "key": "A",
+        "text": "访谈法"
+      },
+      {
+        "key": "B",
+        "text": "盈亏平衡分析"
+      },
+      {
+        "key": "C",
+        "text": "决策树分析"
+      },
+      {
+        "key": "D",
+        "text": "模拟法"
+      }
+    ]
+  },
+  {
+    "id": "多选题-19",
+    "section": "多选题",
+    "type": "multi",
+    "number": 19,
+    "question": "挣值分析法是项目动态跟踪与分析项目进展效能的一种高级方法。该方法在处理绩效测量时，需要输入的三个最基本原始度量指标包括（）。",
+    "answer": "ABC",
+    "analysis": "** 挣值分析法的三个基本输入指标：BCWS（计划工作成本，即PV）、ACWP（实际工作成本，即AC）、BCWP（已获价值，即EV）。完工尚需估计（ETC）是由这三个基本指标导出的派生指标。",
+    "options": [
+      {
+        "key": "A",
+        "text": "计划工作成本"
+      },
+      {
+        "key": "B",
+        "text": "实际工作成本"
+      },
+      {
+        "key": "C",
+        "text": "已获价值/盈余值"
+      },
+      {
+        "key": "D",
+        "text": "完工尚需估计"
+      }
+    ]
+  },
+  {
+    "id": "多选题-20",
+    "section": "多选题",
+    "type": "multi",
+    "number": 20,
+    "question": "利用挣值分析法的导出度量指标，项目经理可以非常客观地对当前项目的进度和成本绩效状态做出精准判断。下列相关绩效指标判定规则中，正确的有（）。",
+    "answer": "ABC",
+    "analysis": "** D选项错误：SPI反映的是进度效率，SPI=1只表示进度与计划同步，但成本是否超支取决于CPI，与SPI无关。进度和成本是两个独立维度。",
+    "options": [
+      {
+        "key": "A",
+        "text": "当费用差异 CV>0 且成本效能指数 CPI>1 时，说明项目当前费用有结余（低于预算）"
+      },
+      {
+        "key": "B",
+        "text": "当进度差异 SV<0 且进度效能指标 SPI<1 时，说明项目当前进度处于落后状态"
+      },
+      {
+        "key": "C",
+        "text": "当进度差异 SV>0 时，说明实际完成的工作量超前于原定计划进度"
+      },
+      {
+        "key": "D",
+        "text": "只要进度效能指标 SPI=1，则不论实际花费（ACWP）是多少，项目成本都绝对不可能超支"
+      }
+    ]
+  },
+  {
+    "id": "多选题-21",
+    "section": "多选题",
+    "type": "multi",
+    "number": 21,
+    "question": "根据软件配置管理（SCM）规范，凡是纳入配置管理范畴的工作成果都可以统称为软件配置项（SCI）。下列属于常见软件配置项的有（）。",
+    "answer": "ABCD",
+    "analysis": "** 软件配置项涵盖范围广泛，包括需求文档、设计文档、源代码、测试文档、项目计划与管理文档等所有需要进行版本控制和变更管理的工作成果。",
+    "options": [
+      {
+        "key": "A",
+        "text": "用户需求说明书（SRS）与系统体系结构设计文档"
+      },
+      {
+        "key": "B",
+        "text": "项目的核心源代码文件与数据库脚本"
+      },
+      {
+        "key": "C",
+        "text": "最终编写的正式系统测试计划、测试用例与缺陷报告"
+      },
+      {
+        "key": "D",
+        "text": "项目早期制定的质量保证计划、项目开发计划与阶段状态工作报告"
+      }
+    ]
+  },
+  {
+    "id": "多选题-22",
+    "section": "多选题",
+    "type": "multi",
+    "number": 22,
+    "question": "为确保配置项的演化过程清晰可控，在版本控制规则中，配置项的状态变迁通常被严格限定在以下哪几种规范的状态之间（）。",
+    "answer": "ABC",
+    "analysis": "** 配置项生命周期三种规范状态：草稿→正式发布→正在修改→（回到正式发布），状态转换循环严格限定在这三种状态之间，不存在\"彻底作废\"这一规范状态。",
+    "options": [
+      {
+        "key": "A",
+        "text": "草稿状态"
+      },
+      {
+        "key": "B",
+        "text": "正式发布状态"
+      },
+      {
+        "key": "C",
+        "text": "正在修改状态"
+      },
+      {
+        "key": "D",
+        "text": "彻底作废状态"
+      }
+    ]
+  },
+  {
+    "id": "多选题-23",
+    "section": "多选题",
+    "type": "multi",
+    "number": 23,
+    "question": "工作分解结构（WBS）图是编制项目进度计划、人员分配和预算控制的共同基础。根据划分的维度和习惯不同，WBS 常见的划分与分解类型主要包括（）。",
+    "answer": "AB",
+    "analysis": "** WBS常见划分方式有两种：基于可交付成果的划分（按结果物分解）和基于工作过程的划分（按阶段或流程分解）。薪资等级和行政级别与WBS无关。",
+    "options": [
+      {
+        "key": "A",
+        "text": "基于可交付成果的划分"
+      },
+      {
+        "key": "B",
+        "text": "基于工作过程的划分"
+      },
+      {
+        "key": "C",
+        "text": "基于员工薪资等级的划分"
+      },
+      {
+        "key": "D",
+        "text": "基于客户行政级别的划分"
+      }
+    ]
+  },
+  {
+    "id": "多选题-24",
+    "section": "多选题",
+    "type": "multi",
+    "number": 24,
+    "question": "关键路径法（CPM）是进度计划编制与优化中最重要的一种网络分析技术。关于关键路径上的活动与时间参数特性，下列叙述正确的有（）。",
+    "answer": "ABCD",
+    "analysis": "** 关键路径的四个核心特征：总历时最长、活动延迟直接影响总工期、总浮动时间为0、可随项目进展而动态变化，全部正确。",
+    "options": [
+      {
+        "key": "A",
+        "text": "关键路径是指整个项目网络图中总历时最长的路径"
+      },
+      {
+        "key": "B",
+        "text": "关键路径上的任何活动发生延迟，都会直接导致整个项目的最终完工时间发生延误"
+      },
+      {
+        "key": "C",
+        "text": "关键路径上的所有活动，其总浮动时间通常都等于 0"
+      },
+      {
+        "key": "D",
+        "text": "随着项目的进行、任务实际历时的变化以及纠正措施的执行，关键路径可能会发生改变"
+      }
+    ]
+  },
+  {
+    "id": "多选题-25",
+    "section": "多选题",
+    "type": "multi",
+    "number": 25,
+    "question": "软件项目的顺利验收和正式移交标志着项目生命周期的完结。根据项目管理规范，一个项目顺利通过正式验收所蕴含的重大管理学意义包括哪些（）？",
+    "answer": "ABCD",
+    "analysis": "** 项目验收的重大意义包括：终止合同义务获得权益、转入运维服务阶段、总结经验教训接手新任务、归档文档支撑长期使用，四方面全面覆盖。",
+    "options": [
+      {
+        "key": "A",
+        "text": "项目的有关各方当事人可以终止各自在合同中约定的义务和责任，从而获得相应的权益"
+      },
+      {
+        "key": "B",
+        "text": "标志着项目团队的任务可以从开发和合同履行真正转入后期的支持与服务阶段"
+      },
+      {
+        "key": "C",
+        "text": "项目团队可以全面系统地总结成功的经验与教训，并开始接受新的项目任务"
+      },
+      {
+        "key": "D",
+        "text": "通过验收整理归档的档案，可以为最终交付成果的长期正常使用提供系统、完整的技术文档"
+      }
+    ]
+  },
+  {
+    "id": "多选题-26",
+    "section": "多选题",
+    "type": "multi",
+    "number": 26,
+    "question": "大中型及国防软件工程对众多成功或失败的项目过程进行了深入的复盘与归纳。在其总结出的成功项目规范中，明确指出团队\"不应当做\"的事情包括哪些（）？",
+    "answer": "ABCD",
+    "analysis": "** 成功项目的反面经验：禁止不合理目标和擅自变更、禁止开发无价值花哨功能、禁止盲目假设延误可后补、禁止降低质量标准赶工，全部都是项目管理中的常见失败陷阱。",
+    "options": [
+      {
+        "key": "A",
+        "text": "不要确定不合理的目标，也不要做没有任何人签字或认可的擅自变更"
+      },
+      {
+        "key": "B",
+        "text": "不要开发花哨的功能，也不要让人浮于事"
+      },
+      {
+        "key": "C",
+        "text": "不要盲目假设项目阶段中期产生的时间延误可以在后期轻松地弥补过来"
+      },
+      {
+        "key": "D",
+        "text": "不要为了赶工或迎合不合理压力而随意降低产品的测试质量标准或压缩直接成本"
+      }
+    ]
+  },
+  {
+    "id": "判断题-1",
+    "section": "判断题",
+    "type": "judge",
+    "number": 1,
+    "question": "项目的临时性意味着项目所提交的产品或服务也必须是一次性的、临时的。",
+    "answer": "×",
+    "analysis": "** 项目的临时性是指项目团队和项目工作过程有明确的开始和结束时间，但项目所创造的产品或服务可以是长期存在和使用的，并非一次性、临时的。"
+  },
+  {
+    "id": "判断题-2",
+    "section": "判断题",
+    "type": "judge",
+    "number": 2,
+    "question": "日常运作是重复进行的，而项目是一次性的，这是项目与日常运作的重要区别。",
+    "answer": "√",
+    "analysis": "** 项目具有一次性和临时性特征，而日常运作是持续、重复进行的，这是两者最根本的区别。"
+  },
+  {
+    "id": "判断题-3",
+    "section": "判断题",
+    "type": "judge",
+    "number": 3,
+    "question": "软件是逻辑实体，不是具体的物理实体，因此软件项目具有抽象性的特点。",
+    "answer": "√",
+    "analysis": "** 软件由代码、文档等逻辑元素组成，不可触摸，无法像硬件那样直观展现，因此具有抽象性，这是软件项目区别于工程项目的重要特征。"
+  },
+  {
+    "id": "判断题-4",
+    "section": "判断题",
+    "type": "judge",
+    "number": 4,
+    "question": "软件项目技术合同一般结构包括主合同和合同附件两部分。",
+    "answer": "√",
+    "analysis": "** 软件项目技术合同通常由主合同（规定双方权利义务、付款条件、违约责任等）和合同附件（技术规格、需求说明、验收标准等技术性文件）两部分构成。"
+  },
+  {
+    "id": "判断题-5",
+    "section": "判断题",
+    "type": "judge",
+    "number": 5,
+    "question": "对供方（乙方）而言，\"合同修改控制过程\"本质上就是管理合同变更的过程。",
+    "answer": "√",
+    "analysis": "** 合同修改控制过程就是对合同执行过程中出现的变更请求进行评估、审批、实施和跟踪的完整管理流程，本质上就是合同变更管理。"
+  },
+  {
+    "id": "判断题-6",
+    "section": "判断题",
+    "type": "judge",
+    "number": 6,
+    "question": "软件质量的核心问题主要围绕\"需求\"和\"标准\"这两大核心问题而展开。",
+    "answer": "√",
+    "analysis": "** 软件质量的定义和度量始终围绕两个核心：软件是否满足用户需求（需求），以及是否符合既定的质量标准和规范（标准）。"
+  },
+  {
+    "id": "判断题-7",
+    "section": "判断题",
+    "type": "judge",
+    "number": 7,
+    "question": "在组织同行评审会议时，如果发现有 30%以上的评审专家并未做好会前准备，导致会议无法正常进行，此时主持人应宣布该评审结果为\"取消\"。",
+    "answer": "√",
+    "analysis": "** 同行评审规范要求：当超过30%的评审专家未做准备时，评审缺乏有效性和专业性，主持人有权宣布取消本次评审并重新安排。"
+  },
+  {
+    "id": "判断题-8",
+    "section": "判断题",
+    "type": "judge",
+    "number": 8,
+    "question": "在企业的项目实施管理中，质量、时间、成本三者是一个相互制约、相互影响的统一体，其中任一目标发生变化，都会引起另两个目标的调整。",
+    "answer": "√",
+    "analysis": "** 质量、时间、成本构成项目管理的\"铁三角\"（三项约束），三者相互制约相互依存，任一维度的变化必然影响其他两个维度。"
+  },
+  {
+    "id": "判断题-9",
+    "section": "判断题",
+    "type": "judge",
+    "number": 9,
+    "question": "直线型组织结构最大的优点在于指令唯一且责任明确，可以有效防止多重指令和双头管理现象的出现。",
+    "answer": "√",
+    "analysis": "** 直线型组织结构权力高度集中，每个成员只向一个上级汇报，指令链条单一清晰，能有效避免多重指令和双头领导问题。"
+  },
+  {
+    "id": "判断题-10",
+    "section": "判断题",
+    "type": "judge",
+    "number": 10,
+    "question": "企业对软件项目团队成员进行绩效评估的根本目的，是为了给后续扣除奖金、辞退落后员工提供惩罚依据。",
+    "answer": "×",
+    "analysis": "** 绩效评估的根本目的是激励团队成员、识别优势与不足、提供发展建议，促进团队整体能力提升和项目目标达成，而非单纯用于惩罚。"
+  },
+  {
+    "id": "判断题-11",
+    "section": "判断题",
+    "type": "judge",
+    "number": 11,
+    "question": "有效的需求变更管理，其核心目的在于帮助项目团队盲目、无条件地拒绝客户提出的一切需求更改，以确保项目进度绝对不发生延误。",
+    "answer": "×",
+    "analysis": "** 有效的需求变更管理是通过规范流程评估变更影响，合理地接受或拒绝变更，实现范围、时间、成本的平衡，而非盲目拒绝一切变更。"
+  },
+  {
+    "id": "判断题-12",
+    "section": "判断题",
+    "type": "judge",
+    "number": 12,
+    "question": "矩阵型组织结构不仅能够实现跨领域的资源灵活调配与专家复用，而且在面对紧急突发状况时，其双重汇报机制能够显著加快团队的整体拍板决策速度。",
+    "answer": "×",
+    "analysis": "** 矩阵型组织的双重汇报机制在紧急情况下反而容易导致指令冲突、权责不清，从而延缓决策速度，这是该结构最典型的弊端之一。"
+  },
+  {
+    "id": "判断题-13",
+    "section": "判断题",
+    "type": "judge",
+    "number": 13,
+    "question": "定量风险评估过程的目标是量化分析每一个风险的概率及其对项目目标造成的后果，盈亏平衡分析、决策树分析和模拟法都属于常用的定量风险评估方法。",
+    "answer": "√",
+    "analysis": "** 定量风险评估方法包括盈亏平衡分析、决策树分析、模拟法（如蒙特卡洛模拟）等，目标都是量化风险的概率和后果，帮助项目组做出科学的决策。"
+  },
+  {
+    "id": "判断题-14",
+    "section": "判断题",
+    "type": "judge",
+    "number": 14,
+    "question": "软件项目中的\"基线\"是由一组配置项组成的相对稳定的逻辑实体，一旦基线被正式建立，其中的配置项就会被\"冻结\"，开发人员绝对不可以通过任何途径对其进行修改。",
+    "answer": "×",
+    "analysis": "** 基线建立后配置项进入受控状态，但并非绝对不可修改。如需变更，必须通过正式的变更控制流程（提出变更请求、影响评估、审批等）后方可修改。"
+  },
+  {
+    "id": "判断题-15",
+    "section": "判断题",
+    "type": "judge",
+    "number": 15,
+    "question": "资源平衡法的核心目的，是在维持项目既定工期尽可能不变的条件下，通过调整进度计划，形成平稳连续的资源需求，使资源闲置的时间最小化。",
+    "answer": "√",
+    "analysis": "** 注意区分两个概念：Resource Leveling（资源平衡）可能会延长总工期以消除资源超负荷；Resource Smoothing（资源平滑）在不影响总工期的前提下平衡资源。本题描述\"维持工期尽可能不变\"更接近资源平滑的定义，但部分教材将两者统称为资源平衡，具体以本校教材为准。本题按教材原意判定为正确。"
+  },
+  {
+    "id": "判断题-16",
+    "section": "判断题",
+    "type": "judge",
+    "number": 16,
+    "question": "评定一个软件项目最终执行结果是成功还是失败，主要看三项核心可交付成果：一是是否实现了预定目标，二是是否达到了项目业主的期望，三是具体的可交付成果质量如何。",
+    "answer": "√",
+    "analysis": "** 项目成功的三项核心评判标准：目标实现度（是否达成项目目标）、满意度（是否满足业主期望）、质量达标度（交付成果质量），三者缺一不可。"
+  }
+];
+const state = { answers: {}, submitted: false, wrongOnly: false };
+const sections = ['全部', ...Array.from(new Set(QUESTIONS.map(q => q.section)))];
+const $ = id => document.getElementById(id);
+const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+
+function isMulti(q) { return q.type === 'multi'; }
+function isJudge(q) { return q.type === 'judge'; }
+
+function isAnswered(q) {
+  if (isMulti(q)) {
+    const sel = state.answers[q.id];
+    return Array.isArray(sel) && sel.length > 0;
+  }
+  return Boolean(state.answers[q.id]);
+}
+
+function isCorrect(q) {
+  if (isMulti(q)) {
+    const sel = state.answers[q.id];
+    if (!Array.isArray(sel) || sel.length === 0) return false;
+    const correct = q.answer.split('').sort().join('');
+    const selected = [...sel].sort().join('');
+    return correct === selected;
+  }
+  if (isJudge(q)) {
+    return state.answers[q.id] === q.answer;
+  }
+  return state.answers[q.id] === q.answer;
+}
+
+function isWrong(q) {
+  if (!state.submitted) return false;
+  if (!isAnswered(q)) return false;
+  return !isCorrect(q);
+}
+
+function getMultiDisplay(q) {
+  const sel = state.answers[q.id] || [];
+  return Array.isArray(sel) ? sel.sort().join('') : '';
+}
+
+function renderFilters() {
+  const currentSection = $('sectionFilter').value || '全部';
+  $('sectionFilter').innerHTML = sections.map(s => '<option value="' + escapeHtml(s) + '">' + escapeHtml(s) + '</option>').join('');
+  $('sectionFilter').value = sections.includes(currentSection) ? currentSection : '全部';
+  $('sectionTabs').innerHTML = sections.map(s => '<button data-section="' + escapeHtml(s) + '" class="' + (s === $('sectionFilter').value ? 'active' : '') + '">' + escapeHtml(s) + '（' + (s==='全部'?QUESTIONS.length:QUESTIONS.filter(q=>q.section===s).length) + '）</button>').join('');
+  document.querySelectorAll('#sectionTabs button').forEach(btn => btn.onclick = () => {
+    $('sectionFilter').value = btn.dataset.section;
+    render();
+    $('questionList').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+}
+
+function renderQuestion(q) {
+  const statusClass = state.submitted ? (isCorrect(q) ? 'correct' : isWrong(q) ? 'wrong' : '') : '';
+  const answer = isMulti(q) ? getMultiDisplay(q) : (state.answers[q.id] || '');
+  const resultVisible = state.submitted ? 'show' : '';
+  const multiHint = isMulti(q) ? '<div style="margin-top:6px;font-size:12px;color:var(--warn);">多选题：需选中全部正确选项才能得分</div>' : '';
+  let objectiveResult = '';
+  if (state.submitted) {
+    objectiveResult = '<div class="result ' + resultVisible + '"><div class="' + (isCorrect(q) ? 'ok' : 'bad') + '">' + (isCorrect(q) ? '回答正确' : answer ? '回答错误' : '未作答') + '</div><div>你的答案：' + escapeHtml(answer || '未作答') + '；正确答案：' + escapeHtml(q.answer) + '</div><div class="analysis">解析：' + escapeHtml(q.analysis) + '</div></div>';
+  }
+  let body = '';
+  if (isJudge(q)) {
+    body = '<div class="options"><label class="option"><input type="radio" name="' + q.id + '" value="√" ' + (answer==='√'?'checked':'') + '> <b>√</b> <span>正确</span></label><label class="option"><input type="radio" name="' + q.id + '" value="×" ' + (answer==='×'?'checked':'') + '> <b>×</b> <span>错误</span></label></div>';
+  } else if (isMulti(q)) {
+    const sel = state.answers[q.id] || [];
+    body = '<div class="options">' + q.options.map(opt => '<label class="option"><input type="checkbox" data-multi="' + q.id + '" value="' + escapeHtml(opt.key) + '" ' + (Array.isArray(sel) && sel.includes(opt.key) ? 'checked' : '') + '> <b>' + escapeHtml(opt.key) + '.</b> <span>' + escapeHtml(opt.text) + '</span></label>').join('') + '</div>' + multiHint;
+  } else {
+    body = '<div class="options">' + q.options.map(opt => '<label class="option"><input type="radio" name="' + q.id + '" value="' + escapeHtml(opt.key) + '" ' + (answer===opt.key?'checked':'') + '> <b>' + escapeHtml(opt.key) + '.</b> <span>' + escapeHtml(opt.text) + '</span></label>').join('') + '</div>';
+  }
+  const typeBadge = isMulti(q) ? '多选题' : isJudge(q) ? '判断题' : '单选题';
+  return '<article class="question-card ' + statusClass + '" data-id="' + q.id + '"><div class="q-head"><div class="badge">' + escapeHtml(q.section) + ' · 第 ' + q.number + ' 题</div><div class="badge">' + typeBadge + '</div></div><div class="q-title">' + escapeHtml(q.question) + '</div>' + body + objectiveResult + '</article>';
+}
+
+function filteredQuestions() {
+  const section = $('sectionFilter').value || '全部';
+  return QUESTIONS.filter(q => {
+    if (section !== '全部' && q.section !== section) return false;
+    if (state.wrongOnly && !isWrong(q)) return false;
+    return true;
+  });
+}
+
+function render() {
+  renderFilters();
+  const list = filteredQuestions();
+  $('questionList').innerHTML = list.length ? list.map(renderQuestion).join('') : '<div class="empty">当前筛选条件下没有题目。</div>';
+  bindInputs();
+  updateStats();
+}
+
+function bindInputs() {
+  document.querySelectorAll('input[type="radio"]').forEach(input => input.onchange = e => {
+    state.answers[e.target.name] = e.target.value;
+    updateStats();
+  });
+  document.querySelectorAll('input[type="checkbox"][data-multi]').forEach(input => input.onchange = e => {
+    const qid = e.target.dataset.multi;
+    if (!state.answers[qid]) state.answers[qid] = [];
+    if (!Array.isArray(state.answers[qid])) state.answers[qid] = [];
+    const val = e.target.value;
+    if (e.target.checked) {
+      if (!state.answers[qid].includes(val)) state.answers[qid].push(val);
+    } else {
+      state.answers[qid] = state.answers[qid].filter(v => v !== val);
+    }
+    updateStats();
+  });
+}
+
+function updateStats() {
+  $('totalCount').textContent = QUESTIONS.length;
+  $('answeredCount').textContent = QUESTIONS.filter(isAnswered).length;
+  $('correctCount').textContent = QUESTIONS.filter(q => state.submitted && isCorrect(q)).length;
+  $('wrongCount').textContent = QUESTIONS.filter(isWrong).length;
+}
+
+function exportWrong() {
+  const wrong = QUESTIONS.filter(isWrong);
+  if (!wrong.length) { alert('当前没有错题可导出。'); return; }
+  const nl = String.fromCharCode(10);
+  const br = '<br>';
+  const rows = wrong.map(q => {
+    const yourAnswer = isMulti(q) ? getMultiDisplay(q) : (state.answers[q.id] || '未作答');
+    return '<section><h2>' + escapeHtml(q.section) + ' 第 ' + q.number + ' 题（' + (isMulti(q) ? '多选' : isJudge(q) ? '判断' : '单选') + '）</h2><p>' + escapeHtml(q.question).split(nl).join(br) + '</p><p><b>你的答案：</b>' + escapeHtml(yourAnswer || '未作答').split(nl).join(br) + '</p><p><b>正确答案：</b>' + escapeHtml(q.answer).split(nl).join(br) + '</p><p><b>解析：</b>' + escapeHtml(q.analysis).split(nl).join(br) + '</p></section>';
+  }).join(nl);
+  const doc = '<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"><title>软项目管错题导出</title><style>body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif;line-height:1.7;max-width:920px;margin:30px auto;padding:0 18px}section{border:1px solid #ddd;border-radius:12px;padding:16px;margin:14px 0}h1{color:#1d4ed8}</style></head><body><h1>软项目管错题导出</h1><p>共 ' + wrong.length + ' 道错题，导出时间：' + new Date().toLocaleString() + '</p>' + rows + '</body></html>';
+  const blob = new Blob([doc], { type: 'text/html;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '软项目管错题导出.html';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+$('submitBtn').onclick = () => { state.submitted = true; state.wrongOnly = false; $('wrongOnlyBtn').textContent = '只看错题'; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+$('wrongOnlyBtn').onclick = () => { state.wrongOnly = !state.wrongOnly; $('wrongOnlyBtn').textContent = state.wrongOnly ? '查看全部' : '只看错题'; render(); };
+$('exportBtn').onclick = exportWrong;
+$('resetBtn').onclick = () => { if (!confirm('确定要清空所有作答记录吗？')) return; state.answers = {}; state.submitted = false; state.wrongOnly = false; $('wrongOnlyBtn').textContent = '只看错题'; render(); };
+$('sectionFilter').onchange = render;
+render();
+</script>
+</body></html>
