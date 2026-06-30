@@ -73,6 +73,13 @@ export default withMermaid(
             items: [
               { text: '习题库（2026）', link: '/docs/期末复习/JavaWeb应用开发习题库（2026）_破解版_答案+解析' }
             ]
+          },
+          {
+            text: '软件项目管理',
+            collapsed: true,
+            items: [
+              { text: '习题库', link: '/docs/期末复习/软项目管' }
+            ]
           }
         ]
       },
