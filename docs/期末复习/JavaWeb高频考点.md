@@ -64,17 +64,17 @@
 
 ### 3. 九大隐式对象（必须记住对应的类型或作用）
 - **输入输出对象**：
-  1. `request`：获取客户端请求参数。
-  2. `response`：向客户端发送响应（如 `sendRedirect` 重定向）。
-  3. `out`：输出对象，向客户端输出内容。
+    1. `request`：获取客户端请求参数。
+    2. `response`：向客户端发送响应（如 `sendRedirect` 重定向）。
+    3. `out`：输出对象，向客户端输出内容。
 - **作用域/上下文对象**：
-  4. `session`：保存用户会话信息。
-  5. `application`：全局上下文（对应 Servlet 中的 `ServletContext`），所有用户共享。
-  6. `pageContext`：页面上下文，作用域最小，**仅限当前页面级别共享数据**，但能跨作用域查找属性。
+    1. `session`：保存用户会话信息。
+    2. `application`：全局上下文（对应 Servlet 中的 `ServletContext`），所有用户共享。
+    3. `pageContext`：页面上下文，作用域最小，**仅限当前页面级别共享数据**，但能跨作用域查找属性。
 - **其他对象**：
-  7. `config`：配置对象。
-  8. `page`：代表当前页面实例本身（也就是 `this`）。
-  9. `exception`：异常对象（**只在 `isErrorPage="true"` 的页面有效**）。
+    1. `config`：配置对象。
+    2. `page`：代表当前页面实例本身（也就是 `this`）。
+    3. `exception`：异常对象（**只在 `isErrorPage="true"` 的页面有效**）。
 
 ---
 
