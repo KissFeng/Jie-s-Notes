@@ -21,15 +21,17 @@
 
 ## 考点二：Servlet 与请求跳转（必考核心）
 
-### 1. Servlet 生命周期（死记硬背三步曲）
+### 1. Servlet 生命周期与配置（死记硬背三步曲）
 - **初始化**：调用 `init()` 方法，**只执行一次**。
 - **处理请求**：调用 `service()` 方法，每次请求都会调用（内部再分发给 `doGet`/`doPost`）。
 - **销毁**：调用 `destroy()` 方法，实例销毁前调用，用于释放资源，**只执行一次**。
+- **Servlet 配置**：从 Servlet 3.0 开始，推荐使用 `@WebServlet("url")` 注解直接在类上配置 URL 映射，替代传统的 `web.xml` 配置。
 
 ### 2. 转发（Forward） vs 重定向（Redirect）⭐️⭐️⭐️
 这是全书最高频考点，必须清楚两者的区别：
 - **请求转发（Forward）**：
   - 语法：`request.getRequestDispatcher("url").forward(request, response)`
+  - JSP 动作标签：`<jsp:forward page="目标页面"/>`（**注意属性是 page，不是 to 或 url**）
   - 特点：**服务器内部跳转**，浏览器地址栏**不改变**，只能在**同一个 Web 应用内**跳转。整个过程只发送 **1 次**请求。
 - **重定向（Redirect）**：
   - 语法：`response.sendRedirect("url")`
@@ -57,15 +59,18 @@
 - `<%@ taglib ... %>`：引入标签库（如 JSTL）。
 
 ### 3. 九大隐式对象（必须记住对应的类型或作用）
-1. `request`：获取客户端请求参数。
-2. `response`：向客户端发送响应（如 `sendRedirect` 重定向）。
-3. `session`：保存用户会话信息。
-4. `application`：全局上下文（对应 ServletContext），所有用户共享。
-5. `out`：输出对象，向客户端输出内容。
-6. `pageContext`：页面上下文，作用域最小。
-7. `config`：配置对象。
-8. `page`：代表当前页面实例本身（也就是 `this`）。
-9. `exception`：异常对象（**只在 `isErrorPage="true"` 的页面有效**）。
+- **输入输出对象**：
+  1. `request`：获取客户端请求参数。
+  2. `response`：向客户端发送响应（如 `sendRedirect` 重定向）。
+  3. `out`：输出对象，向客户端输出内容。
+- **作用域/上下文对象**：
+  4. `session`：保存用户会话信息。
+  5. `application`：全局上下文（对应 Servlet 中的 `ServletContext`），所有用户共享。
+  6. `pageContext`：页面上下文，作用域最小，**仅限当前页面级别共享数据**，但能跨作用域查找属性。
+- **其他对象**：
+  7. `config`：配置对象。
+  8. `page`：代表当前页面实例本身（也就是 `this`）。
+  9. `exception`：异常对象（**只在 `isErrorPage="true"` 的页面有效**）。
 
 ---
 
@@ -84,6 +89,7 @@
 ### 1. EL 表达式（格式：`${表达式}`）
 - **四大作用域查找顺序**：pageScope -> requestScope -> sessionScope -> applicationScope。
 - **获取请求参数**：`${param.username}` 完全等价于 `request.getParameter("username")`。
+- **比较运算符**：注意英文缩写，如 **`lt` 对应 `<`**（less than），`gt` 对应 `>`（greater than），`eq` 对应 `==`。
 - **empty 运算符**：用来判断是否为空。
   - **极易错点：`${empty null}` 和 `${empty ""}` 的结果都是 `true`**。
 - **点（.）与方括号（[]）**：一般用点（如 `${user.name}`），但如果属性名含有特殊字符（如连字符 `-`）或访问数组，**必须用方括号**，如 `${user["my-name"]}`。
@@ -92,14 +98,18 @@
 - **输出**：`<c:out>`。
 - **条件判断**：`<c:if>`（注意：它没有 else 功能）。
 - **多分支选择**：`<c:choose>`（相当于 switch 语句），必须配合 `<c:when>` 和 `<c:otherwise>` 使用，且 `<c:when>` 必须放在 `<c:choose>` 内部。
-- **循环遍历**：`<c:forEach>`。
-  - **极易错点**：`<c:forEach var="i" begin="1" end="10" step="2">` 循环几次？
-  - **解析**：i 的取值依次为 1, 3, 5, 7, 9，共 **5** 次。
+- **循环遍历**：
+  - `<c:forEach>`：用于遍历集合或数组。
+    - **极易错点**：`<c:forEach var="i" begin="1" end="10" step="2">` 循环几次？
+    - **解析**：i 的取值依次为 1, 3, 5, 7, 9，共 **5** 次。
+  - `<c:forTokens>`：专门用于**循环遍历按指定分隔符（delims 属性）分割字符串后得到的数组**。
 - **删除变量**：`<c:remove>`。
 
 ---
 
 ## 考点六：JDBC 数据库操作（步骤与防注入）
+
+- **JDBC 全称**：**Java Database Connectivity**（Java 访问数据库的标准 API 规范）。
 
 ### 1. JDBC 标准六步曲
 1. **加载驱动**：`Class.forName("com.mysql.jdbc.Driver");`（旧版）
