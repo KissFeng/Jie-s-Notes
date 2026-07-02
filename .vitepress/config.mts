@@ -72,6 +72,7 @@ export default withMermaid(
             text: 'JavaWeb',
             collapsed: true,
             items: [
+              { text: '高频考点', link: '/docs/期末复习/JavaWeb高频考点' },
               { text: '习题库（2026）', link: '/docs/期末复习/JavaWeb应用开发习题库（2026）_破解版_答案+解析' }
             ]
           },
