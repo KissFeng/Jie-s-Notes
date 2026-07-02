@@ -4,6 +4,7 @@ import type { Theme } from 'vitepress'
 import TechNews from './components/TechNews.vue'
 import BackToTop from './components/BackToTop.vue'
 import ParticlesHero from './components/ParticlesHero.vue'
+import DocFooter from './components/DocFooter.vue'
 
 import Particles from '@tsparticles/vue3'
 import { loadSlim } from '@tsparticles/slim'
@@ -18,6 +19,7 @@ export default {
     return h(DefaultTheme.Layout, null, {
       'home-hero-before': () => h(ParticlesHero),
       'layout-bottom': () => h(BackToTop),
+      'doc-after': () => h(DocFooter),
     })
   },
   enhanceApp(ctx) {
