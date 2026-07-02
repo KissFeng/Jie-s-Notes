@@ -46,6 +46,10 @@
 
 ## 考点三：JSP 核心要素（三大指令、九大对象）
 
+### 0. JSP 运行原理与访问方式
+- **运行原理**：第一次请求时，Web 容器会将 JSP **翻译成 Servlet 源文件**（`.java`），然后编译成字节码（`.class`）执行。
+- **访问方式**：与 Servlet 不同，JSP **不需要**配置请求路径映射，可以直接通过文件路径（如 `http://localhost:8080/app/index.jsp`）访问。
+
 ### 1. JSP 脚本语法（容易搞混符号）
 - `<%! %>`：**声明**。定义全局变量和方法。
 - `<%= %>`：**表达式**。直接输出变量或表达式的值（等价于 `out.print()`）。
@@ -88,6 +92,7 @@
 
 ### 1. EL 表达式（格式：`${表达式}`）
 - **四大作用域查找顺序**：pageScope -> requestScope -> sessionScope -> applicationScope。
+  - **避坑**：访问特定的作用域属性时要注意对应关系。例如，访问 application 作用域属性必须用 `applicationScope`，绝不能用 `pageScope`。
 - **获取请求参数**：`${param.username}` 完全等价于 `request.getParameter("username")`。
 - **比较运算符**：注意英文缩写，如 **`lt` 对应 `<`**（less than），`gt` 对应 `>`（greater than），`eq` 对应 `==`。
 - **empty 运算符**：用来判断是否为空。
@@ -99,7 +104,7 @@
 - **条件判断**：`<c:if>`（注意：它没有 else 功能）。
 - **多分支选择**：`<c:choose>`（相当于 switch 语句），必须配合 `<c:when>` 和 `<c:otherwise>` 使用，且 `<c:when>` 必须放在 `<c:choose>` 内部。
 - **循环遍历**：
-  - `<c:forEach>`：用于遍历集合或数组。
+  - `<c:forEach>`：**不仅可用于遍历集合或数组，还支持数值循环**（通过 `begin`、`end`、`step` 属性）。
     - **极易错点**：`<c:forEach var="i" begin="1" end="10" step="2">` 循环几次？
     - **解析**：i 的取值依次为 1, 3, 5, 7, 9，共 **5** 次。
   - `<c:forTokens>`：专门用于**循环遍历按指定分隔符（delims 属性）分割字符串后得到的数组**。
