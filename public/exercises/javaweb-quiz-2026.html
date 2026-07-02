@@ -137,7 +137,7 @@ function bindInputs() {
 function updateStats() {
   $('totalCount').textContent = QUESTIONS.length;
   $('answeredCount').textContent = QUESTIONS.filter(isAnswered).length;
-  $('correctCount').textContent = QUESTIONS.filter(isCorrect).length;
+  $('correctCount').textContent = QUESTIONS.filter(q => state.submitted && isCorrect(q)).length;
   $('wrongCount').textContent = QUESTIONS.filter(isWrong).length;
 }
 function exportWrong() {

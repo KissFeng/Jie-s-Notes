@@ -9,6 +9,7 @@ export default withMermaid(
     ignoreDeadLinks: true,
     cleanUrls: true,
     lastUpdated: true,
+    markdown: { math: true },
 
     head: [
       ['link', { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }]
@@ -78,7 +79,8 @@ export default withMermaid(
             text: '软件项目管理',
             collapsed: true,
             items: [
-              { text: '习题库', link: '/docs/期末复习/软项目管' }
+              { text: '习题库', link: '/docs/期末复习/软项目管' },
+              { text: '高频考点', link: '/docs/期末复习/软件项目管理高频考点' }
             ]
           }
         ]
