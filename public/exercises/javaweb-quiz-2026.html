@@ -189,6 +189,12 @@ body.immersive-mode .immersive-container {
   color: var(--muted);
   font-size: 13px;
 }
+.bgm-btn { display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; background: #eef2ff; color: #4f46e5; border: 1px solid #c7d2fe; border-radius: 999px; cursor: pointer; transition: all 0.3s; font-weight: bold; margin-right: 8px; }
+.bgm-btn:hover { background: #e0e7ff; transform: scale(1.02); }
+[data-theme="dark"] .bgm-btn { background: #3730a3; color: #e0e7ff; border-color: #4338ca; }
+[data-theme="dark"] .bgm-btn:hover { background: #4338ca; }
+.bgm-btn.playing .icon-play { display: none; }
+.bgm-btn.playing .icon-pause { display: block !important; }
 
 </style>
 </head>
@@ -200,6 +206,12 @@ body.immersive-mode .immersive-container {
       <div class="subtitle">客观题自动判分，主观题自评，可导出错题 HTML。</div>
     </div>
     <div class="toolbar">
+      <audio id="bgmAudio" src="/audio/study-music.mp3" loop></audio>
+      <button id="bgmToggleBtn" title="播放/暂停轻音乐" class="bgm-btn">
+        <svg class="icon-play" viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>
+        <svg class="icon-pause" viewBox="0 0 24 24" width="16" height="16" style="display:none;"><path fill="currentColor" d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+        <span>轻音乐</span>
+      </button>
       <button id="themeToggleBtn" title="切换亮/暗模式" class="theme-toggle">
         <svg class="sun" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M512 256a256 256 0 1 1 0 512 256 256 0 0 1 0-512m0 76.8a179.2 179.2 0 1 0 0 358.4 179.2 179.2 0 0 0 0-358.4M512 76.8a38.4 38.4 0 0 1 38.4 38.4v76.8a38.4 38.4 0 1 1-76.8 0v-76.8A38.4 38.4 0 0 1 512 76.8m0 716.8a38.4 38.4 0 0 1 38.4 38.4v76.8a38.4 38.4 0 1 1-76.8 0v-76.8a38.4 38.4 0 0 1 38.4-38.4M125.658 200.704a38.4 38.4 0 0 1 54.336-54.336l54.336 54.336a38.4 38.4 0 1 1-54.336 54.336zm565.44 565.44a38.4 38.4 0 0 1 54.336-54.336l54.336 54.336a38.4 38.4 0 1 1-54.336 54.336zM76.8 512a38.4 38.4 0 0 1 38.4-38.4h76.8a38.4 38.4 0 1 1 0 76.8h-76.8A38.4 38.4 0 0 1 76.8 512m716.8 0a38.4 38.4 0 0 1 38.4-38.4h76.8a38.4 38.4 0 1 1 0 76.8h-76.8a38.4 38.4 0 0 1-38.4-38.4M200.704 898.342a38.4 38.4 0 0 1-54.336-54.336l54.336-54.336a38.4 38.4 0 1 1 54.336 54.336zm565.44-565.44a38.4 38.4 0 0 1-54.336-54.336l54.336-54.336a38.4 38.4 0 1 1 54.336 54.336z"></path></svg>
         <svg class="moon" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M240.448 240.448a384 384 0 1 0 559.424 542.4 384 384 0 0 1-542.4-559.424m-12.8-59.52A460.8 460.8 0 1 1 843.072 843.072 460.8 460.8 0 0 0 227.648 180.928"></path></svg>
@@ -588,6 +600,20 @@ window.addEventListener('keydown', e => {
     }
   }
 });
+
+const bgmAudio = document.getElementById('bgmAudio');
+const bgmToggleBtn = document.getElementById('bgmToggleBtn');
+if (bgmToggleBtn && bgmAudio) {
+  bgmToggleBtn.addEventListener('click', () => {
+    if (bgmAudio.paused) {
+      bgmAudio.play();
+      bgmToggleBtn.classList.add('playing');
+    } else {
+      bgmAudio.pause();
+      bgmToggleBtn.classList.remove('playing');
+    }
+  });
+}
 
 </script>
 </body>
