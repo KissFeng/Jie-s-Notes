@@ -7,7 +7,7 @@ export default withMermaid(
     description: '我的个人公开知识库',
     lang: 'zh-cn',
     ignoreDeadLinks: true,
-    cleanUrls: true,
+    cleanUrls: false,  // 改为 false，生成 .html 文件
     lastUpdated: true,
     markdown: { math: true },
 
