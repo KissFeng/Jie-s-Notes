@@ -1,6 +1,6 @@
-# Clash Verge 链式代理 Timeout 的解决方案
+# Clash Verge 链式代理：用 dialer-proxy 手写两跳链路
 
-> **⚡ 懒人模式**：先看一遍[原理](#原理说明)，了解思路后，直接把本文档和你的静态 ISP SOCKS5 配置信息一起丢给 AI，让它帮你生成完整的 YAML 配置，粘贴进 Clash Verge 即可。
+> **⚡ 懒人模式**：先看一遍[原理](#原理说明)，了解 `dialer-proxy` 的思路后，直接把本文档和你的落地节点（静态住宅 SOCKS5）信息一起丢给 AI，让它帮你生成完整 YAML，粘贴进 Clash Verge 即可。
 
 > 灵感来源：[Linux.do - 解锁设备用的clash规则](https://linux.do/t/topic/710232)
 
@@ -8,218 +8,184 @@
 
 ## 问题背景
 
-Clash Verge Rev 自带**链式代理（Proxy Chain）**可视化配置，界面操作方便，但实际使用中**非常容易出现 timeout**，连接不稳定，体验很差。
+Clash Verge Rev 自带**链式代理（Proxy Chain）**可视化配置，界面拖一拖就能连，但实际用起来有两个坑：
 
-如果你已经导入了订阅、配好了链式代理，但频繁遇到超时，那这篇文章就是为你写的。
+1. **容易 timeout**：GUI 生成的链路不透明，中间多一层握手，连接不稳定。
+2. **不好维护**：拖拽出来的东西看不见摸不着，出了问题不知道从哪查。
 
-**根因**：内置的链式代理走的是 HTTP CONNECT 隧道，中间多了一层握手，DNS 解析时机也不可控，叠加后容易超时。
-
-**本方案思路**：放弃 Clash Verge 的内置链式代理功能，改用**手动配置 mix-policy + HTTP 节点**的方式实现等效链路，实测 **99% 的 timeout 问题都能解决**。
+**本方案思路**：放弃 GUI 拖拽，改用 mihomo 原生的 **`dialer-proxy` 字段**手写链式代理。一行配置把「入口组」和「落地节点」串成两跳，链路清晰、稳定，也是 mihomo 官方推荐的做法。
 
 ---
 
 ## 原理说明
 
-等效链路：
+链式代理的本质是**两跳**：先经过一个「入口」翻墙出去，再从境外连到「落地」出口。
 
 ```
-Mac (Clash Verge: TUN/系统代理)
-        ↓ HTTP 代理节点
-远程旁路网关 (mihomo / Clash)
+你的设备 (Clash Verge: TUN/系统代理)
+        ↓ 第一跳：入口（自动择优翻墙）
+⚡️ Auto-Select (Entry)   ← url-test 从一堆机场节点里挑延迟最低的
+        ↓ 第二跳：落地（固定出口 IP）
+🇺🇸 Static-IP-Washington  ← 固定的美国住宅 SOCKS5
         ↓
-     互联网
+     目标网站  ← 对外呈现的是这个固定住宅 IP
 ```
 
-关键区别在于：
+**命门只有一行** —— 落地节点里的 `dialer-proxy` 字段：
 
-| | Clash Verge 内置链式代理 | 本方案 |
+```yaml
+- name: 🇺🇸 Static-IP-Washington
+  type: socks5
+  server: <你的住宅IP>
+  port: 443
+  username: xxxxxx
+  password: xxxxxx
+  dialer-proxy: ⚡️ Auto-Select (Entry)   # ← 命门在这
+```
+
+`dialer-proxy` 的含义：**在连接这个落地节点之前，先把流量丢给 `⚡️ Auto-Select (Entry)` 走一遍**，从而形成两跳链路。落地节点不再从你本地直连，而是经入口通道再连出去。
+
+**为什么要这么设计**：住宅 IP 的 SOCKS5 在国内往往直连不通、又慢又不稳。所以先用机场节点（入口组）稳定翻墙到境外，再从境外去连这个住宅落地。最终效果：**链路稳（机场保证），出口 IP 干净固定（住宅保证）**，适合养号、跨境电商、需要固定原生 IP 的场景。
+
+| | GUI 拖拽链式代理 | 本方案（dialer-proxy） |
 |---|---|---|
-| 连接方式 | HTTP CONNECT 隧道 | 普通 HTTP 代理节点 |
-| DNS 处理 | 不可控，易冲突 | 远程侧统一处理 |
-| Timeout 概率 | 高 | 极低（实测 99% 解决） |
-| 配置方式 | GUI 拖拽 | 手动改 YAML |
-
-简单来说：Clash Verge 只负责本地接管流量，远程网关负责规则匹配和出站，各司其职，避免了内置链式代理的隧道开销。
+| 配置方式 | GUI 拖拽，不透明 | 手写 YAML，一行搞定 |
+| 底层机制 | 封装的隧道 | mihomo 原生 dialer-proxy |
+| 可维护性 | 差，出问题难查 | 好，链路一目了然 |
+| Timeout 概率 | 高 | 低 |
 
 ---
 
 ## 操作步骤
 
-> **前提**：你已经在 Clash Verge 中导入了订阅，且存在链式代理 timeout 的问题。
+> **前提**：你已在 Clash Verge 导入订阅（机场节点会自动生成），并且手上有一个落地用的静态住宅 SOCKS5（IP、端口、账号、密码）。
 
-### Step 1：把远程网关加入 proxies
+### Step 1：加落地节点，挂上 dialer-proxy
 
-在你的订阅配置或 Clash Verge 的 `proxies` 区域，**手动添加一条 HTTP 代理节点**，指向你的远程网关：
+在 `proxies` 区域加一条落地节点，`dialer-proxy` 指向你的入口组：
 
 ```yaml
 proxies:
-  # ← 你的订阅节点会自动生成在这里，不要动它们
+  # ← 订阅节点会自动生成在这里，不要动
   # ...
-  
-  # 手动添加这一条 ↓
-  - name: "Remote Gateway"
-    type: http
-    server: 192.168.x.x    # 替换为你的远程网关局域网 IP
-    port: 2802              # 替换为你的远程网关 HTTP 端口
-    ip-version: ipv4
+
+  # 手动添加落地节点 ↓
+  - name: 🇺🇸 Static-IP-Washington
+    type: socks5              # 落地是 http 就改成 http
+    server: <你的住宅IP>       # 替换为你的住宅 IP
+    port: 443
+    username: xxxxxx
+    password: xxxxxx
+    dialer-proxy: ⚡️ Auto-Select (Entry)   # ← 指向下面 Step 2 的入口组
 ```
 
-> 如果你的远程网关用的是 SOCKS5，`type` 改成 `socks5`，端口对应 SOCKS5 端口。
+### Step 2：建入口组，用 url-test 自动择优
 
-### Step 2：把这条节点塞进你的策略组
-
-找到你的主策略组（一般是 `proxy-groups` 里的第一个，名字可能是 `节点选择`、`🚀 节点服务` 之类的），把刚加的 `Remote Gateway` 进去：
+在 `proxy-groups` 里建一个 `url-test` 组，把订阅里的机场节点都塞进去，让它自动测速选最快的：
 
 ```yaml
 proxy-groups:
-  - name: "节点选择"        # 替换成你的实际策略组名
-    type: select
+  - name: ⚡️ Auto-Select (Entry)
+    type: url-test
     proxies:
-      - "Remote Gateway"   # ← 加上这一行，放在最前面
-      - DIRECT
-      # ... 你的订阅节点 ...
+      - 🇭🇰 HK香港-01
+      - 🇯🇵 JP日本-01
+      - 🇸🇬 SG新加坡-01
+      # ... 你的机场节点，越多越好，自动挑延迟最低的 ...
+    url: http://www.gstatic.com/generate_204
+    interval: 300      # 每 300 秒测一次速
+    tolerance: 20      # 延迟差 20ms 以内不切换，防抖动
 ```
 
-**重点**：`Remote Gateway` 要放在 `DIRECT` 前面，这样它才会优先生效。
+> **避免自环**：入口组里放的是**机场节点**，千万别把落地节点 `Static-IP-Washington` 自己放进去，否则会形成"自己拨自己"的死循环。
 
-### Step 3：找到「漏网之鱼」策略组并修改
+### Step 3：把落地节点放进你的选择组
 
-你的配置里应该有一个兜底策略组（名字通常是 `🐟 漏网之鱼`、`Final`、`Match` 等，`type` 是 `select`，`proxies` 里有 `DIRECT`），把它改成：
+找到主选择组（`节点选择` 或各地区分组），把落地节点加进去，方便手动切换：
 
 ```yaml
-  - name: "🐟 漏网之鱼"   # 替换成你的实际名字
+  - name: 节点选择
     type: select
     proxies:
-      - "Remote Gateway"  # ← 首选走远程网关
-      - "节点选择"          # ← 备选走订阅节点
-      - DIRECT
+      - 🇺🇸 Static-IP-Washington   # ← 加上落地节点
+      - ⚡️ Auto-Select (Entry)
+      # ... 其他节点 ...
 ```
 
-这样**所有规则没匹配到的流量**都先走远程网关，由远程侧统一处理规则匹配，你本地的 Clash Verge 只是一个「透明管道」。
+### Step 4：删掉 GUI 里的链式代理配置
 
-### Step 4：删除 Clash Verge 内置的链式代理配置
-
-如果你之前在 Clash Verge 的 GUI 里配过链式代理（Proxy Chain），**把它删掉或禁用**，否则会和我们手动配置的方案冲突，反而又出现 timeout。
+如果你之前在 Clash Verge 的 GUI 里拖过链式代理（Proxy Chain），**删掉或禁用**，否则会和手写的 `dialer-proxy` 冲突。
 
 ### Step 5：测试
 
 ```bash
-ping google.com
-# 应该返回 fake-ip（198.18.x.x），说明 DNS 已接管
+# 选中 Static-IP-Washington 后，查出口 IP
+curl -x socks5://127.0.0.1:7890 https://api.ipify.org
+# 应返回你的美国住宅 IP（你的住宅 IP 同段），说明两跳链路通了
 
 curl -I https://www.google.com
-# 应该返回 200，说明链路通了
+# 返回 200，说明链路可用
 ```
-
----
-
-## DNS 配置（可选但推荐）
-
-如果你的远程网关已经配好了 DNS 分流，本地 Clash Verge 的 DNS 可以简化为：
-
-```yaml
-dns:
-  enable: true
-  listen: :1053
-  ipv6: false
-  enhanced-mode: fake-ip
-  fake-ip-range: 198.18.0.1/16
-  default-nameserver:
-    - 223.5.5.5
-    - 119.29.29.29
-  nameserver:
-    - https://dns.alidns.com/dns-query
-    - https://doh.pub/dns-query
-  fallback:
-    - https://dns.cloudflare.com/dns-query
-    - https://dns.google/dns-query
-  fallback-filter:
-    geoip: true
-    geoip-code: CN
-    ipcidr:
-      - 240.0.0.0/4
-```
-
-> `nameserver`（国内 DoH）解析国内域名，`fallback`（Cloudflare/Google DoH）解析代理域名。`fallback-filter` 配合 GeoIP：解析结果是大陆 IP 就直接用国内结果，不走 fallback。
 
 ---
 
 ## 常见问题
 
-### Clash Verge 不是有内置的链式代理配置吗？为什么还要手动搞？
+### `dialer-proxy` 和 GUI 的链式代理有什么区别？
 
-内置的链式代理走 HTTP CONNECT 隧道，实测非常容易 timeout，尤其是局域网→远程网关这一跳，连接成功率很低。本方案用 HTTP 代理节点手动实现等效链路，绕过了隧道机制，**实测 99% 的 timeout 问题都解决了**。
-
----
-
-### 我的远程网关不是 mihomo，能用吗？
-
-可以，只要是支持 HTTP/SOCKS5 出站的代理工具都行（Clash、v2ray、sing-box 等），关键是你要知道它的 **IP、端口、协议类型**。
+`dialer-proxy` 是 mihomo 内核原生字段，写在节点上，明确指定"连这个节点前先走哪条通道"，链路清晰、稳定。GUI 拖拽出来的链式代理是一层封装，不透明且容易 timeout。本方案就是绕开 GUI，直接用内核能力。
 
 ---
 
-### 端口怎么填？
+### 入口组为什么用 `url-test` 而不是 `select`？
 
-填你远程网关对外暴露的 HTTP 代理端口。mihomo 默认是 `mixed-port`（一般是 `7890` 或 `2802`），看你自己的配置。
-
----
-
-### fake-ip 会漏 DNS 吗？
-
-不会。fake-ip 模式下所有域名先返回假 IP，真实解析在代理侧完成，不泄露。
+`url-test` 会每隔 `interval` 秒自动测速，挑延迟最低的机场节点当入口，还有 `tolerance` 防止频繁抖动切换。你不用手动选，它自动保证第一跳又快又稳。
 
 ---
 
-### 我在 Clash Verge 点「更新订阅」，会覆盖掉手动加的配置吗？
+### 我有一条裸的 SOCKS5 节点（同一台住宅机），和 dialer-proxy 那条什么关系？
 
-**会的。** 更新订阅会重写 `proxies` 和 `proxy-groups`，你手动加的 `Mihomo (HTTP Inbound)` 节点和策略组改动都会被冲掉。解决办法是用 Clash Verge 的**覆写（Override / Merge）**功能：新建一个覆写文件，把 `Mihomo (HTTP Inbound)` 节点和策略组的改动写在里面，这样每次更新订阅后覆写规则会自动合并回去，不需要重新手动改。
-
----
-
-### 如果我不小心在 Node-Select 里点到了别的节点，会有什么影响？
-
-Node-Select 是手动选择组（`type: select`），里面有三个选项：`Auto-Select (Entry)`、`DIRECT`、以及各个地区分组。
-
-- **选回 `Auto-Select (Entry)`**（默认）：正常，流量走自动择优的 SOCKS5 入口节点。
-- **选了某个地区分组（如 `🇭🇰 香港节点`）**：流量绕过了 Auto-Select 的自动择优，直接走你手动指定的地区分组出站。功能上没问题，只是少了自动择优，可能选到慢节点。
-- **选了 `DIRECT`**：流量直连出站，完全绕过了代理和 mihomo，**等于没挂代理**。
-
-所以保持 `Auto-Select (Entry)` 就好，别动它。
+如果你的 `proxies` 里还有一条**没带 `dialer-proxy`** 的同 IP 节点，那是**直连版**（本地直接连住宅机，没走链式）；带 `dialer-proxy` 的 `Static-IP-Washington` 才是**链式版**（经入口通道再连）。两者指向同一台服务器，用途不同，别搞混。国内直连住宅机通常不通，所以日常用链式版。
 
 ---
 
-### 配置好后，流量到底是怎么走的？
+### 落地节点是 HTTP 不是 SOCKS5 能用吗？
 
-**场景一：规则命中的流量（如 `www.google.com`）**
+能。把 `type` 改成 `http`，端口和认证信息对应填就行。`dialer-proxy` 字段对 `socks5` / `http` 落地都适用。
+
+---
+
+### 我点「更新订阅」会覆盖掉手动加的落地节点吗？
+
+**会的。** 更新订阅会重写 `proxies` 和 `proxy-groups`，你手动加的 `Static-IP-Washington` 节点、入口组改动都会被冲掉。解决办法：用 Clash Verge 的**覆写（Override / Merge）**功能，新建一个覆写文件，把落地节点、入口组、选择组的改动写进去，这样每次更新订阅后覆写规则会自动合并回来，不用重新手改。
+
+---
+
+### 选到别的节点会怎样？
+
+- **选 `Static-IP-Washington`**：走完整两跳链式，出口是固定美国住宅 IP。
+- **选 `⚡️ Auto-Select (Entry)`**：只走第一跳，出口是当前择优的机场节点 IP（不是住宅 IP）。
+- **选 `DIRECT`**：直连，完全不走代理，等于没挂。
+
+按需要选就行，要固定住宅 IP 就选 `Static-IP-Washington`。
+
+---
+
+### 配置好后，流量到底怎么走？
 
 ```
 浏览器发起请求
     ↓
-Clash Verge (TUN/系统代理) 接管流量，DNS 返回 fake-ip
+Clash Verge (TUN/系统代理) 接管流量
     ↓
-规则匹配 → 命中 DOMAIN-SUFFIX,google.com → 进入「Google」策略组
+选中 🇺🇸 Static-IP-Washington（带 dialer-proxy）
     ↓
-「Google」策略组 → 走「🇭🇰 香港节点」分组
+第一跳：dialer-proxy → ⚡️ Auto-Select (Entry)
+        → url-test 自动择优 → 选出延迟最低的机场节点 → 翻墙到境外
     ↓
-「🇭🇰 香港节点」→ url-test 自动择优 → 选出延迟最低的 SOCKS5 入口节点
+第二跳：从境外连到住宅 IP（美国住宅 SOCKS5）落地
     ↓
-流量经该 SOCKS5 节点到达远程 mihomo 网关
-    ↓
-mihomo 负责实际出站到互联网
+出站到目标网站，对外 IP = 美国住宅 IP
 ```
 
-**场景二：规则未命中的流量（漏网之鱼）**
-
-```
-浏览器发起请求
-    ↓
-Clash Verge 接管，规则未命中 → 进入「Final (Exit)」兜底策略
-    ↓
-「Final (Exit)」→ 「Node-Select」→ 「Auto-Select (Entry)」
-    ↓
-url-test 自动择优 → 选出延迟最低的 SOCKS5 入口节点
-    ↓
-到达远程 mihomo 网关 → 出站
-```
-
-简单来说：**规则命中的走对应地区分组（也是自动择优），没命中的走兜底链路（同样是自动择优）**，两条路最终都经过你选好的 SOCKS5 入口节点到达远程网关，全程由远程侧负责规则匹配和出站。
+简单来说：**第一跳靠机场自动择优保证链路稳，第二跳靠固定住宅节点保证出口 IP 干净固定**，两跳由 `dialer-proxy` 一行串起来。
