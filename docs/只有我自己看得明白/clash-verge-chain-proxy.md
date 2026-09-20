@@ -1,191 +1,423 @@
-# Clash Verge 链式代理：用 dialer-proxy 手写两跳链路
+# Clash Verge Rev 链式代理完整配置手册
 
-> **⚡ 懒人模式**：先看一遍[原理](#原理说明)，了解 `dialer-proxy` 的思路后，直接把本文档和你的落地节点（静态住宅 SOCKS5）信息一起丢给 AI，让它帮你生成完整 YAML，粘贴进 Clash Verge 即可。
+> 最后更新：2026-09-20
+> 适用环境：macOS / Clash Verge Rev 2.5.x / mihomo 内核
 
-> 灵感来源：[Linux.do - 解锁设备用的clash规则](https://linux.do/t/topic/710232)
+> [!IMPORTANT]
+> 本页所有订阅地址、Token、服务器 IP、账号、密码、订阅商名称、配置 UID 均已脱敏。`<...>` 是必须替换的占位符，`example.invalid` 和 `203.0.113.0/24` 也只用于文档示例，无法真实连接。
 
----
+## 一、需求与原理
 
-## 问题背景
+### 目标
 
-Clash Verge Rev 自带**链式代理（Proxy Chain）**可视化配置，界面拖一拖就能连，但实际用起来有两个坑：
+将机场节点作为“入口”，将海外静态住宅代理作为“出口”，组成两跳链路：
 
-1. **容易 timeout**：GUI 生成的链路不透明，中间多一层握手，连接不稳定。
-2. **不好维护**：拖拽出来的东西看不见摸不着，出了问题不知道从哪查。
-
-**本方案思路**：放弃 GUI 拖拽，改用 mihomo 原生的 **`dialer-proxy` 字段**手写链式代理。一行配置把「入口组」和「落地节点」串成两跳，链路清晰、稳定，也是 mihomo 官方推荐的做法。
-
----
-
-## 原理说明
-
-链式代理的本质是**两跳**：先经过一个「入口」翻墙出去，再从境外连到「落地」出口。
-
-```
-你的设备 (Clash Verge: TUN/系统代理)
-        ↓ 第一跳：入口（自动择优翻墙）
-⚡️ Auto-Select (Entry)   ← url-test 从一堆机场节点里挑延迟最低的
-        ↓ 第二跳：落地（固定出口 IP）
-🇺🇸 Static-IP-Washington  ← 固定的美国住宅 SOCKS5
-        ↓
-     目标网站  ← 对外呈现的是这个固定住宅 IP
+```text
+你的设备 → 机场节点（自动优选）→ 静态住宅代理 → 目标网站
 ```
 
-**命门只有一行** —— 落地节点里的 `dialer-proxy` 字段：
+这样做的原因：
+
+- 国内直连海外静态代理通常不稳定，甚至无法建立连接。
+- 机场节点负责稳定完成第一跳，静态代理负责提供固定出口 IP。
+- 对外服务看到的是第二跳的出口 IP，而不是机场节点 IP。
+
+### 关键技术点
+
+#### 1. 使用 `dialer-proxy` 而不是 `relay`
+
+新版 mihomo 已移除 `relay` 类型策略组。旧配置可能报错：
+
+```text
+unsupported type: The group [xxx] with relay type was removed, please using dialer-proxy instead
+```
+
+正确方式是在第二跳节点上添加 `dialer-proxy`，并让它指向入口策略组：
 
 ```yaml
-- name: 🇺🇸 Static-IP-Washington
+- name: "🇺🇸 Static-IP-US"
   type: socks5
-  server: <你的住宅IP>
+  server: "<YOUR_STATIC_PROXY_IP>"
   port: 443
-  username: xxxxxx
-  password: xxxxxx
-  dialer-proxy: ⚡️ Auto-Select (Entry)   # ← 命门在这
+  username: "<YOUR_PROXY_USERNAME>"
+  password: "<YOUR_PROXY_PASSWORD>"
+  dialer-proxy: "⚡️ Auto-Select (Entry)"
 ```
 
-`dialer-proxy` 的含义：**在连接这个落地节点之前，先把流量丢给 `⚡️ Auto-Select (Entry)` 走一遍**，从而形成两跳链路。落地节点不再从你本地直连，而是经入口通道再连出去。
+#### 2. 订阅配置不要直接改
 
-**为什么要这么设计**：住宅 IP 的 SOCKS5 在国内往往直连不通、又慢又不稳。所以先用机场节点（入口组）稳定翻墙到境外，再从境外去连这个住宅落地。最终效果：**链路稳（机场保证），出口 IP 干净固定（住宅保证）**，适合养号、跨境电商、需要固定原生 IP 的场景。
+远程订阅更新时会覆盖原始 YAML。自定义节点、策略组和规则应通过 Clash Verge 的 Script Override 注入。
 
-| | GUI 拖拽链式代理 | 本方案（dialer-proxy） |
-|---|---|---|
-| 配置方式 | GUI 拖拽，不透明 | 手写 YAML，一行搞定 |
-| 底层机制 | 封装的隧道 | mihomo 原生 dialer-proxy |
-| 可维护性 | 差，出问题难查 | 好，链路一目了然 |
-| Timeout 概率 | 高 | 低 |
+#### 3. 修改配置索引前先退出应用
 
----
+Clash Verge Rev 运行时会在内存中维护 `profiles.yaml`，并定期写回磁盘。
 
-## 操作步骤
+- 修改 Script Override 的 `.js` 文件后，在 Clash Verge 中刷新订阅即可。
+- 需要直接修改 `profiles.yaml` 时，先完全退出 Clash Verge，否则手工修改可能被覆盖。
 
-> **前提**：你已在 Clash Verge 导入订阅（机场节点会自动生成），并且手上有一个落地用的静态住宅 SOCKS5（IP、端口、账号、密码）。
+## 二、环境与文件结构
 
-### Step 1：加落地节点，挂上 dialer-proxy
+### 配置根目录
 
-在 `proxies` 区域加一条落地节点，`dialer-proxy` 指向你的入口组：
+macOS 下的默认目录为：
+
+```text
+~/Library/Application Support/io.github.clash-verge-rev.clash-verge-rev/
+├── config.yaml                 # 全局配置：端口、TUN、DNS 等
+├── clash-verge.yaml            # 合并后的运行时配置，自动生成
+├── clash-verge-check.yaml      # 配置校验临时文件，自动生成
+├── profiles.yaml               # 订阅和 Override 的索引
+├── profiles/
+│   ├── <SUBSCRIPTION_UID>.yaml  # 远程订阅内容
+│   ├── <SCRIPT_UID>.js         # Script Override
+│   └── <MERGE_UID>.yaml        # Merge Override
+└── logs/
+    └── latest.log              # 最新日志
+```
+
+`clash-verge.yaml` 和 `clash-verge-check.yaml` 是自动生成文件，不应手工编辑。
+
+### `profiles.yaml` 示例
+
+下面仅展示关键关系，UID 应使用 Clash Verge 已经生成的真实值，不要直接复制占位符：
 
 ```yaml
+current: "<SUBSCRIPTION_UID_A>"
+
+items:
+  - uid: "<SUBSCRIPTION_UID_A>"
+    type: remote
+    name: "机场订阅 A"
+    file: "<SUBSCRIPTION_UID_A>.yaml"
+    url: "https://example.invalid/subscribe?token=<SUBSCRIPTION_TOKEN_A>"
+    option:
+      merge: "<MERGE_UID_A>"
+      script: "<SCRIPT_UID_A>"
+      update_interval: 1440
+      allow_auto_update: true
+
+  - uid: "<SCRIPT_UID_A>"
+    type: script
+    file: "<SCRIPT_UID_A>.js"
+
+  - uid: "<MERGE_UID_A>"
+    type: merge
+    file: "<MERGE_UID_A>.yaml"
+```
+
+### 配置加载顺序
+
+```text
+下载远程订阅
+    ↓
+合并 Merge Override
+    ↓
+执行 Script Override 的 main(config) 函数
+    ↓
+使用 mihomo 校验生成的配置
+    ↓
+校验通过后生成 clash-verge.yaml
+```
+
+需要遍历订阅节点、动态创建策略组时，Script Override 比纯 YAML Merge 更合适。
+
+## 三、最终策略结构
+
+### 流量路径
+
+```text
+设备
+  ↓
+🤖 AI 专属（静态住宅）
+  ↓
+🇺🇸 Static-IP-US
+  ↓ dialer-proxy
+⚡️ Auto-Select (Entry)
+  ↓
+当前延迟较低的机场节点
+  ↓
+目标网站
+```
+
+### 入口自动测速组
+
+```yaml
+name: "⚡️ Auto-Select (Entry)"
+type: url-test
 proxies:
-  # ← 订阅节点会自动生成在这里，不要动
-  # ...
-
-  # 手动添加落地节点 ↓
-  - name: 🇺🇸 Static-IP-Washington
-    type: socks5              # 落地是 http 就改成 http
-    server: <你的住宅IP>       # 替换为你的住宅 IP
-    port: 443
-    username: xxxxxx
-    password: xxxxxx
-    dialer-proxy: ⚡️ Auto-Select (Entry)   # ← 指向下面 Step 2 的入口组
+  - "🇭🇰 HK-01"
+  - "🇯🇵 JP-01"
+  - "🇸🇬 SG-01"
+url: "http://www.gstatic.com/generate_204"
+interval: 300
+tolerance: 20
 ```
 
-### Step 2：建入口组，用 url-test 自动择优
+`tolerance: 20` 表示候选节点延迟差小于 20 ms 时不频繁切换，减少连接抖动。
 
-在 `proxy-groups` 里建一个 `url-test` 组，把订阅里的机场节点都塞进去，让它自动测速选最快的：
+### 静态出口节点
 
 ```yaml
-proxy-groups:
-  - name: ⚡️ Auto-Select (Entry)
-    type: url-test
-    proxies:
-      - 🇭🇰 HK香港-01
-      - 🇯🇵 JP日本-01
-      - 🇸🇬 SG新加坡-01
-      # ... 你的机场节点，越多越好，自动挑延迟最低的 ...
-    url: http://www.gstatic.com/generate_204
-    interval: 300      # 每 300 秒测一次速
-    tolerance: 20      # 延迟差 20ms 以内不切换，防抖动
+name: "🇺🇸 Static-IP-US"
+type: socks5
+server: "203.0.113.10"
+port: 443
+username: "<YOUR_PROXY_USERNAME>"
+password: "<YOUR_PROXY_PASSWORD>"
+dialer-proxy: "⚡️ Auto-Select (Entry)"
 ```
 
-> **避免自环**：入口组里放的是**机场节点**，千万别把落地节点 `Static-IP-Washington` 自己放进去，否则会形成"自己拨自己"的死循环。
+`203.0.113.10` 是专用文档示例地址，必须替换为实际服务器 IP。
 
-### Step 3：把落地节点放进你的选择组
-
-找到主选择组（`节点选择` 或各地区分组），把落地节点加进去，方便手动切换：
+### AI 专属策略组
 
 ```yaml
-  - name: 节点选择
-    type: select
-    proxies:
-      - 🇺🇸 Static-IP-Washington   # ← 加上落地节点
-      - ⚡️ Auto-Select (Entry)
-      # ... 其他节点 ...
+name: "🤖 AI 专属（静态住宅）"
+type: select
+proxies:
+  - "🇺🇸 Static-IP-US"
+  - "⚡️ Auto-Select (Entry)"
+  - "DIRECT"
 ```
 
-### Step 4：删掉 GUI 里的链式代理配置
+日常使用时将该组保持在静态出口节点。入口机场节点可以自动切换，但对外出口 IP 仍保持不变。
 
-如果你之前在 Clash Verge 的 GUI 里拖过链式代理（Proxy Chain），**删掉或禁用**，否则会和手写的 `dialer-proxy` 冲突。
+## 四、Script Override 完整示例
 
-### Step 5：测试
+> [!WARNING]
+> 先替换脚本中的 `<YOUR_STATIC_PROXY_IP>`、`<YOUR_PROXY_USERNAME>` 和 `<YOUR_PROXY_PASSWORD>`，再在 Clash Verge 中刷新配置。不要将含真实凭据的脚本提交到 Git 仓库。
+
+```javascript
+// Chain proxy using dialer-proxy (relay was removed from mihomo)
+function main(config, profileName) {
+  config.proxies = config.proxies || [];
+  config["proxy-groups"] = config["proxy-groups"] || [];
+  config.rules = config.rules || [];
+
+  var entryGroupName = "⚡️ Auto-Select (Entry)";
+  var staticProxyName = "🇺🇸 Static-IP-US";
+  var aiGroupName = "🤖 AI 专属（静态住宅）";
+
+  // 1. 收集真实机场节点，排除订阅商插入的信息展示节点。
+  var airportNodes = [];
+  for (var i = 0; i < config.proxies.length; i++) {
+    var proxy = config.proxies[i];
+    if (!proxy || !proxy.name) continue;
+    if (proxy.name.indexOf("剩余流量") >= 0) continue;
+    if (proxy.name.indexOf("距离下次重置") >= 0) continue;
+    if (proxy.name.indexOf("套餐到期") >= 0) continue;
+    if (proxy.name.indexOf("官网") >= 0) continue;
+    airportNodes.push(proxy.name);
+  }
+
+  // 2. 添加静态出口，并通过 dialer-proxy 绑定入口组。
+  config.proxies.push({
+    name: staticProxyName,
+    type: "socks5",
+    server: "<YOUR_STATIC_PROXY_IP>",
+    port: 443,
+    username: "<YOUR_PROXY_USERNAME>",
+    password: "<YOUR_PROXY_PASSWORD>",
+    "dialer-proxy": entryGroupName
+  });
+
+  // 3. 使用 url-test 自动选择第一跳。
+  var entryGroup = {
+    name: entryGroupName,
+    type: "url-test",
+    proxies: airportNodes,
+    url: "http://www.gstatic.com/generate_204",
+    interval: 300,
+    tolerance: 20
+  };
+
+  // 4. 创建 AI 专属策略组。
+  var aiGroup = {
+    name: aiGroupName,
+    type: "select",
+    proxies: [staticProxyName, entryGroupName, "DIRECT"]
+  };
+
+  config["proxy-groups"].unshift(entryGroup);
+  config["proxy-groups"].unshift(aiGroup);
+
+  // 5. 将静态出口注入其他选择组的首位。
+  for (var j = 0; j < config["proxy-groups"].length; j++) {
+    var group = config["proxy-groups"][j];
+    if (group.name === entryGroupName || group.name === aiGroupName) continue;
+    if (group.proxies && Array.isArray(group.proxies)) {
+      group.proxies.unshift(staticProxyName);
+    }
+  }
+
+  // 6. 需要固定出口的服务规则。
+  var aiRules = [
+    "DOMAIN-SUFFIX,openai.com," + aiGroupName,
+    "DOMAIN-SUFFIX,chatgpt.com," + aiGroupName,
+    "DOMAIN-SUFFIX,oaistatic.com," + aiGroupName,
+    "DOMAIN-SUFFIX,oaiusercontent.com," + aiGroupName,
+    "DOMAIN-SUFFIX,anthropic.com," + aiGroupName,
+    "DOMAIN-SUFFIX,claude.ai," + aiGroupName,
+    "DOMAIN-SUFFIX,claudeusercontent.com," + aiGroupName,
+    "DOMAIN-SUFFIX,x.ai," + aiGroupName,
+    "DOMAIN-SUFFIX,grok.com," + aiGroupName,
+    "DOMAIN-SUFFIX,gemini.google.com," + aiGroupName,
+    "DOMAIN-SUFFIX,generativelanguage.googleapis.com," + aiGroupName,
+    "DOMAIN-SUFFIX,aistudio.google.com," + aiGroupName,
+    "DOMAIN-SUFFIX,perplexity.ai," + aiGroupName,
+    "DOMAIN-SUFFIX,poe.com," + aiGroupName,
+    "DOMAIN-SUFFIX,mistral.ai," + aiGroupName
+  ];
+
+  // 7. 可选：将国内常用服务保持直连。
+  var directRules = [
+    "DOMAIN-SUFFIX,gitee.com,DIRECT",
+    "DOMAIN-SUFFIX,aliyun.com,DIRECT",
+    "DOMAIN-SUFFIX,qq.com,DIRECT",
+    "DOMAIN-SUFFIX,baidu.com,DIRECT",
+    "DOMAIN-SUFFIX,jd.com,DIRECT",
+    "DOMAIN-SUFFIX,163.com,DIRECT",
+    "DOMAIN-SUFFIX,bilibili.com,DIRECT",
+    "DOMAIN-SUFFIX,zhihu.com,DIRECT"
+  ];
+
+  // AI 规则在最前，直连规则其次，原订阅规则保持在后。
+  config.rules = aiRules.concat(directRules, config.rules);
+
+  return config;
+}
+```
+
+### 脚本执行流程
+
+1. 从 `config.proxies` 中收集机场节点，排除流量、到期时间等信息节点。
+2. 创建带 `dialer-proxy` 的静态出口节点。
+3. 创建 `url-test` 入口自动测速组。
+4. 创建 AI 专属策略组，默认首选静态出口。
+5. 将静态出口注入其他可选策略组。
+6. 将固定出口规则和直连规则放在原订阅规则之前。
+
+### 编写注意事项
+
+- 使用 `var` 和普通函数，避免对脚本执行环境提出不必要的 ES6+ 要求。
+- `dialer-proxy` 含连字符，在 JavaScript 对象中必须用引号包裹键名。
+- 入口组中只能放第一跳机场节点，不能把静态出口放进去，否则会形成自环。
+- 如果订阅商使用了其他信息节点命名，需同步补充过滤条件。
+
+## 五、Clash Verge 操作步骤
+
+1. 打开 **Profiles（配置）** 页面。
+2. 为目标订阅新建或编辑 Script Override。
+3. 将完整脚本粘贴进去，替换三个敏感占位符并保存。
+4. 确认该 Script Override 已绑定到订阅。
+5. 刷新订阅，确认页面没有配置校验错误。
+6. 打开 **Proxies（代理）** 页面，在 AI 专属组或主选择组中选择 `🇺🇸 Static-IP-US`。
+7. 发起代理请求，核对出口 IP 是否与购买的静态代理一致。
+
+如果曾在 Clash Verge 的 Proxy Chain 图形界面配置过同一条链路，先删除或禁用它，避免与 `dialer-proxy` 配置叠加。
+
+## 六、验证与故障排查
+
+### 检查出口 IP
 
 ```bash
-# 选中 Static-IP-Washington 后，查出口 IP
-curl -x socks5://127.0.0.1:7890 https://api.ipify.org
-# 应返回你的美国住宅 IP（你的住宅 IP 同段），说明两跳链路通了
-
-curl -I https://www.google.com
-# 返回 200，说明链路可用
+curl -s -x http://127.0.0.1:7890 https://ipinfo.io/json
 ```
 
----
+返回的 IP 应与静态代理服务商提供的出口一致。如果返回的是机场节点 IP，说明当前只选中了入口组，没有选中静态出口。
 
-## 常见问题
+### 检查配置合法性
 
-### `dialer-proxy` 和 GUI 的链式代理有什么区别？
-
-`dialer-proxy` 是 mihomo 内核原生字段，写在节点上，明确指定"连这个节点前先走哪条通道"，链路清晰、稳定。GUI 拖拽出来的链式代理是一层封装，不透明且容易 timeout。本方案就是绕开 GUI，直接用内核能力。
-
----
-
-### 入口组为什么用 `url-test` 而不是 `select`？
-
-`url-test` 会每隔 `interval` 秒自动测速，挑延迟最低的机场节点当入口，还有 `tolerance` 防止频繁抖动切换。你不用手动选，它自动保证第一跳又快又稳。
-
----
-
-### 我有一条裸的 SOCKS5 节点（同一台住宅机），和 dialer-proxy 那条什么关系？
-
-如果你的 `proxies` 里还有一条**没带 `dialer-proxy`** 的同 IP 节点，那是**直连版**（本地直接连住宅机，没走链式）；带 `dialer-proxy` 的 `Static-IP-Washington` 才是**链式版**（经入口通道再连）。两者指向同一台服务器，用途不同，别搞混。国内直连住宅机通常不通，所以日常用链式版。
-
----
-
-### 落地节点是 HTTP 不是 SOCKS5 能用吗？
-
-能。把 `type` 改成 `http`，端口和认证信息对应填就行。`dialer-proxy` 字段对 `socks5` / `http` 落地都适用。
-
----
-
-### 我点「更新订阅」会覆盖掉手动加的落地节点吗？
-
-**会的。** 更新订阅会重写 `proxies` 和 `proxy-groups`，你手动加的 `Static-IP-Washington` 节点、入口组改动都会被冲掉。解决办法：用 Clash Verge 的**覆写（Override / Merge）**功能，新建一个覆写文件，把落地节点、入口组、选择组的改动写进去，这样每次更新订阅后覆写规则会自动合并回来，不用重新手改。
-
----
-
-### 选到别的节点会怎样？
-
-- **选 `Static-IP-Washington`**：走完整两跳链式，出口是固定美国住宅 IP。
-- **选 `⚡️ Auto-Select (Entry)`**：只走第一跳，出口是当前择优的机场节点 IP（不是住宅 IP）。
-- **选 `DIRECT`**：直连，完全不走代理，等于没挂。
-
-按需要选就行，要固定住宅 IP 就选 `Static-IP-Washington`。
-
----
-
-### 配置好后，流量到底怎么走？
-
-```
-浏览器发起请求
-    ↓
-Clash Verge (TUN/系统代理) 接管流量
-    ↓
-选中 🇺🇸 Static-IP-Washington（带 dialer-proxy）
-    ↓
-第一跳：dialer-proxy → ⚡️ Auto-Select (Entry)
-        → url-test 自动择优 → 选出延迟最低的机场节点 → 翻墙到境外
-    ↓
-第二跳：从境外连到住宅 IP（美国住宅 SOCKS5）落地
-    ↓
-出站到目标网站，对外 IP = 美国住宅 IP
+```bash
+"/Applications/Clash Verge.app/Contents/MacOS/verge-mihomo" -t \
+  -d "$HOME/Library/Application Support/io.github.clash-verge-rev.clash-verge-rev" \
+  -f "$HOME/Library/Application Support/io.github.clash-verge-rev.clash-verge-rev/clash-verge.yaml"
 ```
 
-简单来说：**第一跳靠机场自动择优保证链路稳，第二跳靠固定住宅节点保证出口 IP 干净固定**，两跳由 `dialer-proxy` 一行串起来。
+### 日志位置
+
+```text
+~/Library/Application Support/io.github.clash-verge-rev.clash-verge-rev/logs/latest.log
+```
+
+### 常见错误
+
+| 现象或日志 | 常见原因 | 处理方式 |
+|---|---|---|
+| `relay type was removed` | 仍在使用旧的 `relay` 策略组 | 改用节点级 `dialer-proxy` |
+| `JavaScript Override Script Error` | Override 语法错误或对象字段错误 | 查看 `latest.log` 定位行号 |
+| 刷新后只剩少量默认节点 | 新配置校验失败，Clash Verge 回退 | 先撤销最近的 Script 改动，再检查日志 |
+| 换多个入口仍无法连接 | 静态代理宕机、凭据错误或白名单限制 | 在服务商后台核对状态、端口、凭据和白名单 |
+| 本地代理无法连接 | Clash Verge 监听端口与命令不一致 | 以 `config.yaml` 里的实际端口为准 |
+| 配置后反复超时 | 入口组含静态出口，形成自环 | 确认 `airportNodes` 中没有静态出口节点 |
+
+### 本地端口示例
+
+```yaml
+mixed-port: 7890
+socks-port: 7898
+port: 7899
+redir-port: 7895
+external-controller: 127.0.0.1:9097
+```
+
+以上只是常见值，排查时要以自己的 `config.yaml` 为准。
+
+## 七、添加多个静态出口
+
+将单个静态节点改为数组，再逐个注入：
+
+```javascript
+var staticProxies = [
+  {
+    name: "🇺🇸 Static-IP-US",
+    type: "socks5",
+    server: "<YOUR_US_PROXY_IP>",
+    port: 443,
+    username: "<YOUR_US_PROXY_USERNAME>",
+    password: "<YOUR_US_PROXY_PASSWORD>",
+    "dialer-proxy": "⚡️ Auto-Select (Entry)"
+  },
+  {
+    name: "🇬🇧 Static-IP-UK",
+    type: "socks5",
+    server: "<YOUR_UK_PROXY_IP>",
+    port: 443,
+    username: "<YOUR_UK_PROXY_USERNAME>",
+    password: "<YOUR_UK_PROXY_PASSWORD>",
+    "dialer-proxy": "⚡️ Auto-Select (Entry)"
+  }
+];
+
+for (var i = 0; i < staticProxies.length; i++) {
+  config.proxies.push(staticProxies[i]);
+}
+```
+
+还需要将新节点名称加入对应的 `select` 策略组，否则无法在 Clash Verge 界面中选择。
+
+## 八、备份与安全建议
+
+### 本地备份
+
+```bash
+# 备份整个 profiles 目录，请保存在非公开位置
+cp -R \
+  "$HOME/Library/Application Support/io.github.clash-verge-rev.clash-verge-rev/profiles" \
+  "$HOME/Desktop/clash-profiles-backup"
+```
+
+### 安全检查清单
+
+- 不要公开订阅 URL，其中的 Token 通常等同于订阅访问凭据。
+- 不要提交静态代理的真实 IP、用户名和密码。
+- 截图前检查 Profiles 页面、编辑器、终端历史和日志中是否有凭据。
+- 若真实订阅 Token 或代理密码曾被公开，仅删除文档不够，还应在服务商后台立即重置凭据。
+- 独立浏览器 Profile 可减少 Cookie 与账号环境串联，但固定 IP 不能代替账号本身的安全措施。
+
+## 九、参考链接
+
+- [Clash Verge Rev](https://github.com/clash-verge-rev/clash-verge-rev)
+- [mihomo](https://github.com/MetaCubeX/mihomo)
+- [mihomo dialer-proxy 配置](https://wiki.metacubex.one/config/proxies/dialer-proxy/)
+- [IPInfo 出口检测](https://ipinfo.io/)

@@ -238,7 +238,7 @@ export default withMermaid(
             { text: 'CodeGraph 知识图谱', link: '/docs/只有我自己看得明白/codegraph-context' },
             { text: 'Gitee 多账号 SSH 配置', link: '/docs/只有我自己看得明白/gitee-multi-account' },
             { text: 'PowerShell 与 Node.js 路径冲突', link: '/docs/只有我自己看得明白/pwsh-node-path' },
-            { text: 'Clash Verge 链式代理 Timeout 解决方案', link: '/docs/只有我自己看得明白/clash-verge-chain-proxy' }
+            { text: 'Clash Verge Rev 链式代理完整配置手册', link: '/docs/只有我自己看得明白/clash-verge-chain-proxy' }
           ]
         }
       ],
