@@ -1,0 +1,3839 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>软件体系结构与架构设计做题版</title>
+<style>
+:root { --bg:#f5f7fb; --card:#fff; --text:#1f2937; --muted:#6b7280; --primary:#2563eb; --ok:#16a34a; --bad:#dc2626; --line:#e5e7eb; --warn:#d97706; }
+* { box-sizing: border-box; }
+body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; color:var(--text); background:linear-gradient(180deg,#eef4ff 0,var(--bg) 260px); }
+header { position:sticky; top:0; z-index:10; background:rgba(255,255,255,.92); backdrop-filter: blur(12px); border-bottom:1px solid var(--line); }
+.header-inner { max-width:1180px; margin:auto; padding:16px 20px; display:flex; gap:16px; justify-content:space-between; align-items:center; flex-wrap:wrap; }
+h1 { font-size:22px; margin:0 0 6px; }
+.subtitle { color:var(--muted); font-size:13px; }
+.toolbar { display:flex; flex-wrap:wrap; gap:8px; }
+button, select { border:1px solid var(--line); background:#fff; color:var(--text); padding:9px 12px; border-radius:10px; cursor:pointer; font-size:14px; }
+button.primary { background:var(--primary); color:#fff; border-color:var(--primary); }
+button.danger { color:var(--bad); }
+button:disabled { opacity:.45; cursor:not-allowed; }
+main { max-width:1180px; margin:22px auto 80px; padding:0 20px; display:grid; grid-template-columns: 250px 1fr; gap:20px; }
+aside { position:sticky; top:92px; align-self:start; background:var(--card); border:1px solid var(--line); border-radius:18px; padding:16px; box-shadow:0 10px 28px rgba(15,23,42,.06); }
+.stats { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.stat { background:#f8fafc; border-radius:12px; padding:12px; }
+.stat b { display:block; font-size:22px; }
+.nav-title { margin:18px 0 10px; font-weight:700; }
+.section-tabs { display:grid; gap:8px; }
+.section-tabs button { text-align:left; }
+.section-tabs button.active { background:#dbeafe; border-color:#93c5fd; color:#1d4ed8; font-weight:700; }
+.content { display:grid; gap:16px; min-width:0; }
+.question-card { background:var(--card); border:1px solid var(--line); border-radius:18px; padding:18px; box-shadow:0 10px 28px rgba(15,23,42,.06); min-width:0; }
+.question-card.correct { border-color:#86efac; }
+.question-card.wrong { border-color:#fca5a5; }
+.q-head { display:flex; justify-content:space-between; gap:12px; margin-bottom:12px; }
+.badge { display:inline-flex; align-items:center; gap:6px; font-size:12px; padding:4px 9px; border-radius:999px; background:#eef2ff; color:#3730a3; white-space:nowrap; }
+.q-title { font-weight:700; line-height:1.7; white-space:pre-wrap; }
+.options { display:grid; gap:9px; margin-top:12px; }
+.option { display:flex; gap:10px; align-items:flex-start; border:1px solid var(--line); border-radius:12px; padding:11px 12px; cursor:pointer; }
+.option:hover { border-color:#93c5fd; background:#f8fbff; }
+.option input { margin-top:3px; }
+textarea { width:100%; min-height:120px; resize:vertical; border:1px solid var(--line); border-radius:12px; padding:12px; font:14px/1.7 ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace; margin-top:12px; }
+.result { display:none; margin-top:14px; padding:14px; border-radius:12px; background:#f8fafc; border:1px solid var(--line); line-height:1.7; }
+.result.show { display:block; }
+.result .ok { color:var(--ok); font-weight:700; }
+.result .bad { color:var(--bad); font-weight:700; }
+.analysis { margin-top:8px; white-space:pre-wrap; }
+.self-check { display:flex; gap:8px; margin-top:10px; align-items:center; flex-wrap:wrap; }
+.hidden { display:none !important; }
+.empty { text-align:center; color:var(--muted); padding:44px; background:#fff; border:1px dashed var(--line); border-radius:18px; }
+@media (max-width: 860px) { main { grid-template-columns:1fr; } aside { position:static; } }
+[data-theme="dark"] { --bg:#1e1e20; --card:#252529; --text:rgba(255, 255, 255, 0.87); --muted:rgba(235, 235, 245, 0.6); --line:#32363f; }
+[data-theme="dark"] body { background: linear-gradient(180deg, #1b1b1f 0, var(--bg) 260px); }
+[data-theme="dark"] header { background: rgba(30, 30, 32, 0.92); }
+[data-theme="dark"] button, [data-theme="dark"] select { background: #313136; color: var(--text); border-color: var(--line); }
+[data-theme="dark"] .stat { background: #313136; }
+[data-theme="dark"] .section-tabs button.active { background: #1a2a4b; border-color: #3451b2; color: #a8b1ff; }
+[data-theme="dark"] .badge { background: #262c45; color: #a8b1ff; }
+[data-theme="dark"] .option:hover { background: #313136; border-color: #3451b2; }
+[data-theme="dark"] .result { background: #313136; border-color: var(--line); }
+[data-theme="dark"] .empty { background: var(--card); }
+[data-theme="dark"] textarea { background: #1e1e20; color: var(--text); border-color: var(--line); }
+[data-theme="dark"] .question-card.correct { border-color: #1a4f32; }
+[data-theme="dark"] .question-card.wrong { border-color: #7f1d1d; }
+.theme-toggle { padding: 8px 10px; display: inline-flex; align-items: center; justify-content: center; }
+.theme-toggle svg { width: 16px; height: 16px; }
+.theme-toggle .moon { display: none; }
+[data-theme="dark"] .theme-toggle .sun { display: none; }
+[data-theme="dark"] .theme-toggle .moon { display: block; }
+
+/* 沉浸式刷题模式样式 */
+body.immersive-mode main { display: none !important; }
+body.immersive-mode header { display: none !important; }
+.immersive-container { display: none; }
+body.immersive-mode .immersive-container {
+  display: flex;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 20px;
+  height: 100vh;
+  gap: 20px;
+  background: var(--bg);
+}
+.immersive-sidebar {
+  width: 280px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 10px 28px rgba(15,23,42,.06);
+  transition: width 0.3s ease, padding 0.3s ease;
+  overflow: hidden;
+}
+.immersive-sidebar.collapsed {
+  width: 0;
+  padding: 0;
+  border: none;
+  opacity: 0;
+}
+.immersive-sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.immersive-sidebar-header h3 { margin: 0; font-size: 16px; }
+.immersive-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  overflow-y: auto;
+  padding-bottom: 20px;
+}
+.immersive-grid button {
+  padding: 8px 0;
+  text-align: center;
+  border-radius: 8px;
+  font-weight: bold;
+  border: 1px solid var(--line);
+  background: var(--card);
+  font-size: 13px;
+}
+.immersive-grid button.active {
+  border-color: var(--primary);
+  color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(37,99,235,0.2);
+}
+.immersive-grid button.correct { background: #dcfce7; border-color: #86efac; color: #166534; }
+.immersive-grid button.wrong { background: #fee2e2; border-color: #fca5a5; color: #991b1b; }
+.immersive-grid button.answered { background: #e0e7ff; border-color: #a5b4fc; color: #3730a3; }
+[data-theme="dark"] .immersive-grid button.correct { background: #052e16; border-color: #14532d; color: #4ade80; }
+[data-theme="dark"] .immersive-grid button.wrong { background: #450a0a; border-color: #7f1d1d; color: #f87171; }
+[data-theme="dark"] .immersive-grid button.answered { background: #1e1b4b; border-color: #312e81; color: #818cf8; }
+
+.immersive-content-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  min-width: 0;
+}
+.immersive-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.immersive-topbar button { padding: 6px 12px; }
+.immersive-main {
+  flex: 1;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: 0 10px 28px rgba(15,23,42,.06);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.immersive-question-area {
+  flex: 1;
+  padding: 30px;
+  overflow-y: auto;
+  font-size: 16px;
+}
+.immersive-question-area .question-card { border: none; box-shadow: none; padding: 0; margin: 0; }
+.immersive-question-area .q-title { font-size: 18px; margin-bottom: 24px; }
+.immersive-question-area .option { padding: 16px; font-size: 16px; }
+.immersive-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 30px;
+  border-top: 1px solid var(--line);
+  background: var(--card);
+}
+.immersive-footer .hints { color: var(--muted); font-size: 13px; }
+.bgm-btn { display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; background: #eef2ff; color: #4f46e5; border: 1px solid #c7d2fe; border-radius: 999px; cursor: pointer; transition: all 0.3s; font-weight: bold; margin-right: 8px; }
+.bgm-btn:hover { background: #e0e7ff; transform: scale(1.02); }
+[data-theme="dark"] .bgm-btn { background: #3730a3; color: #e0e7ff; border-color: #4338ca; }
+[data-theme="dark"] .bgm-btn:hover { background: #4338ca; }
+.bgm-btn.playing .icon-play { display: none; }
+.bgm-btn.playing .icon-pause { display: block !important; }
+
+.markdown-body { white-space: normal; line-height: 1.7; font-weight: 400; }
+.markdown-body p { margin: 0 0 0.6em; }
+.markdown-body ul, .markdown-body ol { margin: 0.3em 0 0.6em; padding-left: 1.5em; }
+.markdown-body li { margin: 0.25em 0; }
+.markdown-body h4 { margin: 1.2em 0 0.5em; font-size: 15px; }
+.markdown-body table { border-collapse: collapse; width: 100%; margin-bottom: 1em; }
+.markdown-body th, .markdown-body td { border: 1px solid var(--line); padding: 8px; text-align: left; }
+.markdown-body th { color: var(--text); }
+.markdown-body img { max-width: 100%; height: auto; }
+.markdown-body code { background-color: rgba(175, 184, 193, 0.2); padding: 0.2em 0.4em; border-radius: 6px; font-family: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace; font-size: 0.9em; }
+.markdown-body pre { background: #f3f4f6; border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; overflow-x: auto; margin: 10px 0 14px; }
+.markdown-body pre code { background: transparent; padding: 0; font-size: 13.5px; line-height: 1.6; }
+[data-theme="dark"] .markdown-body pre { background: #18181b; border-color: var(--line); }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+<header>
+  <div class="header-inner">
+    <div>
+      <h1>软件体系结构与架构设计做题版</h1>
+      <div class="subtitle">单选题/判断题自动判分，主观题支持作答与自评，支持沉浸刷题与导出错题 HTML。</div>
+    </div>
+    <div class="toolbar">
+      <audio id="bgmAudio" src="/audio/study-music.mp3" loop></audio>
+      <button id="bgmToggleBtn" title="播放/暂停轻音乐" class="bgm-btn">
+        <svg class="icon-play" viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>
+        <svg class="icon-pause" viewBox="0 0 24 24" width="16" height="16" style="display:none;"><path fill="currentColor" d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+        <span>轻音乐</span>
+      </button>
+      <button id="themeToggleBtn" title="切换亮/暗模式" class="theme-toggle">
+        <svg class="sun" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M512 256a256 256 0 1 1 0 512 256 256 0 0 1 0-512m0 76.8a179.2 179.2 0 1 0 0 358.4 179.2 179.2 0 0 0 0-358.4M512 76.8a38.4 38.4 0 0 1 38.4 38.4v76.8a38.4 38.4 0 1 1-76.8 0v-76.8A38.4 38.4 0 0 1 512 76.8m0 716.8a38.4 38.4 0 0 1 38.4 38.4v76.8a38.4 38.4 0 1 1-76.8 0v-76.8a38.4 38.4 0 0 1 38.4-38.4M125.658 200.704a38.4 38.4 0 0 1 54.336-54.336l54.336 54.336a38.4 38.4 0 1 1-54.336 54.336zm565.44 565.44a38.4 38.4 0 0 1 54.336-54.336l54.336 54.336a38.4 38.4 0 1 1-54.336 54.336zM76.8 512a38.4 38.4 0 0 1 38.4-38.4h76.8a38.4 38.4 0 1 1 0 76.8h-76.8A38.4 38.4 0 0 1 76.8 512m716.8 0a38.4 38.4 0 0 1 38.4-38.4h76.8a38.4 38.4 0 1 1 0 76.8h-76.8a38.4 38.4 0 0 1-38.4-38.4M200.704 898.342a38.4 38.4 0 0 1-54.336-54.336l54.336-54.336a38.4 38.4 0 1 1 54.336 54.336zm565.44-565.44a38.4 38.4 0 0 1-54.336-54.336l54.336-54.336a38.4 38.4 0 1 1 54.336 54.336z"></path></svg>
+        <svg class="moon" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M240.448 240.448a384 384 0 1 0 559.424 542.4 384 384 0 0 1-542.4-559.424m-12.8-59.52A460.8 460.8 0 1 1 843.072 843.072 460.8 460.8 0 0 0 227.648 180.928"></path></svg>
+      </button>
+      <select id="sectionFilter"><option value="全部">全部章节</option></select>
+      <button class="primary" id="submitBtn">提交判分</button>
+      <button id="wrongOnlyBtn">只看错题</button>
+      <button id="exportBtn">导出错题</button>
+      <button class="danger" id="resetBtn">重新做题</button>
+    </div>
+  </div>
+</header>
+<main>
+  <aside>
+    <div class="stats">
+      <div class="stat"><span>总题数</span><b id="totalCount">0</b></div>
+      <div class="stat"><span>已答</span><b id="answeredCount">0</b></div>
+      <div class="stat"><span>正确</span><b id="correctCount">0</b></div>
+      <div class="stat"><span>错题</span><b id="wrongCount">0</b></div>
+    </div>
+    <div class="nav-title">章节导航</div>
+    <div class="section-tabs" id="sectionTabs"></div>
+  </aside>
+  <section class="content" id="questionList"></section>
+</main>
+
+<div class="immersive-container" id="immersiveContainer">
+  <div class="immersive-sidebar" id="immersiveSidebar">
+    <div class="immersive-sidebar-header">
+      <h3>题号导航</h3>
+      <button id="immCloseSidebarBtn" title="收起" style="padding:4px 8px;">◀</button>
+    </div>
+    <div class="immersive-grid" id="immersiveGrid"></div>
+  </div>
+  <div class="immersive-content-wrapper">
+    <div class="immersive-topbar">
+      <div>
+        <button id="immOpenSidebarBtn" class="hidden" title="展开题号">▶ 题号</button>
+      </div>
+      <div>
+        <button id="immSubmitAllBtn" class="primary" style="margin-right:8px;">交卷 (全部提交)</button>
+        <button id="immExitBtn" class="danger">退出沉浸模式</button>
+      </div>
+    </div>
+    <div class="immersive-main">
+      <div class="immersive-question-area" id="immersiveQuestionArea"></div>
+      <div class="immersive-footer">
+        <button id="immPrevBtn">上一题 (←)</button>
+        <div class="hints">快捷键: 1-4/A-D/T-F 选选项，Enter 确认当前，←/→ 切题</div>
+        <button id="immNextBtn">下一题 (→)</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const QUESTIONS = [
+  {
+    "id": "单选题-1",
+    "section": "单选题",
+    "type": "single",
+    "number": 1,
+    "question": "智慧农业管理系统（SmartAG）采用 Maven 多模块结构组织代码，其父工程（聚合工程）的 packaging 应设置为（ ）",
+    "answer": "D",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "jar"
+      },
+      {
+        "key": "B",
+        "text": "war"
+      },
+      {
+        "key": "C",
+        "text": "ear"
+      },
+      {
+        "key": "D",
+        "text": "pom"
+      }
+    ]
+  },
+  {
+    "id": "单选题-2",
+    "section": "单选题",
+    "type": "single",
+    "number": 2,
+    "question": "若某依赖仅在编译和测试阶段可用、运行时由外部提供且不向下游模块传递，应将其 scope 设置为（ ）",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "compile"
+      },
+      {
+        "key": "B",
+        "text": "runtime"
+      },
+      {
+        "key": "C",
+        "text": "provided"
+      },
+      {
+        "key": "D",
+        "text": "test"
+      }
+    ]
+  },
+  {
+    "id": "单选题-3",
+    "section": "单选题",
+    "type": "single",
+    "number": 3,
+    "question": "在 SmartAG 项目根目录执行 Maven 命令 mvn clean package，其作用是（ ）",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "只删除 target 目录"
+      },
+      {
+        "key": "B",
+        "text": "先清理、再编译、测试并打包"
+      },
+      {
+        "key": "C",
+        "text": "把 jar 包安装到本地仓库"
+      },
+      {
+        "key": "D",
+        "text": "只运行单元测试"
+      }
+    ]
+  },
+  {
+    "id": "单选题-4",
+    "section": "单选题",
+    "type": "single",
+    "number": 4,
+    "question": "项目需同时维护开发、测试、生产三套配置，最符合 Spring Boot 规范的做法是（ ）",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "在代码中用 if-else 判断服务器 IP，再读取不同的常量"
+      },
+      {
+        "key": "B",
+        "text": "编写 application-dev.yml、application-test.yml、application-prod.yml，用 spring.profiles.active 激活"
+      },
+      {
+        "key": "C",
+        "text": "为每套环境各复制一份完整源码"
+      },
+      {
+        "key": "D",
+        "text": "把三套配置都写在 application.yml 中，由运维手工注释"
+      }
+    ]
+  },
+  {
+    "id": "单选题-5",
+    "section": "单选题",
+    "type": "single",
+    "number": 5,
+    "question": "类中使用 @ConfigurationProperties(prefix = \"smartag\") 绑定配置时，配置文件中的 smartag.alarm.threshold-value 会绑定到属性（ ）",
+    "answer": "D",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "thresholdvalue"
+      },
+      {
+        "key": "B",
+        "text": "ThresholdValue"
+      },
+      {
+        "key": "C",
+        "text": "threshold_value"
+      },
+      {
+        "key": "D",
+        "text": "thresholdValue"
+      }
+    ]
+  },
+  {
+    "id": "单选题-6",
+    "section": "单选题",
+    "type": "single",
+    "number": 6,
+    "question": "Spring Boot 自动配置能够“按需装配”Bean，主要依靠（ ）",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "依赖注入"
+      },
+      {
+        "key": "B",
+        "text": "@Conditional 系列条件注解"
+      },
+      {
+        "key": "C",
+        "text": "AOP 动态代理"
+      },
+      {
+        "key": "D",
+        "text": "字节码增强"
+      }
+    ]
+  },
+  {
+    "id": "单选题-7",
+    "section": "单选题",
+    "type": "single",
+    "number": 7,
+    "question": "引入 spring-boot-starter-web 后，项目可直接获得的能力不包括（ ）",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "Spring MVC"
+      },
+      {
+        "key": "B",
+        "text": "内嵌 Tomcat"
+      },
+      {
+        "key": "C",
+        "text": "分布式事务"
+      },
+      {
+        "key": "D",
+        "text": "JSON 序列化（Jackson）"
+      }
+    ]
+  },
+  {
+    "id": "单选题-8",
+    "section": "单选题",
+    "type": "single",
+    "number": 8,
+    "question": "Maven 中 dependencyManagement 的主要作用是（ ）",
+    "answer": "A",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "统一声明依赖版本，子模块引用时可省略版本号"
+      },
+      {
+        "key": "B",
+        "text": "自动下载并引入所有依赖"
+      },
+      {
+        "key": "C",
+        "text": "排除全部传递依赖"
+      },
+      {
+        "key": "D",
+        "text": "把依赖源码复制到父工程"
+      }
+    ]
+  },
+  {
+    "id": "单选题-9",
+    "section": "单选题",
+    "type": "single",
+    "number": 9,
+    "question": "执行 mvn install 与 mvn package 的主要区别是（ ）",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "install 只编译，package 只测试"
+      },
+      {
+        "key": "B",
+        "text": "两者完全等价"
+      },
+      {
+        "key": "C",
+        "text": "install 会把构件安装到本地仓库，package 只在 target 下生成构件"
+      },
+      {
+        "key": "D",
+        "text": "install 会把构件自动部署到远程仓库"
+      }
+    ]
+  },
+  {
+    "id": "单选题-10",
+    "section": "单选题",
+    "type": "single",
+    "number": 10,
+    "question": "某依赖只在编写和运行测试代码时使用，应设置的 scope 是（ ）",
+    "answer": "A",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "test"
+      },
+      {
+        "key": "B",
+        "text": "compile"
+      },
+      {
+        "key": "C",
+        "text": "runtime"
+      },
+      {
+        "key": "D",
+        "text": "provided"
+      }
+    ]
+  },
+  {
+    "id": "单选题-11",
+    "section": "单选题",
+    "type": "single",
+    "number": 11,
+    "question": "在 @Configuration 类中，@Bean 方法的作用是（ ）",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "开启声明式事务"
+      },
+      {
+        "key": "B",
+        "text": "扫描 Mapper 接口"
+      },
+      {
+        "key": "C",
+        "text": "声明一个由 Spring 容器管理的 Bean"
+      },
+      {
+        "key": "D",
+        "text": "读取 application.yml"
+      }
+    ]
+  },
+  {
+    "id": "单选题-12",
+    "section": "单选题",
+    "type": "single",
+    "number": 12,
+    "question": "关于 @Component、@Service、@Repository，说法正确的是（ ）",
+    "answer": "A",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "它们都是组件扫描候选注解，@Service 和 @Repository 更具语义"
+      },
+      {
+        "key": "B",
+        "text": "三者完全无关，不能互换使用"
+      },
+      {
+        "key": "C",
+        "text": "只有 @Component 能被组件扫描"
+      },
+      {
+        "key": "D",
+        "text": "@Repository 只能标注在 Controller 上"
+      }
+    ]
+  },
+  {
+    "id": "单选题-13",
+    "section": "单选题",
+    "type": "single",
+    "number": 13,
+    "question": "Spring 容器中 Bean 的默认作用域是（ ）",
+    "answer": "D",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "prototype"
+      },
+      {
+        "key": "B",
+        "text": "request"
+      },
+      {
+        "key": "C",
+        "text": "session"
+      },
+      {
+        "key": "D",
+        "text": "singleton"
+      }
+    ]
+  },
+  {
+    "id": "单选题-14",
+    "section": "单选题",
+    "type": "single",
+    "number": 14,
+    "question": "@Autowired 默认按照什么方式装配依赖（ ）",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "按名称"
+      },
+      {
+        "key": "B",
+        "text": "按类型"
+      },
+      {
+        "key": "C",
+        "text": "按文件路径"
+      },
+      {
+        "key": "D",
+        "text": "按注解书写顺序"
+      }
+    ]
+  },
+  {
+    "id": "单选题-15",
+    "section": "单选题",
+    "type": "single",
+    "number": 15,
+    "question": "Spring Boot 读取外部配置时，通常优先级最高的是（ ）",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "jar 包内的 application.yml"
+      },
+      {
+        "key": "B",
+        "text": "命令行参数"
+      },
+      {
+        "key": "C",
+        "text": "application-dev.yml"
+      },
+      {
+        "key": "D",
+        "text": "框架内置的默认属性"
+      }
+    ]
+  },
+  {
+    "id": "单选题-16",
+    "section": "单选题",
+    "type": "single",
+    "number": 16,
+    "question": "Docker Compose 的主要作用是（ ）",
+    "answer": "A",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "编排多个容器并定义网络、数据卷等资源"
+      },
+      {
+        "key": "B",
+        "text": "编译 Java 源代码"
+      },
+      {
+        "key": "C",
+        "text": "替代 Maven 管理依赖"
+      },
+      {
+        "key": "D",
+        "text": "自动生成数据库表"
+      }
+    ]
+  },
+  {
+    "id": "单选题-17",
+    "section": "单选题",
+    "type": "single",
+    "number": 17,
+    "question": "@ConfigurationProperties 配合 @Validated 的主要目的是（ ）",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "只绑定一级配置项"
+      },
+      {
+        "key": "B",
+        "text": "自动加密配置文件"
+      },
+      {
+        "key": "C",
+        "text": "对绑定的配置做启动期校验"
+      },
+      {
+        "key": "D",
+        "text": "替代 application.yml"
+      }
+    ]
+  },
+  {
+    "id": "单选题-18",
+    "section": "单选题",
+    "type": "single",
+    "number": 18,
+    "question": "Spring Boot 启动类上标注的复合注解是（ ）",
+    "answer": "D",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "@EnableAutoConfiguration"
+      },
+      {
+        "key": "B",
+        "text": "@ComponentScan"
+      },
+      {
+        "key": "C",
+        "text": "@SpringBootConfiguration"
+      },
+      {
+        "key": "D",
+        "text": "@SpringBootApplication"
+      }
+    ]
+  },
+  {
+    "id": "单选题-19",
+    "section": "单选题",
+    "type": "single",
+    "number": 19,
+    "question": "application.yml 与 application-dev.yml 同时存在，且 spring.profiles.active=dev 时，两个文件中重复配置的同一项以哪个为准（ ）",
+    "answer": "D",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "application.yml"
+      },
+      {
+        "key": "B",
+        "text": "随机取其一"
+      },
+      {
+        "key": "C",
+        "text": "启动报错"
+      },
+      {
+        "key": "D",
+        "text": "application-dev.yml"
+      }
+    ]
+  },
+  {
+    "id": "单选题-20",
+    "section": "单选题",
+    "type": "single",
+    "number": 20,
+    "question": "读取 application.yml 中自定义配置项 smartag.alarm.level 的值，最简便的注解是（ ）",
+    "answer": "A",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "@Value(\"${smartag.alarm.level}\")"
+      },
+      {
+        "key": "B",
+        "text": "@Autowired"
+      },
+      {
+        "key": "C",
+        "text": "@Component"
+      },
+      {
+        "key": "D",
+        "text": "@Bean"
+      }
+    ]
+  },
+  {
+    "id": "单选题-21",
+    "section": "单选题",
+    "type": "single",
+    "number": 21,
+    "question": "按 RESTful 规范，查询编号为 12 的传感器最近 24 小时数据的 URI 最恰当的是（ ）",
+    "answer": "D",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "/sensor/getDataById?id=12&hours=24"
+      },
+      {
+        "key": "B",
+        "text": "/sensorDataQuery.do"
+      },
+      {
+        "key": "C",
+        "text": "/query/sensor/12/24"
+      },
+      {
+        "key": "D",
+        "text": "/sensors/12/data?hours=24"
+      }
+    ]
+  },
+  {
+    "id": "单选题-22",
+    "section": "单选题",
+    "type": "single",
+    "number": 22,
+    "question": "控制器方法参数上标注 @RequestBody 的作用是（ ）",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "接收路径变量"
+      },
+      {
+        "key": "B",
+        "text": "把请求体中的 JSON 数据反序列化为 Java 对象"
+      },
+      {
+        "key": "C",
+        "text": "接收表单字段"
+      },
+      {
+        "key": "D",
+        "text": "接收请求头"
+      }
+    ]
+  },
+  {
+    "id": "单选题-23",
+    "section": "单选题",
+    "type": "single",
+    "number": 23,
+    "question": "控制器中要统一捕获全局异常并直接返回 JSON 格式的响应，应使用（ ）",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "@ControllerAdvice 配合返回视图名"
+      },
+      {
+        "key": "B",
+        "text": "在每个方法中写 try-catch"
+      },
+      {
+        "key": "C",
+        "text": "@RestControllerAdvice 配合 @ExceptionHandler"
+      },
+      {
+        "key": "D",
+        "text": "在启动类中配置错误页"
+      }
+    ]
+  },
+  {
+    "id": "单选题-24",
+    "section": "单选题",
+    "type": "single",
+    "number": 24,
+    "question": "新增资源成功后，最符合 HTTP 语义的状态码是（ ）",
+    "answer": "A",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "201"
+      },
+      {
+        "key": "B",
+        "text": "200"
+      },
+      {
+        "key": "C",
+        "text": "204"
+      },
+      {
+        "key": "D",
+        "text": "302"
+      }
+    ]
+  },
+  {
+    "id": "单选题-25",
+    "section": "单选题",
+    "type": "single",
+    "number": 25,
+    "question": "RESTful 设计中最推荐的资源路径写法是（ ）",
+    "answer": "D",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "/getAllSensors"
+      },
+      {
+        "key": "B",
+        "text": "/sensor_list.do"
+      },
+      {
+        "key": "C",
+        "text": "/querySensorById"
+      },
+      {
+        "key": "D",
+        "text": "/sensors"
+      }
+    ]
+  },
+  {
+    "id": "单选题-26",
+    "section": "单选题",
+    "type": "single",
+    "number": 26,
+    "question": "HTTP GET 方法的主要语义是（ ）",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "新增资源"
+      },
+      {
+        "key": "B",
+        "text": "查询资源"
+      },
+      {
+        "key": "C",
+        "text": "修改资源"
+      },
+      {
+        "key": "D",
+        "text": "删除资源"
+      }
+    ]
+  },
+  {
+    "id": "单选题-27",
+    "section": "单选题",
+    "type": "single",
+    "number": 27,
+    "question": "删除资源成功后，若无需返回响应体，最符合语义的状态码是（ ）",
+    "answer": "D",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "200"
+      },
+      {
+        "key": "B",
+        "text": "201"
+      },
+      {
+        "key": "C",
+        "text": "302"
+      },
+      {
+        "key": "D",
+        "text": "204"
+      }
+    ]
+  },
+  {
+    "id": "单选题-28",
+    "section": "单选题",
+    "type": "single",
+    "number": 28,
+    "question": "控制器方法中，@PathVariable 用于接收（ ）",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "请求体中的 JSON"
+      },
+      {
+        "key": "B",
+        "text": "路径中的变量"
+      },
+      {
+        "key": "C",
+        "text": "查询参数"
+      },
+      {
+        "key": "D",
+        "text": "请求头"
+      }
+    ]
+  },
+  {
+    "id": "单选题-29",
+    "section": "单选题",
+    "type": "single",
+    "number": 29,
+    "question": "接收查询参数 hours，最合适的注解是（ ）",
+    "answer": "D",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "@PathVariable(\"hours\")"
+      },
+      {
+        "key": "B",
+        "text": "@RequestBody"
+      },
+      {
+        "key": "C",
+        "text": "@RequestHeader"
+      },
+      {
+        "key": "D",
+        "text": "@RequestParam(\"hours\")"
+      }
+    ]
+  },
+  {
+    "id": "单选题-30",
+    "section": "单选题",
+    "type": "single",
+    "number": 30,
+    "question": "@PostMapping(\"/{id}\") 与 @RequestMapping(value=\"/{id}\", method=RequestMethod.POST) 的关系是（ ）",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "完全无关"
+      },
+      {
+        "key": "B",
+        "text": "@PostMapping 是组合注解，等价于指定 POST 的 @RequestMapping"
+      },
+      {
+        "key": "C",
+        "text": "@PostMapping 只能标注在类上"
+      },
+      {
+        "key": "D",
+        "text": "@RequestMapping 不支持 POST"
+      }
+    ]
+  },
+  {
+    "id": "单选题-31",
+    "section": "单选题",
+    "type": "single",
+    "number": 31,
+    "question": "要让 DTO 上的 @NotNull、@Size 等校验注解生效，控制器参数通常需要加（ ）",
+    "answer": "D",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "@Service"
+      },
+      {
+        "key": "B",
+        "text": "@Mapper"
+      },
+      {
+        "key": "C",
+        "text": "@Bean"
+      },
+      {
+        "key": "D",
+        "text": "@Valid"
+      }
+    ]
+  },
+  {
+    "id": "单选题-32",
+    "section": "单选题",
+    "type": "single",
+    "number": 32,
+    "question": "参数校验失败时，Spring 默认抛出的异常是（ ）",
+    "answer": "A",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "MethodArgumentNotValidException"
+      },
+      {
+        "key": "B",
+        "text": "NullPointerException"
+      },
+      {
+        "key": "C",
+        "text": "SQLException"
+      },
+      {
+        "key": "D",
+        "text": "IOException"
+      }
+    ]
+  },
+  {
+    "id": "单选题-33",
+    "section": "单选题",
+    "type": "single",
+    "number": 33,
+    "question": "@RestControllerAdvice 与 @ControllerAdvice 的主要区别是（ ）",
+    "answer": "A",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "前者默认将返回值作为响应体，适合返回 JSON"
+      },
+      {
+        "key": "B",
+        "text": "前者只处理 GET 请求"
+      },
+      {
+        "key": "C",
+        "text": "后者不能处理异常"
+      },
+      {
+        "key": "D",
+        "text": "两者完全等价"
+      }
+    ]
+  },
+  {
+    "id": "单选题-34",
+    "section": "单选题",
+    "type": "single",
+    "number": 34,
+    "question": "请求路径存在但 HTTP 方法不支持，最合适的状态码是（ ）",
+    "answer": "D",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "400"
+      },
+      {
+        "key": "B",
+        "text": "401"
+      },
+      {
+        "key": "C",
+        "text": "404"
+      },
+      {
+        "key": "D",
+        "text": "405"
+      }
+    ]
+  },
+  {
+    "id": "单选题-35",
+    "section": "单选题",
+    "type": "single",
+    "number": 35,
+    "question": "接口版本控制中，/api/v1/sensors 的 v1 表示（ ）",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "数据库版本"
+      },
+      {
+        "key": "B",
+        "text": "JWT 版本"
+      },
+      {
+        "key": "C",
+        "text": "接口版本"
+      },
+      {
+        "key": "D",
+        "text": "Maven 版本"
+      }
+    ]
+  },
+  {
+    "id": "单选题-36",
+    "section": "单选题",
+    "type": "single",
+    "number": 36,
+    "question": "SpringDoc 在 Spring Boot 中的主要作用是（ ）",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "生成数据库表"
+      },
+      {
+        "key": "B",
+        "text": "自动生成 OpenAPI 接口文档"
+      },
+      {
+        "key": "C",
+        "text": "实现分布式事务"
+      },
+      {
+        "key": "D",
+        "text": "发送 RabbitMQ 消息"
+      }
+    ]
+  },
+  {
+    "id": "单选题-37",
+    "section": "单选题",
+    "type": "single",
+    "number": 37,
+    "question": "客户端以 JSON 格式提交数据时，请求头 Content-Type 通常应设置为（ ）",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "text/plain"
+      },
+      {
+        "key": "B",
+        "text": "application/json"
+      },
+      {
+        "key": "C",
+        "text": "multipart/form-data"
+      },
+      {
+        "key": "D",
+        "text": "application/xml"
+      }
+    ]
+  },
+  {
+    "id": "单选题-38",
+    "section": "单选题",
+    "type": "single",
+    "number": 38,
+    "question": "按 REST 语义，PUT 方法通常用于（ ）",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "新增资源"
+      },
+      {
+        "key": "B",
+        "text": "更新（修改）资源"
+      },
+      {
+        "key": "C",
+        "text": "删除资源"
+      },
+      {
+        "key": "D",
+        "text": "查询资源"
+      }
+    ]
+  },
+  {
+    "id": "单选题-39",
+    "section": "单选题",
+    "type": "single",
+    "number": 39,
+    "question": "@RestController 等价于 @Controller 与下列哪个注解的组合（ ）",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "@RequestBody"
+      },
+      {
+        "key": "B",
+        "text": "@RequestMapping"
+      },
+      {
+        "key": "C",
+        "text": "@ResponseBody"
+      },
+      {
+        "key": "D",
+        "text": "@Service"
+      }
+    ]
+  },
+  {
+    "id": "单选题-40",
+    "section": "单选题",
+    "type": "single",
+    "number": 40,
+    "question": "统一响应结果类 Result 通常包含 code、message 和（ ）三个字段，便于前端统一处理 （ ）",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "token"
+      },
+      {
+        "key": "B",
+        "text": "status"
+      },
+      {
+        "key": "C",
+        "text": "data"
+      },
+      {
+        "key": "D",
+        "text": "id"
+      }
+    ]
+  },
+  {
+    "id": "单选题-41",
+    "section": "单选题",
+    "type": "single",
+    "number": 41,
+    "question": "Mapper 接口继承 BaseMapper<SensorData> 后，可直接获得的能力是（ ）",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "多表关联查询与结果映射"
+      },
+      {
+        "key": "B",
+        "text": "单表增删改查"
+      },
+      {
+        "key": "C",
+        "text": "存储过程调用"
+      },
+      {
+        "key": "D",
+        "text": "跨库分片路由"
+      }
+    ]
+  },
+  {
+    "id": "单选题-42",
+    "section": "单选题",
+    "type": "single",
+    "number": 42,
+    "question": "与 QueryWrapper 相比，LambdaQueryWrapper 的主要优势是（ ）",
+    "answer": "D",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "执行效率更高"
+      },
+      {
+        "key": "B",
+        "text": "支持分页查询"
+      },
+      {
+        "key": "C",
+        "text": "无需额外引入依赖"
+      },
+      {
+        "key": "D",
+        "text": "通过方法引用指定字段，避免字段名硬编码并可在编译期检查"
+      }
+    ]
+  },
+  {
+    "id": "单选题-43",
+    "section": "单选题",
+    "type": "single",
+    "number": 43,
+    "question": "使用 MyBatis-Plus 的分页查询前，必须在配置类中注册（ ）",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "PageHelper 插件"
+      },
+      {
+        "key": "B",
+        "text": "MybatisPlusInterceptor 并添加 PaginationInnerInterceptor"
+      },
+      {
+        "key": "C",
+        "text": "@EnableTransactionManagement"
+      },
+      {
+        "key": "D",
+        "text": "SqlSessionFactoryBean"
+      }
+    ]
+  },
+  {
+    "id": "单选题-44",
+    "section": "单选题",
+    "type": "single",
+    "number": 44,
+    "question": "在配置类上标注 @MapperScan(\"com.smartag.mapper\") 的作用是（ ）",
+    "answer": "A",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "扫描并注册该包下的 Mapper 接口为 Spring Bean"
+      },
+      {
+        "key": "B",
+        "text": "扫描该包下的 Controller"
+      },
+      {
+        "key": "C",
+        "text": "开启声明式事务"
+      },
+      {
+        "key": "D",
+        "text": "自动创建数据库表"
+      }
+    ]
+  },
+  {
+    "id": "单选题-45",
+    "section": "单选题",
+    "type": "single",
+    "number": 45,
+    "question": "下列异常中，@Transactional 默认不会触发回滚的是（ ）",
+    "answer": "A",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "IOException（检查型异常）"
+      },
+      {
+        "key": "B",
+        "text": "NullPointerException"
+      },
+      {
+        "key": "C",
+        "text": "IllegalArgumentException"
+      },
+      {
+        "key": "D",
+        "text": "ArrayIndexOutOfBoundsException"
+      }
+    ]
+  },
+  {
+    "id": "单选题-46",
+    "section": "单选题",
+    "type": "single",
+    "number": 46,
+    "question": "Spring Security 6 中，配置请求授权规则与过滤器链的标准做法是（ ）",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "继承 WebSecurityConfigurerAdapter 并重写 configure 方法"
+      },
+      {
+        "key": "B",
+        "text": "在 web.xml 中配置 filter"
+      },
+      {
+        "key": "C",
+        "text": "声明 SecurityFilterChain 类型的 Bean"
+      },
+      {
+        "key": "D",
+        "text": "只需在方法上添加 @PreAuthorize"
+      }
+    ]
+  },
+  {
+    "id": "单选题-47",
+    "section": "单选题",
+    "type": "single",
+    "number": 47,
+    "question": "按照 RFC 7519 的定义，一个 JWT 由三部分组成，依次是（ ）",
+    "answer": "D",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "account、password、role"
+      },
+      {
+        "key": "B",
+        "text": "token、session、cookie"
+      },
+      {
+        "key": "C",
+        "text": "issuer、audience、expire"
+      },
+      {
+        "key": "D",
+        "text": "header、payload、signature"
+      }
+    ]
+  },
+  {
+    "id": "单选题-48",
+    "section": "单选题",
+    "type": "single",
+    "number": 48,
+    "question": "服务端判定 JWT 未被篡改的关键操作是（ ）",
+    "answer": "A",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "用密钥对 header.payload 重新计算签名并与原签名比对"
+      },
+      {
+        "key": "B",
+        "text": "检查 payload 中的用户名是否存在"
+      },
+      {
+        "key": "C",
+        "text": "检查令牌字符串长度是否为 32 位"
+      },
+      {
+        "key": "D",
+        "text": "查询 Redis 中是否存在该令牌"
+      }
+    ]
+  },
+  {
+    "id": "单选题-49",
+    "section": "单选题",
+    "type": "single",
+    "number": 49,
+    "question": "用户密码的正确存储方式是（ ）",
+    "answer": "A",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "BCrypt 加盐哈希"
+      },
+      {
+        "key": "B",
+        "text": "MD5 直接加密"
+      },
+      {
+        "key": "C",
+        "text": "Base64 编码"
+      },
+      {
+        "key": "D",
+        "text": "明文存储并限制数据库访问"
+      }
+    ]
+  },
+  {
+    "id": "单选题-50",
+    "section": "单选题",
+    "type": "single",
+    "number": 50,
+    "question": "客户端携带 JWT 访问受保护接口时，Authorization 请求头中的令牌前缀是（ ）",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "Token"
+      },
+      {
+        "key": "B",
+        "text": "JWT"
+      },
+      {
+        "key": "C",
+        "text": "Bearer"
+      },
+      {
+        "key": "D",
+        "text": "Basic"
+      }
+    ]
+  },
+  {
+    "id": "单选题-51",
+    "section": "单选题",
+    "type": "single",
+    "number": 51,
+    "question": "MyBatis-Plus 中，将实体类映射到数据库表的注解是（ ）",
+    "answer": "D",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "@TableId"
+      },
+      {
+        "key": "B",
+        "text": "@TableField"
+      },
+      {
+        "key": "C",
+        "text": "@TableLogic"
+      },
+      {
+        "key": "D",
+        "text": "@TableName"
+      }
+    ]
+  },
+  {
+    "id": "单选题-52",
+    "section": "单选题",
+    "type": "single",
+    "number": 52,
+    "question": "实体主键使用数据库自增，@TableId 的 type 应设置为（ ）",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "IdType.INPUT"
+      },
+      {
+        "key": "B",
+        "text": "IdType.ASSIGN_UUID"
+      },
+      {
+        "key": "C",
+        "text": "IdType.AUTO"
+      },
+      {
+        "key": "D",
+        "text": "IdType.NONE"
+      }
+    ]
+  },
+  {
+    "id": "单选题-53",
+    "section": "单选题",
+    "type": "single",
+    "number": 53,
+    "question": "使用 MyBatis-Plus 分页查询时，通常返回的对象是（ ）",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "ResultSet"
+      },
+      {
+        "key": "B",
+        "text": "QueryWrapper"
+      },
+      {
+        "key": "C",
+        "text": "Page"
+      },
+      {
+        "key": "D",
+        "text": "SqlSession"
+      }
+    ]
+  },
+  {
+    "id": "单选题-54",
+    "section": "单选题",
+    "type": "single",
+    "number": 54,
+    "question": "@TableLogic 注解的作用是（ ）",
+    "answer": "D",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "物理删除记录"
+      },
+      {
+        "key": "B",
+        "text": "自动填充创建时间"
+      },
+      {
+        "key": "C",
+        "text": "开启事务"
+      },
+      {
+        "key": "D",
+        "text": "实现逻辑删除，查询时自动过滤已删除数据"
+      }
+    ]
+  },
+  {
+    "id": "单选题-55",
+    "section": "单选题",
+    "type": "single",
+    "number": 55,
+    "question": "@Transactional 中，rollbackFor 属性的作用是（ ）",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "指定事务超时时间"
+      },
+      {
+        "key": "B",
+        "text": "指定隔离级别"
+      },
+      {
+        "key": "C",
+        "text": "指定哪些异常触发回滚"
+      },
+      {
+        "key": "D",
+        "text": "指定数据源"
+      }
+    ]
+  },
+  {
+    "id": "单选题-56",
+    "section": "单选题",
+    "type": "single",
+    "number": 56,
+    "question": "Spring 事务默认的传播行为是（ ）",
+    "answer": "A",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "REQUIRED"
+      },
+      {
+        "key": "B",
+        "text": "REQUIRES_NEW"
+      },
+      {
+        "key": "C",
+        "text": "NESTED"
+      },
+      {
+        "key": "D",
+        "text": "SUPPORTS"
+      }
+    ]
+  },
+  {
+    "id": "单选题-57",
+    "section": "单选题",
+    "type": "single",
+    "number": 57,
+    "question": "同一个类中，方法 A 直接调用本类标注 @Transactional 的方法 B，事务通常（ ）",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "一定生效"
+      },
+      {
+        "key": "B",
+        "text": "失效，因为没有经过代理对象"
+      },
+      {
+        "key": "C",
+        "text": "自动改为 REQUIRES_NEW"
+      },
+      {
+        "key": "D",
+        "text": "自动回滚"
+      }
+    ]
+  },
+  {
+    "id": "单选题-58",
+    "section": "单选题",
+    "type": "single",
+    "number": 58,
+    "question": "Spring Security 中，“认证”和“授权”的区别是（ ）",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "认证是判断能做什么，授权是判断是谁"
+      },
+      {
+        "key": "B",
+        "text": "认证是确认身份，授权是判断能访问什么资源"
+      },
+      {
+        "key": "C",
+        "text": "两者完全相同"
+      },
+      {
+        "key": "D",
+        "text": "认证只针对数据库，授权只针对缓存"
+      }
+    ]
+  },
+  {
+    "id": "单选题-59",
+    "section": "单选题",
+    "type": "single",
+    "number": 59,
+    "question": "RBAC 模型的核心关联是（ ）",
+    "answer": "D",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "用户—数据库—表"
+      },
+      {
+        "key": "B",
+        "text": "角色—缓存—消息"
+      },
+      {
+        "key": "C",
+        "text": "权限—日志—监控"
+      },
+      {
+        "key": "D",
+        "text": "用户—角色—权限"
+      }
+    ]
+  },
+  {
+    "id": "单选题-60",
+    "section": "单选题",
+    "type": "single",
+    "number": 60,
+    "question": "JWT 中的 exp 声明表示（ ）",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "签发者"
+      },
+      {
+        "key": "B",
+        "text": "接收方"
+      },
+      {
+        "key": "C",
+        "text": "过期时间"
+      },
+      {
+        "key": "D",
+        "text": "签名算法"
+      }
+    ]
+  },
+  {
+    "id": "单选题-61",
+    "section": "单选题",
+    "type": "single",
+    "number": 61,
+    "question": "服务端使用 Spring Security 处理 JWT 时，通常将认证信息放入（ ）",
+    "answer": "A",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "SecurityContext"
+      },
+      {
+        "key": "B",
+        "text": "application.yml"
+      },
+      {
+        "key": "C",
+        "text": "Redis 数据库"
+      },
+      {
+        "key": "D",
+        "text": "Mapper"
+      }
+    ]
+  },
+  {
+    "id": "单选题-62",
+    "section": "单选题",
+    "type": "single",
+    "number": 62,
+    "question": "BCryptPasswordEncoder 校验原始密码与密文是否匹配的方法是（ ）",
+    "answer": "A",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "matches()"
+      },
+      {
+        "key": "B",
+        "text": "encode()"
+      },
+      {
+        "key": "C",
+        "text": "decrypt()"
+      },
+      {
+        "key": "D",
+        "text": "equals()"
+      }
+    ]
+  },
+  {
+    "id": "单选题-63",
+    "section": "单选题",
+    "type": "single",
+    "number": 63,
+    "question": "大量请求查询不存在的设备编号，导致请求全部落到数据库，该现象及对策是（ ）",
+    "answer": "D",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "缓存雪崩，对策是给过期时间加随机值"
+      },
+      {
+        "key": "B",
+        "text": "缓存击穿，对策是加互斥锁"
+      },
+      {
+        "key": "C",
+        "text": "缓存预热，对策是启动时预加载数据"
+      },
+      {
+        "key": "D",
+        "text": "缓存穿透，对策是缓存空值或使用布隆过滤器"
+      }
+    ]
+  },
+  {
+    "id": "单选题-64",
+    "section": "单选题",
+    "type": "single",
+    "number": 64,
+    "question": "RabbitMQ 中，只有当 RoutingKey 与绑定键完全相等才投递消息的交换机类型是（ ）",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "Fanout"
+      },
+      {
+        "key": "B",
+        "text": "Direct"
+      },
+      {
+        "key": "C",
+        "text": "Topic"
+      },
+      {
+        "key": "D",
+        "text": "Headers"
+      }
+    ]
+  },
+  {
+    "id": "单选题-65",
+    "section": "单选题",
+    "type": "single",
+    "number": 65,
+    "question": "定时任务配置 @Scheduled(cron = \"0 0/10 * * * ?\")，其执行规律是（ ）",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "每 10 秒执行一次"
+      },
+      {
+        "key": "B",
+        "text": "每小时的第 10 分钟执行一次"
+      },
+      {
+        "key": "C",
+        "text": "每 10 分钟执行一次"
+      },
+      {
+        "key": "D",
+        "text": "每天 10 时执行一次"
+      }
+    ]
+  },
+  {
+    "id": "单选题-66",
+    "section": "单选题",
+    "type": "single",
+    "number": 66,
+    "question": "在 Spring 应用中操作 Redis 各类数据结构的模板类是（ ）",
+    "answer": "A",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "RedisTemplate"
+      },
+      {
+        "key": "B",
+        "text": "JdbcTemplate"
+      },
+      {
+        "key": "C",
+        "text": "RestTemplate"
+      },
+      {
+        "key": "D",
+        "text": "RabbitTemplate"
+      }
+    ]
+  },
+  {
+    "id": "单选题-67",
+    "section": "单选题",
+    "type": "single",
+    "number": 67,
+    "question": "要让 @Scheduled 注解生效，需在配置类或启动类上添加（ ）",
+    "answer": "A",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "@EnableScheduling"
+      },
+      {
+        "key": "B",
+        "text": "@EnableAsync"
+      },
+      {
+        "key": "C",
+        "text": "@EnableTransactionManagement"
+      },
+      {
+        "key": "D",
+        "text": "@EnableCaching"
+      }
+    ]
+  },
+  {
+    "id": "单选题-68",
+    "section": "单选题",
+    "type": "single",
+    "number": 68,
+    "question": "在 Redis 中存储简单的字符串缓存，Spring 提供的便捷模板是（ ）",
+    "answer": "D",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "JdbcTemplate"
+      },
+      {
+        "key": "B",
+        "text": "RestTemplate"
+      },
+      {
+        "key": "C",
+        "text": "RabbitTemplate"
+      },
+      {
+        "key": "D",
+        "text": "StringRedisTemplate"
+      }
+    ]
+  },
+  {
+    "id": "单选题-69",
+    "section": "单选题",
+    "type": "single",
+    "number": 69,
+    "question": "RedisTemplate 默认使用 JDK 序列化方式，可能导致（ ）",
+    "answer": "A",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "key/value 出现不可读的二进制内容"
+      },
+      {
+        "key": "B",
+        "text": "数据无法过期"
+      },
+      {
+        "key": "C",
+        "text": "自动分库"
+      },
+      {
+        "key": "D",
+        "text": "自动加锁"
+      }
+    ]
+  },
+  {
+    "id": "单选题-70",
+    "section": "单选题",
+    "type": "single",
+    "number": 70,
+    "question": "Cache Aside 模式读取数据时，正确的顺序是（ ）",
+    "answer": "A",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "先读缓存，未命中再读数据库并回写缓存"
+      },
+      {
+        "key": "B",
+        "text": "只读数据库"
+      },
+      {
+        "key": "C",
+        "text": "先删缓存再读数据库"
+      },
+      {
+        "key": "D",
+        "text": "只读缓存"
+      }
+    ]
+  },
+  {
+    "id": "单选题-71",
+    "section": "单选题",
+    "type": "single",
+    "number": 71,
+    "question": "更新数据库后，为避免缓存中保留旧值，通常采用的做法是（ ）",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "先删除缓存再更新数据库"
+      },
+      {
+        "key": "B",
+        "text": "更新数据库后删除缓存"
+      },
+      {
+        "key": "C",
+        "text": "只更新缓存"
+      },
+      {
+        "key": "D",
+        "text": "不设置过期时间"
+      }
+    ]
+  },
+  {
+    "id": "单选题-72",
+    "section": "单选题",
+    "type": "single",
+    "number": 72,
+    "question": "为防止缓存雪崩，常见做法是（ ）",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "所有 key 使用相同过期时间"
+      },
+      {
+        "key": "B",
+        "text": "关闭缓存"
+      },
+      {
+        "key": "C",
+        "text": "给过期时间加随机值并保证缓存高可用"
+      },
+      {
+        "key": "D",
+        "text": "只缓存空值"
+      }
+    ]
+  },
+  {
+    "id": "单选题-73",
+    "section": "单选题",
+    "type": "single",
+    "number": 73,
+    "question": "缓存击穿是指（ ）",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "大量不存在的 key 请求数据库"
+      },
+      {
+        "key": "B",
+        "text": "缓存服务器宕机"
+      },
+      {
+        "key": "C",
+        "text": "某个热点 key 过期瞬间，大量请求同时回源数据库"
+      },
+      {
+        "key": "D",
+        "text": "缓存数据永久有效"
+      }
+    ]
+  },
+  {
+    "id": "单选题-74",
+    "section": "单选题",
+    "type": "single",
+    "number": 74,
+    "question": "防止缓存穿透的常见手段是（ ）",
+    "answer": "A",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "缓存空值或使用布隆过滤器"
+      },
+      {
+        "key": "B",
+        "text": "给所有 key 加随机过期时间"
+      },
+      {
+        "key": "C",
+        "text": "使用互斥锁"
+      },
+      {
+        "key": "D",
+        "text": "增加数据库连接数"
+      }
+    ]
+  },
+  {
+    "id": "单选题-75",
+    "section": "单选题",
+    "type": "single",
+    "number": 75,
+    "question": "RabbitMQ 中，消息发送到交换机时用于匹配队列的字段是（ ）",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "QueueName"
+      },
+      {
+        "key": "B",
+        "text": "RoutingKey"
+      },
+      {
+        "key": "C",
+        "text": "MessageId"
+      },
+      {
+        "key": "D",
+        "text": "ExchangeId"
+      }
+    ]
+  },
+  {
+    "id": "单选题-76",
+    "section": "单选题",
+    "type": "single",
+    "number": 76,
+    "question": "Topic 交换机中，绑定键 sensor.* 可以匹配的路由键是（ ）",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "sensor.data.temp"
+      },
+      {
+        "key": "B",
+        "text": "sensor"
+      },
+      {
+        "key": "C",
+        "text": "sensor.data"
+      },
+      {
+        "key": "D",
+        "text": "alarm.sensor"
+      }
+    ]
+  },
+  {
+    "id": "单选题-77",
+    "section": "单选题",
+    "type": "single",
+    "number": 77,
+    "question": "需要将一条消息广播到所有绑定队列，应选择哪种交换机（ ）",
+    "answer": "D",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "Direct"
+      },
+      {
+        "key": "B",
+        "text": "Topic"
+      },
+      {
+        "key": "C",
+        "text": "Headers"
+      },
+      {
+        "key": "D",
+        "text": "Fanout"
+      }
+    ]
+  },
+  {
+    "id": "单选题-78",
+    "section": "单选题",
+    "type": "single",
+    "number": 78,
+    "question": "注解 @RabbitListener 的作用是（ ）",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "发送消息"
+      },
+      {
+        "key": "B",
+        "text": "声明并监听队列，异步消费消息"
+      },
+      {
+        "key": "C",
+        "text": "创建交换机"
+      },
+      {
+        "key": "D",
+        "text": "开启事务"
+      }
+    ]
+  },
+  {
+    "id": "单选题-79",
+    "section": "单选题",
+    "type": "single",
+    "number": 79,
+    "question": "RabbitTemplate 中，将对象发送到指定交换机和路由键的方法是（ ）",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "receiveAndConvert"
+      },
+      {
+        "key": "B",
+        "text": "convertAndSend"
+      },
+      {
+        "key": "C",
+        "text": "execute"
+      },
+      {
+        "key": "D",
+        "text": "addQueue"
+      }
+    ]
+  },
+  {
+    "id": "单选题-80",
+    "section": "单选题",
+    "type": "single",
+    "number": 80,
+    "question": "为避免消息重复消费造成数据重复，消费者应实现（ ）",
+    "answer": "D",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "随机丢弃"
+      },
+      {
+        "key": "B",
+        "text": "关闭 ACK"
+      },
+      {
+        "key": "C",
+        "text": "增加生产者"
+      },
+      {
+        "key": "D",
+        "text": "幂等处理"
+      }
+    ]
+  },
+  {
+    "id": "单选题-81",
+    "section": "单选题",
+    "type": "single",
+    "number": 81,
+    "question": "Cron 表达式 0 0/5 * * * ? 表示（ ）",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "每 5 秒一次"
+      },
+      {
+        "key": "B",
+        "text": "每小时第 5 分钟一次"
+      },
+      {
+        "key": "C",
+        "text": "每 5 分钟一次"
+      },
+      {
+        "key": "D",
+        "text": "每天 5 点一次"
+      }
+    ]
+  },
+  {
+    "id": "单选题-82",
+    "section": "单选题",
+    "type": "single",
+    "number": 82,
+    "question": "@Scheduled 中 fixedRate 与 fixedDelay 的区别是（ ）",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "两者完全一样"
+      },
+      {
+        "key": "B",
+        "text": "前者按固定频率开始，后者在上次执行结束后再延迟"
+      },
+      {
+        "key": "C",
+        "text": "前者只执行一次"
+      },
+      {
+        "key": "D",
+        "text": "后者不支持 cron"
+      }
+    ]
+  },
+  {
+    "id": "单选题-83",
+    "section": "单选题",
+    "type": "single",
+    "number": 83,
+    "question": "在 Redis 中为 key 设置过期时间，常用的命令是（ ）",
+    "answer": "A",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "EXPIRE"
+      },
+      {
+        "key": "B",
+        "text": "DEL"
+      },
+      {
+        "key": "C",
+        "text": "PERSIST"
+      },
+      {
+        "key": "D",
+        "text": "TTL"
+      }
+    ]
+  },
+  {
+    "id": "单选题-84",
+    "section": "单选题",
+    "type": "single",
+    "number": 84,
+    "question": "定时任务执行时间较长时，为避免任务重叠，可考虑（ ）",
+    "answer": "D",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "删除 @Scheduled"
+      },
+      {
+        "key": "B",
+        "text": "把 cron 改成每秒执行"
+      },
+      {
+        "key": "C",
+        "text": "关闭日志"
+      },
+      {
+        "key": "D",
+        "text": "增加调度线程池并配置并发或防重叠策略"
+      }
+    ]
+  },
+  {
+    "id": "单选题-85",
+    "section": "单选题",
+    "type": "single",
+    "number": 85,
+    "question": "Spring Boot Actuator 中，供 Prometheus 抓取的指标端点默认是（ ）",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "/actuator/health"
+      },
+      {
+        "key": "B",
+        "text": "/actuator/prometheus"
+      },
+      {
+        "key": "C",
+        "text": "/actuator/metrics"
+      },
+      {
+        "key": "D",
+        "text": "/actuator/loggers"
+      }
+    ]
+  },
+  {
+    "id": "单选题-86",
+    "section": "单选题",
+    "type": "single",
+    "number": 86,
+    "question": "Spring AI 中，用于与大模型进行对话的核心组件是（ ）",
+    "answer": "D",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "JdbcTemplate"
+      },
+      {
+        "key": "B",
+        "text": "RestTemplate"
+      },
+      {
+        "key": "C",
+        "text": "RabbitTemplate"
+      },
+      {
+        "key": "D",
+        "text": "ChatClient"
+      }
+    ]
+  },
+  {
+    "id": "单选题-87",
+    "section": "单选题",
+    "type": "single",
+    "number": 87,
+    "question": "Prometheus 采集到监控指标后，通常配合哪个组件完成指标可视化与大屏展示（ ）",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "Nginx"
+      },
+      {
+        "key": "B",
+        "text": "Grafana"
+      },
+      {
+        "key": "C",
+        "text": "Tomcat"
+      },
+      {
+        "key": "D",
+        "text": "Jenkins"
+      }
+    ]
+  },
+  {
+    "id": "单选题-88",
+    "section": "单选题",
+    "type": "single",
+    "number": 88,
+    "question": "Spring Boot Actuator 中，查看应用健康状态的端点默认是（ ）",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "/actuator/prometheus"
+      },
+      {
+        "key": "B",
+        "text": "/actuator/loggers"
+      },
+      {
+        "key": "C",
+        "text": "/actuator/health"
+      },
+      {
+        "key": "D",
+        "text": "/actuator/beans"
+      }
+    ]
+  },
+  {
+    "id": "单选题-89",
+    "section": "单选题",
+    "type": "single",
+    "number": 89,
+    "question": "Micrometer 在 Spring Boot 监控体系中的作用是（ ）",
+    "answer": "A",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "采集并统一指标门面"
+      },
+      {
+        "key": "B",
+        "text": "生成数据库表"
+      },
+      {
+        "key": "C",
+        "text": "发送 RabbitMQ 消息"
+      },
+      {
+        "key": "D",
+        "text": "实现 JWT 认证"
+      }
+    ]
+  },
+  {
+    "id": "单选题-90",
+    "section": "单选题",
+    "type": "single",
+    "number": 90,
+    "question": "Prometheus 获取指标的方式通常是（ ）",
+    "answer": "D",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "应用主动推送"
+      },
+      {
+        "key": "B",
+        "text": "数据库触发器"
+      },
+      {
+        "key": "C",
+        "text": "人工导出"
+      },
+      {
+        "key": "D",
+        "text": "Prometheus 定期拉取（scrape）"
+      }
+    ]
+  },
+  {
+    "id": "单选题-91",
+    "section": "单选题",
+    "type": "single",
+    "number": 91,
+    "question": "要显式暴露 Actuator 的 prometheus 端点，通常配置（ ）",
+    "answer": "A",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "management.endpoints.web.exposure.include=prometheus"
+      },
+      {
+        "key": "B",
+        "text": "server.port=9090"
+      },
+      {
+        "key": "C",
+        "text": "spring.profiles.active=prod"
+      },
+      {
+        "key": "D",
+        "text": "mybatis-plus.mapper-locations=classpath*:mapper/*.xml"
+      }
+    ]
+  },
+  {
+    "id": "单选题-92",
+    "section": "单选题",
+    "type": "single",
+    "number": 92,
+    "question": "Spring AI 接入 DeepSeek 等大模型时，API Key 的正确管理方式是（ ）",
+    "answer": "D",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "直接写在 Java 常量中"
+      },
+      {
+        "key": "B",
+        "text": "写在 README 中"
+      },
+      {
+        "key": "C",
+        "text": "用 Base64 编码后写入前端页面"
+      },
+      {
+        "key": "D",
+        "text": "通过环境变量或外部配置注入，不提交到代码仓库"
+      }
+    ]
+  },
+  {
+    "id": "单选题-93",
+    "section": "单选题",
+    "type": "single",
+    "number": 93,
+    "question": "SSE 流式响应的特点是（ ）",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "客户端轮询"
+      },
+      {
+        "key": "B",
+        "text": "服务端通过单向事件流持续推送数据"
+      },
+      {
+        "key": "C",
+        "text": "只能传输二进制文件"
+      },
+      {
+        "key": "D",
+        "text": "必须使用 WebSocket"
+      }
+    ]
+  },
+  {
+    "id": "单选题-94",
+    "section": "单选题",
+    "type": "single",
+    "number": 94,
+    "question": "将 Spring Boot 应用打包为 Docker 镜像时，通常用哪个文件描述镜像构建步骤（ ）",
+    "answer": "A",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "Dockerfile"
+      },
+      {
+        "key": "B",
+        "text": "pom.xml"
+      },
+      {
+        "key": "C",
+        "text": "application.yml"
+      },
+      {
+        "key": "D",
+        "text": "web.xml"
+      }
+    ]
+  },
+  {
+    "id": "单选题-95",
+    "section": "单选题",
+    "type": "single",
+    "number": 95,
+    "question": "在 Controller→Service→Mapper 的分层架构中，依赖方向应该是（ ）",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "Mapper→Service→Controller"
+      },
+      {
+        "key": "B",
+        "text": "Controller→Mapper→Service"
+      },
+      {
+        "key": "C",
+        "text": "Controller→Service→Mapper"
+      },
+      {
+        "key": "D",
+        "text": "三层互相直接依赖"
+      }
+    ]
+  },
+  {
+    "id": "单选题-96",
+    "section": "单选题",
+    "type": "single",
+    "number": 96,
+    "question": "“高内聚、低耦合”的含义是（ ）",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "所有代码放在一个类中"
+      },
+      {
+        "key": "B",
+        "text": "模块之间大量互相调用"
+      },
+      {
+        "key": "C",
+        "text": "模块内部职责集中，模块之间依赖尽量少"
+      },
+      {
+        "key": "D",
+        "text": "只使用一个数据库"
+      }
+    ]
+  },
+  {
+    "id": "单选题-97",
+    "section": "单选题",
+    "type": "single",
+    "number": 97,
+    "question": "单一职责原则（SRP）要求（ ）",
+    "answer": "D",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "一个类负责所有业务"
+      },
+      {
+        "key": "B",
+        "text": "一个接口只能有一个方法"
+      },
+      {
+        "key": "C",
+        "text": "一个项目只能有一个模块"
+      },
+      {
+        "key": "D",
+        "text": "一个类只负责一项职责"
+      }
+    ]
+  },
+  {
+    "id": "单选题-98",
+    "section": "单选题",
+    "type": "single",
+    "number": 98,
+    "question": "GB/T 28827.1—2022 主要涉及（ ）",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "信息安全编程指南"
+      },
+      {
+        "key": "B",
+        "text": "数据库设计规范"
+      },
+      {
+        "key": "C",
+        "text": "信息技术服务运行维护"
+      },
+      {
+        "key": "D",
+        "text": "前端开发规范"
+      }
+    ]
+  },
+  {
+    "id": "单选题-99",
+    "section": "单选题",
+    "type": "single",
+    "number": 99,
+    "question": "GB/T 38674—2020 主要涉及（ ）",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "软件测试文档"
+      },
+      {
+        "key": "B",
+        "text": "项目管理"
+      },
+      {
+        "key": "C",
+        "text": "信息安全技术应用软件安全编程指南"
+      },
+      {
+        "key": "D",
+        "text": "云计算架构"
+      }
+    ]
+  },
+  {
+    "id": "单选题-100",
+    "section": "单选题",
+    "type": "single",
+    "number": 100,
+    "question": "进行技术选型时，最重要的原则是（ ）",
+    "answer": "A",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "结合业务需求、团队能力、成本与可维护性综合权衡"
+      },
+      {
+        "key": "B",
+        "text": "只选最新的技术"
+      },
+      {
+        "key": "C",
+        "text": "只选开源技术"
+      },
+      {
+        "key": "D",
+        "text": "只看性能指标"
+      }
+    ]
+  },
+  {
+    "id": "判断题-1",
+    "section": "判断题",
+    "type": "judge",
+    "number": 1,
+    "question": "Maven 多模块工程可在父工程的 dependencyManagement 中统一声明依赖版本，子模块引用时无须再写版本号。",
+    "answer": "√",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-2",
+    "section": "判断题",
+    "type": "judge",
+    "number": 2,
+    "question": "引入 spring-boot-starter-web 后，Spring Boot 会依据自动配置机制自动装配 Spring MVC 与内嵌 Tomcat。",
+    "answer": "√",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-3",
+    "section": "判断题",
+    "type": "judge",
+    "number": 3,
+    "question": "RESTful 风格要求接口 URI 中使用动词说明操作，如 /getSensor、/deleteSensor。",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-4",
+    "section": "判断题",
+    "type": "judge",
+    "number": 4,
+    "question": "同一个类中，一个方法直接调用本类另一个标注了 @Transactional 的方法，被调用方法的事务依然生效。",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-5",
+    "section": "判断题",
+    "type": "judge",
+    "number": 5,
+    "question": "JWT 的载荷（payload）只是 Base64 编码而非加密，因此不应在其中存放密码等敏感信息。",
+    "answer": "√",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-6",
+    "section": "判断题",
+    "type": "judge",
+    "number": 6,
+    "question": "使用 MockMvc 可以在不启动真实 Web 服务器的情况下，对 Controller 发起模拟 HTTP 请求。",
+    "answer": "√",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-7",
+    "section": "判断题",
+    "type": "judge",
+    "number": 7,
+    "question": "RBAC 模型通过“用户—角色—权限”的关联实现访问控制，用户通过角色间接获得权限。",
+    "answer": "√",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-8",
+    "section": "判断题",
+    "type": "judge",
+    "number": 8,
+    "question": "采用 SSE（Server-Sent Events）可以让服务端把大模型生成的内容分片推送给前端，实现“边生成边显示”。",
+    "answer": "√",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-9",
+    "section": "判断题",
+    "type": "judge",
+    "number": 9,
+    "question": "Maven 聚合工程的 packaging 必须设置为 jar。",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-10",
+    "section": "判断题",
+    "type": "judge",
+    "number": 10,
+    "question": "Spring Boot 中，application-dev.yml 中的配置会覆盖 application.yml 中的同名配置。",
+    "answer": "√",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-11",
+    "section": "判断题",
+    "type": "judge",
+    "number": 11,
+    "question": "@ConfigurationProperties 支持松散绑定，例如 threshold-value 可以绑定到 thresholdValue。",
+    "answer": "√",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-12",
+    "section": "判断题",
+    "type": "judge",
+    "number": 12,
+    "question": "@Bean 只能用于注册项目自己编写的类，不能注册第三方组件。",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-13",
+    "section": "判断题",
+    "type": "judge",
+    "number": 13,
+    "question": "Spring 容器中 Bean 的默认作用域是 prototype。",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-14",
+    "section": "判断题",
+    "type": "judge",
+    "number": 14,
+    "question": "RESTful 风格中，GET 请求应当是安全且幂等的。",
+    "answer": "√",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-15",
+    "section": "判断题",
+    "type": "judge",
+    "number": 15,
+    "question": "POST 请求天然具有幂等性，重复提交不会产生额外影响。",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-16",
+    "section": "判断题",
+    "type": "judge",
+    "number": 16,
+    "question": "HTTP 状态码 201 表示请求成功但未创建任何资源。",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-17",
+    "section": "判断题",
+    "type": "judge",
+    "number": 17,
+    "question": "@RequestBody 只能接收表单参数，不能接收 JSON。",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-18",
+    "section": "判断题",
+    "type": "judge",
+    "number": 18,
+    "question": "在 DTO 参数上添加 @Valid 可以触发 Bean Validation 校验。",
+    "answer": "√",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-19",
+    "section": "判断题",
+    "type": "judge",
+    "number": 19,
+    "question": "@RestControllerAdvice 可以配合 @ExceptionHandler 统一处理异常并返回 JSON。",
+    "answer": "√",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-20",
+    "section": "判断题",
+    "type": "judge",
+    "number": 20,
+    "question": "MyBatis-Plus 的 BaseMapper 可以直接完成多表关联查询。",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-21",
+    "section": "判断题",
+    "type": "judge",
+    "number": 21,
+    "question": "LambdaQueryWrapper 通过方法引用指定字段，可以避免字段名硬编码。",
+    "answer": "√",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-22",
+    "section": "判断题",
+    "type": "judge",
+    "number": 22,
+    "question": "MyBatis-Plus 分页查询无需注册分页插件即可自动生效。",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-23",
+    "section": "判断题",
+    "type": "judge",
+    "number": 23,
+    "question": "@Transactional 默认会对 RuntimeException 及其子类触发回滚。",
+    "answer": "√",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-24",
+    "section": "判断题",
+    "type": "judge",
+    "number": 24,
+    "question": "Spring Security 中，SecurityFilterChain 用于配置安全过滤器链。",
+    "answer": "√",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-25",
+    "section": "判断题",
+    "type": "judge",
+    "number": 25,
+    "question": "JWT 的 payload 经过加密，因此可以直接存放密码。",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-26",
+    "section": "判断题",
+    "type": "judge",
+    "number": 26,
+    "question": "服务端通过重新计算 JWT 签名并与原签名比对，可以判断令牌是否被篡改。",
+    "answer": "√",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-27",
+    "section": "判断题",
+    "type": "judge",
+    "number": 27,
+    "question": "使用 Redis 缓存时，更新数据库后删除缓存是常见的 Cache Aside 更新策略。",
+    "answer": "√",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-28",
+    "section": "判断题",
+    "type": "judge",
+    "number": 28,
+    "question": "为所有缓存设置相同过期时间可以有效避免缓存雪崩。",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-29",
+    "section": "判断题",
+    "type": "judge",
+    "number": 29,
+    "question": "布隆过滤器可以用于降低缓存穿透对数据库的压力。",
+    "answer": "√",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-30",
+    "section": "判断题",
+    "type": "judge",
+    "number": 30,
+    "question": "RabbitMQ 的 Direct 交换机通过通配符匹配 RoutingKey。",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-31",
+    "section": "判断题",
+    "type": "judge",
+    "number": 31,
+    "question": "RabbitMQ 的 Topic 交换机支持 * 和 # 通配符。",
+    "answer": "√",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-32",
+    "section": "判断题",
+    "type": "judge",
+    "number": 32,
+    "question": "使用 @Scheduled 定时任务不需要添加 @EnableScheduling。",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-33",
+    "section": "判断题",
+    "type": "judge",
+    "number": 33,
+    "question": "Spring 的 cron 表达式包含秒、分、时、日、月、周 6 个字段。",
+    "answer": "√",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-34",
+    "section": "判断题",
+    "type": "judge",
+    "number": 34,
+    "question": "Spring Boot Actuator 默认暴露所有监控端点。",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-35",
+    "section": "判断题",
+    "type": "judge",
+    "number": 35,
+    "question": "SSE 允许服务端通过单向事件流持续向客户端推送数据。",
+    "answer": "√",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-36",
+    "section": "判断题",
+    "type": "judge",
+    "number": 36,
+    "question": "MockMvc 可以在不启动真实 Web 服务器的情况下测试 Controller。",
+    "answer": "√",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-37",
+    "section": "判断题",
+    "type": "judge",
+    "number": 37,
+    "question": "在分层架构中，Controller 可以直接编写 SQL 访问数据库。",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-38",
+    "section": "判断题",
+    "type": "judge",
+    "number": 38,
+    "question": "GB/T 28827.1—2022 是关于信息技术服务运行维护的标准。",
+    "answer": "√",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-39",
+    "section": "判断题",
+    "type": "judge",
+    "number": 39,
+    "question": "@ConfigurationProperties 可以绑定嵌套对象、List 和 Map 等复杂类型。",
+    "answer": "√",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-40",
+    "section": "判断题",
+    "type": "judge",
+    "number": 40,
+    "question": "Redis 中的 key 不需要设置过期时间，缓存可以无限增长。",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "概念解释题-1",
+    "section": "概念解释题",
+    "type": "text",
+    "number": 1,
+    "question": "请解释 Spring Boot 的“自动配置（Auto-configuration）”是什么，并说明它给项目开发带来的好处。",
+    "answer": "- **概念**：Spring Boot 根据类路径中引入的依赖（Starter）和 `@Conditional` 条件注解，在应用启动时自动扫描并按需向容器装配默认 Bean 与基础配置。\n- **好处**：\n  1. 遵循“约定优于配置”，大幅减少繁琐的 XML 和样板配置代码；\n  2. 开箱即用，显著提升项目搭建与开发效率；\n  3. 支持通过 `application.yml` 或自定义 Bean 覆盖默认配置，兼顾灵活性。",
+    "analysis": ""
+  },
+  {
+    "id": "概念解释题-2",
+    "section": "概念解释题",
+    "type": "text",
+    "number": 2,
+    "question": "请解释 Spring 的“控制反转（IoC）”与“依赖注入（DI）”，并说明这样设计给项目带来什么好处。",
+    "answer": "- **控制反转（IoC）**：将对象的创建、组装与生命周期管理权从业务代码反转交给 Spring 容器统一管理。\n- **依赖注入（DI）**：IoC 的具体实现方式，由容器在运行时通过构造器、Setter 或字段将所依赖的对象自动注入到目标组件中。\n- **好处**：\n  1. 降低模块间耦合度，面向接口编程，便于扩展与替换实现；\n  2. 便于单元测试（可轻松使用 Mock 对象替代真实依赖）；\n  3. 统一管理 Bean 生命周期与作用域，提升代码可维护性。",
+    "analysis": ""
+  },
+  {
+    "id": "概念解释题-3",
+    "section": "概念解释题",
+    "type": "text",
+    "number": 3,
+    "question": "请解释什么是 RESTful，并说明设计 RESTful 接口时应遵循哪些基本规范。",
+    "answer": "- **概念**：RESTful 是一种基于 HTTP 协议、面向资源的 Web API 设计风格，将服务端数据抽象为资源，通过统一接口对资源进行操作。\n- **基本规范**：\n  1. **URI 表示资源**：使用名词复数（如 `/api/v1/sensors`），路径中不使用动词；\n  2. **HTTP 方法表示动作**：`GET` 查询、`POST` 新增、`PUT/PATCH` 修改、`DELETE` 删除，保证 `GET/PUT/DELETE` 幂等；\n  3. **规范使用状态码**：如 `200` 成功、`201` 创建成功、`400` 参数错误、`401/403` 未认证/无权限、`404` 不存在、`500` 服务端错误；\n  4. **无状态与统一格式**：请求自包含认证信息（如 JWT），统一返回 JSON 格式数据。",
+    "analysis": ""
+  },
+  {
+    "id": "概念解释题-4",
+    "section": "概念解释题",
+    "type": "text",
+    "number": 4,
+    "question": "请解释什么是 JWT 无状态认证，并说明它与基于 Session 的认证方式的主要区别。",
+    "answer": "- **概念**：JWT（JSON Web Token）是由 `Header.Payload.Signature` 三部分组成的自包含令牌。用户登录后服务端签发令牌，后续请求携带该令牌，服务端仅通过校验签名即可确认身份，无需保存会话状态。\n- **与 Session 的主要区别**：\n  1. **状态存储**：Session 保存在服务端（内存或 Redis，有状态）；JWT 保存在客户端（服务端无状态）；\n  2. **水平扩展**：Session 在集群部署时需做会话共享；JWT 天然支持多实例横向扩展；\n  3. **注销控制**：Session 可在服务端随时删除立即失效；JWT 过期前无法直接作废，需借助黑名单或短有效期策略；\n  4. **安全传输**：JWT 的 Payload 仅做 Base64Url 编码（未加密），不可存放密码等敏感信息。",
+    "analysis": ""
+  },
+  {
+    "id": "概念解释题-5",
+    "section": "概念解释题",
+    "type": "text",
+    "number": 5,
+    "question": "请解释 Web 应用中的分层架构，并说明 Controller、Service、Mapper 三层各自的职责与依赖方向。",
+    "answer": "- **概念**：分层架构按职责将应用划分为多个逻辑层次，每层只关注自身任务并通过接口协作，实现关注点分离与高内聚、低耦合。\n- **各层职责**：\n  1. **Controller（控制层）**：接收 HTTP 请求、参数绑定与校验（`@Valid`）、调用 Service 并封装统一响应；\n  2. **Service（业务层）**：实现核心业务规则、流程编排、缓存/消息协调及事务控制（`@Transactional`）；\n  3. **Mapper（数据访问层）**：负责与数据库交互，执行增删改查 SQL 及结果映射。\n- **依赖方向**：单向向下依赖，即 `Controller → Service → Mapper`（避免跨层调用和反向依赖）。",
+    "analysis": ""
+  },
+  {
+    "id": "概念解释题-6",
+    "section": "概念解释题",
+    "type": "text",
+    "number": 6,
+    "question": "请解释缓存穿透、缓存击穿和缓存雪崩的区别，并分别说明一种应对措施。",
+    "answer": "1. **缓存穿透**：大量请求查询**缓存和数据库中都不存在**的数据，请求直达数据库。**应对**：使用布隆过滤器拦截非法 Key，或对空结果缓存短 TTL。\n2. **缓存击穿**：**单个热点 Key** 突然过期，瞬时大量并发请求同时打到数据库重建缓存。**应对**：使用互斥锁（分布式锁）控制单线程回源重建，或设置热点 Key 逻辑过期异步更新。\n3. **缓存雪崩**：**大量 Key 同一时间集中过期**或 Redis 宕机，导致海量请求瞬间压垮数据库。**应对**：为过期时间增加随机偏移量分散失效（并结合 Redis 高可用集群与限流降级）。",
+    "analysis": ""
+  },
+  {
+    "id": "概念解释题-7",
+    "section": "概念解释题",
+    "type": "text",
+    "number": 7,
+    "question": "请解释消息队列的“削峰填谷”作用，并说明消费能力不足时可以采取哪些措施。",
+    "answer": "- **削峰填谷**：在突发高并发时，先将大量请求快速写入消息队列缓冲（削峰），避免直接压垮数据库；消费者再按自身处理能力平稳持续地消费处理（填谷），保障系统稳定。\n- **消费能力不足的应对措施**：\n  1. **水平扩展消费者**：增加消费者实例数或提高并发消费线程数；\n  2. **优化单条消费性能**：采用批量消费、批量入库及 SQL/索引优化；\n  3. **合理限流预取**：设置合适的 `prefetch` 预取数量，防止单消费者内存积压；\n  4. **降级与死信隔离**：拆分非核心逻辑，异常消息转入死信队列（DLQ）避免阻塞主队列。",
+    "analysis": ""
+  },
+  {
+    "id": "概念解释题-8",
+    "section": "概念解释题",
+    "type": "text",
+    "number": 8,
+    "question": "请解释 Spring AOP 的核心概念，并说明它在企业级项目中的典型应用场景。",
+    "answer": "- **核心概念**：AOP（面向切面编程）通过动态代理将横切关注点（通用非业务逻辑）与核心业务解耦，统一织入目标方法执行前后。核心组成包括**切面（Aspect）**、**切点（Pointcut）**、**连接点（JoinPoint）**和**通知（Advice）**。\n- **典型应用场景**：\n  1. 声明式事务管理（`@Transactional`）；\n  2. 统一操作日志记录与接口耗时监控；\n  3. 统一权限校验与安全控制；\n  4. 统一限流、防重提交与缓存处理（`@Cacheable`）。",
+    "analysis": ""
+  },
+  {
+    "id": "概念解释题-9",
+    "section": "概念解释题",
+    "type": "text",
+    "number": 9,
+    "question": "请解释 Spring 事务的传播行为，并举例说明 REQUIRED 与 REQUIRES_NEW 的区别。",
+    "answer": "- **传播行为**：指当一个事务方法调用另一个事务方法时，事务如何在方法之间传递、复用或隔离的规则。\n- **`REQUIRED` 与 `REQUIRES_NEW` 的区别**：\n  1. **`REQUIRED`（默认）**：若当前存在事务则加入该事务，否则新建事务。内外方法共享同一事务，任一异常都会整体回滚（例：下单调用扣减库存，库存扣减失败时订单一并回滚）。\n  2. **`REQUIRES_NEW`**：挂起当前事务并开启一个全新独立事务。内层事务的提交或回滚与外层互不影响（例：业务操作中记录审计/告警日志，外层业务回滚时日志仍能独立保存）。",
+    "analysis": ""
+  },
+  {
+    "id": "概念解释题-10",
+    "section": "概念解释题",
+    "type": "text",
+    "number": 10,
+    "question": "请解释 RBAC 模型，并说明在 Spring Security 中落地 RBAC 的基本思路。",
+    "answer": "- **RBAC 概念**：基于角色的访问控制（Role-Based Access Control），通过“**用户 ↔ 角色 ↔ 权限**”三层关联，将权限授予角色、再将角色分配给用户，实现权限的解耦与集中管理。\n- **Spring Security 落地思路**：\n  1. **数据建模**：建立用户、角色、权限及对应的多对多关联表；\n  2. **加载权限**：实现 `UserDetailsService`（或 JWT 过滤器），查询用户角色（`ROLE_xxx`）与权限标识，封装为 `GrantedAuthority` 存入 `SecurityContext`；\n  3. **配置鉴权**：在 `SecurityFilterChain` 中配置路径访问控制，并开启 `@EnableMethodSecurity`，通过 `@PreAuthorize(\"hasRole(...)/hasAuthority(...)\")` 实现接口级细粒度鉴权。",
+    "analysis": ""
+  },
+  {
+    "id": "架构分析与技术选型题-1",
+    "section": "架构分析与技术选型题",
+    "type": "text",
+    "number": 1,
+    "question": "项目组对新同事小张提交的“农事管理”模块做代码评审，发现 FarmingController 里既有权限判断、业务计算，也直接写了 SQL 查询数据库，而 FarmingService 里只有一行方法转发。若你是评审人，请指出这段代码存在的两个问题，并说明 Controller、Service、Mapper 三层各自应承担什么职责。",
+    "answer": "- **存在的两个问题**：\n  1. **职责混乱，违背单一职责与分层原则**：Controller 承担了权限判断、业务计算与直接 SQL 查询，代码臃肿且难以复用和单测；\n  2. **Service 层空心化与跨层强耦合**：Service 沦为无效转发，Controller 越层操作数据库，导致事务边界无法统一管理、后续维护成本高。\n- **三层各自职责**：\n  1. **Controller 层**：只负责接收请求、参数绑定与校验（`@Valid`）、调用 Service、封装统一返回结果（权限校验交由 Spring Security/注解处理）；\n  2. **Service 层**：负责核心业务计算、流程编排与事务控制（`@Transactional`）；\n  3. **Mapper 层**：专注数据库访问与 SQL 执行，向 Service 提供数据读写能力。",
+    "analysis": ""
+  },
+  {
+    "id": "架构分析与技术选型题-2",
+    "section": "架构分析与技术选型题",
+    "type": "text",
+    "number": 2,
+    "question": "SmartAG 的设备状态数据（在线/离线、最近心跳时间）查询频繁、修改较少。项目组用 Redis 缓存了设备状态，TTL 为 10 分钟。运维人员在管理端把某台设备手动标记为“维护中”后，设备列表仍显示“在线”，直到 TTL 到期。请分析原因，并给出兼顾一致性与性能的缓存更新方案。",
+    "answer": "- **原因分析**：系统只依赖 Redis 的被动过期（TTL 10 分钟），在管理端更新数据库设备状态时未同步删除或更新对应缓存，导致 TTL 到期前查询一直命中旧数据。\n- **缓存更新方案**：\n  1. **采用 Cache Aside（旁路缓存）策略**：修改设备状态时，**先更新数据库，再删除对应的 Redis 缓存**，下次查询自动回源加载最新状态并重建缓存；\n  2. **保留合理 TTL 兜底**：继续设置过期时间（如 5–10 分钟并加随机偏移），避免偶发删缓存失败造成长期脏数据；\n  3. **高一致性增强（可选）**：对关键状态变更可结合延迟双删或消息队列异步重试删缓存，保证最终一致性。",
+    "analysis": ""
+  },
+  {
+    "id": "架构分析与技术选型题-3",
+    "section": "架构分析与技术选型题",
+    "type": "text",
+    "number": 3,
+    "question": "系统上线后，每天 8:00—9:00 管理端“传感器实时数据”页面响应明显变慢，其他时段正常。请依据 GB/T 28827.1—2022 的运行监控要求，说明你会查看数据库、缓存和应用三侧的哪些监控指标，以及如何判断瓶颈位置。",
+    "answer": "- **三侧核心监控指标**（依据 GB/T 28827.1—2022 运行监控与性能分析要求）：\n  1. **数据库侧**：QPS/TPS、慢查询数量与耗时、连接池活跃/等待连接数、CPU/磁盘 I/O 及锁等待；\n  2. **缓存侧（Redis）**：缓存命中率、命令响应耗时、内存使用率与淘汰数、连接数及慢日志；\n  3. **应用侧（Spring Boot / Actuator）**：接口 RT（P95/P99）、Tomcat 线程池活跃/排队数、JVM 内存与 GC 频率/停顿时间、CPU 利用率及定时任务执行日志。\n- **瓶颈判断方法**：\n  1. 对比 8:00—9:00 与正常时段的指标变化，同时排查该时段是否有集中定时任务或上班高峰查询；\n  2. 若**缓存命中率骤降**，说明存在缓存失效/穿透回源；\n  3. 若**数据库慢查询激增、连接池打满或 CPU/I/O 飙升**，瓶颈在数据库；若数据库与缓存正常而**应用侧 GC 频繁或线程池耗尽**，瓶颈在应用层计算或外部调用阻塞。",
+    "analysis": ""
+  },
+  {
+    "id": "架构分析与技术选型题-4",
+    "section": "架构分析与技术选型题",
+    "type": "text",
+    "number": 4,
+    "question": "SmartAG 每分钟接收约 3000 条传感器上报数据。早期版本在上报接口中同步判断阈值并写库， 高峰期接口超时。改造后接口只把数据发送到 RabbitMQ，由消费者异步入库。请说明改造后请求为什么不再堆积，以及消费者处理能力不足时可以采取哪些措施。",
+    "answer": "- **请求不再堆积的原因**：\n  1. **异步解耦**：上报接口只需完成参数校验并将消息发送到 RabbitMQ 即可立即返回（毫秒级），不再同步阻塞等待阈值计算和写库；\n  2. **削峰填谷**：RabbitMQ 作为缓冲队列吸收瞬时高峰流量，快速释放 Tomcat 线程，避免连接占满和接口超时。\n- **消费者处理能力不足的应对措施**：\n  1. **水平扩容与提高并发**：增加消费者实例数量，调大并发消费线程数；\n  2. **批量消费与批量入库**：改为攒批消费与 Batch Insert，显著降低数据库写 I/O；\n  3. **限流与预取控制**：合理设置 `prefetch` 并使用手动 ACK，防止单节点积压 OOM；\n  4. **逻辑与存储优化**：优化表索引/分表，非核心逻辑拆出异步处理，异常消息转死信队列。",
+    "analysis": ""
+  },
+  {
+    "id": "架构分析与技术选型题-5",
+    "section": "架构分析与技术选型题",
+    "type": "text",
+    "number": 5,
+    "question": "SmartAG 后端计划部署 3 个实例，并通过 Nginx 做负载均衡。登录状态若继续使用 HttpSession， 需要额外解决会话共享问题。请从状态存储、水平扩展、注销与安全四个角度比较 Session 与 JWT，并给出选型建议。",
+    "answer": "- **四角度比较**：\n  1. **状态存储**：Session 存储在服务端（内存或 Redis）；JWT 将认证信息签发给客户端保存，服务端无状态；\n  2. **水平扩展**：Session 在多实例下需依赖 Redis 共享会话或粘性会话；JWT 任意实例仅凭密钥即可验签，天然易水平扩展；\n  3. **注销控制**：Session 可在服务端直接销毁、立即生效；JWT 过期前默认无法主动失效，需配合黑名单或短有效期机制；\n  4. **安全性**：Session 仅传 SessionID，但需防 CSRF；JWT 放 Header 可避免 CSRF，但 Payload 未加密不可存敏感信息，需配合 HTTPS 并防 XSS 窃取。\n- **选型建议**：推荐采用 **JWT（短有效期 Access Token）+ Redis 黑名单 / Refresh Token** 方案，兼顾 3 实例无状态水平扩展能力与强制注销/安全可控性。",
+    "analysis": ""
+  },
+  {
+    "id": "架构分析与技术选型题-6",
+    "section": "架构分析与技术选型题",
+    "type": "text",
+    "number": 6,
+    "question": "设备阈值配置“读多写少”，但要求修改后尽快在所有实例生效。团队在 Redis 与本地 Caffeine 缓存之间犹豫。请比较两种方案的优缺点，并给出适合 SmartAG 的选型或组合方案。",
+    "answer": "- **两种方案对比**：\n  1. **Redis**：优点是全局共享、数据一致性强，修改后所有实例立即可见；缺点是每次读取有网络 I/O 开销，延迟高于本地内存且依赖 Redis 可用性。\n  2. **Caffeine（本地缓存）**：优点是纯内存访问、微秒级延迟、零网络开销；缺点是各实例内存隔离，某实例修改后其他实例无法及时感知，易出现数据不一致。\n- **选型/组合方案**：推荐 **Caffeine（L1 本地缓存）+ Redis（L2 分布式缓存）+ Redis Pub/Sub（或 RabbitMQ 广播）** 多级缓存方案：\n  - 读操作优先命中本地 Caffeine，未命中再读 Redis 并回填本地，兼顾高性能；\n  - 修改阈值时先更新数据库并更新/删除 Redis，再广播通知所有实例立即失效本地 Caffeine 缓存，同时设置较短 TTL 兜底，保证快速全实例生效。",
+    "analysis": ""
+  },
+  {
+    "id": "架构分析与技术选型题-7",
+    "section": "架构分析与技术选型题",
+    "type": "text",
+    "number": 7,
+    "question": "SmartAG 需要把告警消息按“设备类型 + 告警级别”路由到不同消费者：温度/湿度告警分别处理，严重告警还要额外短信通知。请比较 Direct、Topic、Fanout 三种交换机的适用场景，给出选型并说明如何保证消息不丢失。",
+    "answer": "- **三种交换机适用场景**：\n  1. **Direct**：按 RoutingKey **精确匹配**路由，适合固定分类的点对点分发；\n  2. **Topic**：按通配符（`*` 匹配单个词、`#` 匹配零或多个词）**模式匹配**，适合多维度灵活路由；\n  3. **Fanout**：**广播**到所有绑定队列（忽略 RoutingKey），适合全量通知。\n- **选型方案**：选用 **Topic 交换机**，RoutingKey 设计为 `alarm.<设备类型>.<级别>`（如 `alarm.temp.critical`）：\n  - 温度队列绑定 `alarm.temp.*`，湿度队列绑定 `alarm.humidity.*`；\n  - 短信通知队列绑定 `alarm.*.critical`，自动捕获所有严重告警。\n- **保证消息不丢失的措施**：\n  1. **生产者确认**：开启 Publisher Confirm 与 Return 回调，确保消息成功到达交换机与队列；\n  2. **Broker 持久化**：交换机、队列（`durable=true`）及消息均开启持久化；\n  3. **消费者手动 ACK**：关闭自动确认，业务处理成功后再手动 `basicAck`，失败则重试或入死信队列。",
+    "analysis": ""
+  },
+  {
+    "id": "架构分析与技术选型题-8",
+    "section": "架构分析与技术选型题",
+    "type": "text",
+    "number": 8,
+    "question": "SmartAG 目前是一个 Spring Boot 单体应用，包含设备管理、农事管理、告警、报表等模块。随着团队和需求增长，有人主张立即拆分为微服务。请结合项目现状，分析单体与微服务的利弊，并给出你的架构演进建议。",
+    "answer": "- **单体架构利弊**：\n  - 优点：开发、测试、部署与运维简单，模块间进程内调用零网络延迟，本地事务易保证；\n  - 缺点：规模扩大后模块易耦合、局部故障可能波及全局、难以按模块独立扩缩容。\n- **微服务架构利弊**：\n  - 优点：服务边界清晰、可独立发布与弹性扩缩容、故障隔离性好；\n  - 缺点：引入注册中心、配置中心、分布式事务、链路追踪与高运维成本，过早拆分会显著拖慢迭代效率。\n- **架构演进建议**：**不建议立即全面拆分**，应采取渐进式演进路线：\n  1. **短期（模块化单体）**：利用 Maven 多模块清晰划分设备、农事、告警、报表边界，做到高内聚低耦合、数据表逻辑隔离；\n  2. **中期（热点剥离）**：优先将高并发、资源特征差异大的模块（如传感器数据采集/告警消费或重计算报表）独立拆分部署；\n  3. **长期（按需微服务化）**：待业务量、团队规模和 DevOps/监控体系成熟后，再按业务域逐步演进为微服务。",
+    "analysis": ""
+  },
+  {
+    "id": "程序设计题-1",
+    "section": "程序设计题",
+    "type": "text",
+    "number": 1,
+    "question": "**传感器数据上报接口**\n\nSmartAG 准备新增“传感器数据上报”接口。按照 GB/T 38674—2020《信息安全技术 应用软件安全编程指南》的要求，该接口需要对传入参数进行校验，并统一返回处理结果。下面的代码段 1—3 分别对应控制器、业务实现、定时巡检与消息消费，请结合上下文，把代码中划线处的 10 个空缺补充完整。\n\n#### 代码段 1：控制器\n\n```java\n@RestController\n@   ①   (\"/api/v1/sensors\")           // 统一请求前缀\npublic class SensorDataController {\n\n    @Autowired\n    private SensorDataService sensorDataService;\n\n    // 处理 POST 请求\n    @   ②   (\"/{deviceId}/data\")\n    public Result<Void> report(\n            // 从请求路径中取出设备编号\n            @   ③    Long deviceId,\n            // 让 dto 上的校验注解生效\n            @RequestBody @   ④    SensorDataDTO dto) {\n        sensorDataService.save(deviceId, dto);\n        return Result.success();\n    }\n}\n```\n\n#### 代码段 2：业务实现\n\n```java\n@Service\npublic class SensorDataServiceImpl implements SensorDataService {\n    @Autowired\n    private SensorDataMapper sensorDataMapper;\n    @Autowired\n    private StringRedisTemplate stringRedisTemplate;\n    @Autowired\n    private RabbitTemplate rabbitTemplate;\n\n    // 数据库写入需保证事务原子性，失败时回滚数据库更改\n    @   ⑤\n    @Override\n    public void save(Long deviceId, SensorDataDTO dto) {\n        SensorData entity = new SensorData();\n        entity.setDeviceId(deviceId);\n        entity.setTemperature(dto.getTemperature());\n        sensorDataMapper.insert(entity);\n\n        // 写入 Redis，key 形如 smartag:sensor:1，5 分钟后过期\n        stringRedisTemplate.opsForValue()\n                .   ⑥   (\"smartag:sensor:\" + deviceId,\n                        JSON.toJSONString(entity), 5, TimeUnit.MINUTES);\n\n        // 发送到交换机 smartag.sensor.exchange，路由键 sensor.data\n        rabbitTemplate.   ⑦ (\"smartag.sensor.exchange\",\n                \"sensor.data\", JSON.toJSONString(entity));\n    }\n\n    // 查询某设备最近一条数据\n    public SensorData getLatest(Long deviceId) {\n        LambdaQueryWrapper<SensorData> qw = new LambdaQueryWrapper<>();\n\n        // 查询条件：deviceId 等于传入值\n        qw.   ⑧ (SensorData::getDeviceId, deviceId)\n                .orderByDesc(SensorData::getCollectTime)\n                .last(\"limit 1\");\n        return sensorDataMapper.selectOne(qw);\n    }\n}\n```\n\n#### 代码段 3：定时巡检与消息消费\n\n```java\n@Component\npublic class AlarmScanTask {\n\n    // 每 5 分钟执行一次（顺序：秒 分 时 日 月 周）\n    @   ⑨   (cron = \"0 0/5 * * * ?\")\n    public void scan() {\n        /* 扫描近 5 分钟超阈值数据并生成告警 */\n    }\n}\n\n@Component\npublic class SensorDataListener {\n\n    // 监听队列，异步接收上报消息\n    @   ⑩   (queues = \"smartag.sensor.queue\")\n    public void onMessage(String m) {\n        /* 解析消息并入库 */\n    }\n}\n```",
+    "answer": "| 编号 | 答案 | 说明 |\n|------|------|------|\n| ① | `RequestMapping` | 类级别统一请求路径前缀 |\n| ② | `PostMapping` | 映射 HTTP POST 请求 |\n| ③ | `PathVariable` | 从路径模板 `{deviceId}` 中提取参数 |\n| ④ | `Valid`（或 `Validated`） | 触发 DTO 上的 Bean Validation 参数校验 |\n| ⑤ | `Transactional`（推荐 `Transactional(rollbackFor = Exception.class)`） | 开启声明式事务，异常时回滚数据库操作 |\n| ⑥ | `set` | 向 Redis 写入字符串并指定过期时间 |\n| ⑦ | `convertAndSend` | 向指定 RabbitMQ 交换机和路由键发送消息 |\n| ⑧ | `eq` | MyBatis-Plus 等值查询条件（`device_id = ?`） |\n| ⑨ | `Scheduled` | 配置 Spring 定时任务及 Cron 表达式 |\n| ⑩ | `RabbitListener` | 声明 RabbitMQ 队列消息监听方法 |",
+    "analysis": ""
+  }
+];
+const state = { answers: {}, submitted: false, wrongOnly: false, selfMarks: {} };
+const sections = ['全部', ...Array.from(new Set(QUESTIONS.map(q => q.section)))];
+const $ = id => document.getElementById(id);
+const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+
+function isMulti(q) { return q.type === 'multi' || q.type === 'multiple'; }
+function isJudge(q) { return q.type === 'judge'; }
+
+function isAnswered(q) {
+  if (isMulti(q)) {
+    const sel = state.answers[q.id];
+    return Array.isArray(sel) && sel.length > 0;
+  }
+  return Boolean(state.answers[q.id]);
+}
+
+function isCorrect(q) {
+  if (q.type === 'text') return state.selfMarks && state.selfMarks[q.id] === 'correct';
+  if (isMulti(q)) {
+    const sel = state.answers[q.id];
+    if (!Array.isArray(sel) || sel.length === 0) return false;
+    const correct = q.answer.split('').sort().join('');
+    const selected = [...sel].sort().join('');
+    return correct === selected;
+  }
+  return state.answers[q.id] === q.answer;
+}
+
+function isWrong(q) {
+  if (q.type === 'text') return state.selfMarks && state.selfMarks[q.id] === 'wrong';
+  if (!state.submitted) return false;
+  if (!isAnswered(q)) return false;
+  return !isCorrect(q);
+}
+
+function getMultiDisplay(q) {
+  const sel = state.answers[q.id] || [];
+  return Array.isArray(sel) ? [...sel].sort().join('') : '';
+}
+
+function renderFilters() {
+  const currentSection = $('sectionFilter').value || '全部';
+  $('sectionFilter').innerHTML = sections.map(s => '<option value="' + escapeHtml(s) + '">' + escapeHtml(s) + '</option>').join('');
+  $('sectionFilter').value = sections.includes(currentSection) ? currentSection : '全部';
+  $('sectionTabs').innerHTML = sections.map(s => '<button data-section="' + escapeHtml(s) + '" class="' + (s === $('sectionFilter').value ? 'active' : '') + '">' + escapeHtml(s) + '（' + (s==='全部'?QUESTIONS.length:QUESTIONS.filter(q=>q.section===s).length) + '）</button>').join('');
+  document.querySelectorAll('#sectionTabs button').forEach(btn => btn.onclick = () => {
+    $('sectionFilter').value = btn.dataset.section;
+    render();
+    $('questionList').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+}
+
+function renderQuestion(q) {
+  const statusClass = state.submitted || q.type === 'text' ? (isCorrect(q) ? 'correct' : isWrong(q) ? 'wrong' : '') : '';
+  const answer = isMulti(q) ? getMultiDisplay(q) : (state.answers[q.id] || '');
+  const resultVisible = state.submitted ? 'show' : '';
+  const multiHint = isMulti(q) ? '<div style="margin-top:6px;font-size:12px;color:var(--warn);">多选题：需选中全部正确选项才能得分</div>' : '';
+  let objectiveResult = '';
+  if (state.submitted && q.type !== 'text') {
+    const analysisHtml = q.analysis ? '<div class="analysis">解析：' + escapeHtml(q.analysis) + '</div>' : '';
+    objectiveResult = '<div class="result ' + resultVisible + '"><div class="' + (isCorrect(q) ? 'ok' : 'bad') + '">' + (isCorrect(q) ? '回答正确' : answer ? '回答错误' : '未作答') + '</div><div>你的答案：' + escapeHtml(answer || '未作答') + '；正确答案：' + escapeHtml(q.answer) + '</div>' + analysisHtml + '</div>';
+  }
+  const textResult = q.type === 'text' && state.submitted ? '<div class="result show"><div><b>参考答案：</b></div><div class="analysis markdown-body">' + (typeof marked !== 'undefined' ? marked.parse(q.answer) : escapeHtml(q.answer).replace(/\n/g, '<br>')) + '</div><div class="self-check"><button data-self="correct" data-id="' + q.id + '">我答对了</button><button data-self="wrong" data-id="' + q.id + '">我答错了</button><span class="badge">' + (state.selfMarks && state.selfMarks[q.id] === 'correct' ? '已标记正确' : state.selfMarks && state.selfMarks[q.id] === 'wrong' ? '已加入错题' : '待自评') + '</span></div></div>' : '';
+  let body = '';
+  if (q.type === 'text') {
+    body = '<textarea data-text="' + q.id + '" placeholder="在这里输入你的答案，提交后对照参考答案自评。">' + escapeHtml(answer) + '</textarea>';
+  } else if (isJudge(q)) {
+    body = '<div class="options"><label class="option"><input type="radio" name="' + q.id + '" value="√" ' + (answer==='√'?'checked':'') + '> <b>√</b> <span>正确</span></label><label class="option"><input type="radio" name="' + q.id + '" value="×" ' + (answer==='×'?'checked':'') + '> <b>×</b> <span>错误</span></label></div>';
+  } else if (isMulti(q)) {
+    const sel = state.answers[q.id] || [];
+    body = '<div class="options">' + q.options.map(opt => '<label class="option"><input type="checkbox" data-multi="' + q.id + '" value="' + escapeHtml(opt.key) + '" ' + (Array.isArray(sel) && sel.includes(opt.key) ? 'checked' : '') + '> <b>' + escapeHtml(opt.key) + '.</b> <span>' + escapeHtml(opt.text) + '</span></label>').join('') + '</div>' + multiHint;
+  } else {
+    body = '<div class="options">' + q.options.map(opt => '<label class="option"><input type="radio" name="' + q.id + '" value="' + escapeHtml(opt.key) + '" ' + (answer===opt.key?'checked':'') + '> <b>' + escapeHtml(opt.key) + '.</b> <span>' + escapeHtml(opt.text) + '</span></label>').join('') + '</div>';
+  }
+  const typeBadge = q.type === 'text' ? '主观题' : isMulti(q) ? '多选题' : isJudge(q) ? '判断题' : '单选题';
+  const qTitleContent = (q.type === 'text' && typeof marked !== 'undefined') ? marked.parse(q.question) : escapeHtml(q.question);
+  const titleClass = q.type === 'text' ? 'q-title markdown-body' : 'q-title';
+  return '<article class="question-card ' + statusClass + '" data-id="' + q.id + '"><div class="q-head"><div class="badge">' + escapeHtml(q.section) + ' · 第 ' + q.number + ' 题</div><div class="badge">' + typeBadge + '</div></div><div class="' + titleClass + '">' + qTitleContent + '</div>' + body + objectiveResult + textResult + '</article>';
+}
+
+function filteredQuestions() {
+  const section = $('sectionFilter').value || '全部';
+  return QUESTIONS.filter(q => {
+    if (section !== '全部' && q.section !== section) return false;
+    if (state.wrongOnly && !isWrong(q)) return false;
+    return true;
+  });
+}
+
+function render() {
+  renderFilters();
+  const list = filteredQuestions();
+  $('questionList').innerHTML = list.length ? list.map(renderQuestion).join('') : '<div class="empty">当前筛选条件下没有题目。</div>';
+  bindInputs();
+  updateStats();
+}
+
+function bindInputs() {
+  document.querySelectorAll('textarea[data-text]').forEach(input => input.oninput = e => { state.answers[e.target.dataset.text] = e.target.value; updateStats(); });
+  document.querySelectorAll('button[data-self]').forEach(btn => btn.onclick = () => { if (!state.selfMarks) state.selfMarks = {}; state.selfMarks[btn.dataset.id] = btn.dataset.self; render(); });
+  document.querySelectorAll('input[type="radio"]').forEach(input => input.onchange = e => {
+    state.answers[e.target.name] = e.target.value;
+    updateStats();
+  });
+  document.querySelectorAll('input[type="checkbox"][data-multi]').forEach(input => input.onchange = e => {
+    const qid = e.target.dataset.multi;
+    if (!Array.isArray(state.answers[qid])) state.answers[qid] = [];
+    const val = e.target.value;
+    if (e.target.checked) {
+      if (!state.answers[qid].includes(val)) state.answers[qid].push(val);
+    } else {
+      state.answers[qid] = state.answers[qid].filter(v => v !== val);
+    }
+    updateStats();
+  });
+}
+
+function updateStats() {
+  $('totalCount').textContent = QUESTIONS.length;
+  $('answeredCount').textContent = QUESTIONS.filter(isAnswered).length;
+  $('correctCount').textContent = QUESTIONS.filter(q => (state.submitted || q.type === 'text') && isCorrect(q)).length;
+  $('wrongCount').textContent = QUESTIONS.filter(isWrong).length;
+}
+
+function exportWrong() {
+  const wrong = QUESTIONS.filter(isWrong);
+  if (!wrong.length) { alert('当前没有错题可导出。'); return; }
+  const nl = String.fromCharCode(10);
+  const br = '<br>';
+  const rows = wrong.map(q => {
+    const yourAnswer = isMulti(q) ? getMultiDisplay(q) : (state.answers[q.id] || '未作答');
+    const typeStr = q.type === 'text' ? '主观题' : isMulti(q) ? '多选' : isJudge(q) ? '判断' : '单选';
+    const analysisRow = (q.type !== 'text' && q.analysis) ? '<p><b>解析：</b>' + escapeHtml(q.analysis).split(nl).join(br) + '</p>' : '';
+    return '<section><h2>' + escapeHtml(q.section) + ' 第 ' + q.number + ' 题（' + typeStr + '）</h2><p>' + escapeHtml(q.question).split(nl).join(br) + '</p><p><b>你的答案：</b>' + escapeHtml(yourAnswer || '未作答').split(nl).join(br) + '</p><p><b>正确答案：</b>' + escapeHtml(q.answer).split(nl).join(br) + '</p>' + analysisRow + '</section>';
+  }).join(nl);
+  const doc = '<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"><title>软件体系结构与架构设计错题导出</title><style>body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif;line-height:1.7;max-width:920px;margin:30px auto;padding:0 18px}section{border:1px solid #ddd;border-radius:12px;padding:16px;margin:14px 0}h1{color:#1d4ed8}</style></head><body><h1>软件体系结构与架构设计错题导出</h1><p>共 ' + wrong.length + ' 道错题，导出时间：' + new Date().toLocaleString() + '</p>' + rows + '</body></html>';
+  const blob = new Blob([doc], { type: 'text/html;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '软件体系结构与架构设计错题导出.html';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+$('submitBtn').onclick = () => { state.submitted = true; state.wrongOnly = false; $('wrongOnlyBtn').textContent = '只看错题'; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+$('wrongOnlyBtn').onclick = () => { state.wrongOnly = !state.wrongOnly; $('wrongOnlyBtn').textContent = state.wrongOnly ? '查看全部' : '只看错题'; render(); };
+$('exportBtn').onclick = exportWrong;
+$('resetBtn').onclick = () => { if (!confirm('确定要清空所有作答记录吗？')) return; state.answers = {}; state.submitted = false; state.wrongOnly = false; state.selfMarks = {}; immSubmittedIds.clear(); $('wrongOnlyBtn').textContent = '只看错题'; render(); };
+$('sectionFilter').onchange = render;
+render();
+
+const themeToggleBtn = $('themeToggleBtn');
+function setTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('quiz-theme', theme);
+}
+const savedTheme = localStorage.getItem('quiz-theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+setTheme(savedTheme);
+themeToggleBtn.onclick = () => {
+  const currentTheme = document.documentElement.getAttribute('data-theme');
+  setTheme(currentTheme === 'dark' ? 'light' : 'dark');
+};
+
+// ================= 沉浸式刷题逻辑 =================
+let isImmersive = false;
+let immIndex = 0;
+let immQuestions = [];
+let immSubmittedIds = new Set();
+
+const enterBtn = document.createElement('button');
+enterBtn.textContent = '沉浸模式';
+enterBtn.style.fontWeight = 'bold';
+enterBtn.style.color = 'var(--primary)';
+enterBtn.style.borderColor = 'var(--primary)';
+enterBtn.onclick = () => {
+  isImmersive = true;
+  document.body.classList.add('immersive-mode');
+  immQuestions = filteredQuestions();
+  immIndex = 0;
+  renderImmersive();
+};
+document.querySelector('.toolbar').insertBefore(enterBtn, document.querySelector('.toolbar').firstChild);
+
+$('immExitBtn').onclick = () => {
+  isImmersive = false;
+  document.body.classList.remove('immersive-mode');
+  render();
+};
+
+$('immSubmitAllBtn').onclick = () => {
+  if (confirm('确认全部提交（交卷）吗？')) {
+    state.submitted = true;
+    renderImmersive();
+    updateStats();
+  }
+};
+
+$('immCloseSidebarBtn').onclick = () => {
+  $('immersiveSidebar').classList.add('collapsed');
+  $('immOpenSidebarBtn').classList.remove('hidden');
+};
+$('immOpenSidebarBtn').onclick = () => {
+  $('immersiveSidebar').classList.remove('collapsed');
+  $('immOpenSidebarBtn').classList.add('hidden');
+};
+
+function renderImmersiveGrid() {
+  const originalSub = state.submitted;
+  $('immersiveGrid').innerHTML = immQuestions.map((q, i) => {
+    state.submitted = originalSub || immSubmittedIds.has(q.id);
+    let cls = '';
+    if (state.submitted || q.type === 'text') {
+      if (isCorrect(q)) cls = 'correct';
+      else if (isWrong(q)) cls = 'wrong';
+      else if (isAnswered(q)) cls = 'answered';
+    } else {
+      if (isAnswered(q)) cls = 'answered';
+    }
+    if (i === immIndex) cls += ' active';
+    return `<button class="${cls}" data-imm-idx="${i}">${i + 1}</button>`;
+  }).join('');
+  state.submitted = originalSub;
+
+  document.querySelectorAll('#immersiveGrid button').forEach(btn => {
+    btn.onclick = () => { immIndex = parseInt(btn.dataset.immIdx, 10); renderImmersive(); };
+  });
+
+  const activeBtn = document.querySelector('#immersiveGrid button.active');
+  if (activeBtn) activeBtn.scrollIntoView({ block: 'nearest' });
+}
+
+function renderImmersive() {
+  if (!immQuestions.length) {
+    $('immersiveQuestionArea').innerHTML = '<div class="empty">当前没有题目可刷</div>';
+    return;
+  }
+  if (immIndex >= immQuestions.length) immIndex = immQuestions.length - 1;
+  if (immIndex < 0) immIndex = 0;
+
+  const q = immQuestions[immIndex];
+  const originalSub = state.submitted;
+  state.submitted = originalSub || immSubmittedIds.has(q.id);
+  const qHtml = renderQuestion(q);
+  state.submitted = originalSub;
+
+  $('immersiveQuestionArea').innerHTML = qHtml;
+
+  document.querySelectorAll('#immersiveQuestionArea input[type="radio"]').forEach(input => input.onchange = e => {
+    state.answers[e.target.name] = e.target.value;
+    renderImmersiveGrid();
+    updateStats();
+  });
+  document.querySelectorAll('#immersiveQuestionArea input[type="checkbox"][data-multi]').forEach(input => input.onchange = e => {
+    const qid = e.target.dataset.multi;
+    let arr = Array.isArray(state.answers[qid]) ? [...state.answers[qid]] : [];
+    if (e.target.checked) { if (!arr.includes(e.target.value)) arr.push(e.target.value); }
+    else { arr = arr.filter(v => v !== e.target.value); }
+    arr.sort();
+    state.answers[qid] = arr;
+    renderImmersiveGrid();
+    updateStats();
+  });
+  document.querySelectorAll('#immersiveQuestionArea textarea[data-text]').forEach(input => input.oninput = e => {
+    state.answers[e.target.dataset.text] = e.target.value;
+    renderImmersiveGrid();
+    updateStats();
+  });
+  document.querySelectorAll('#immersiveQuestionArea button[data-self]').forEach(btn => btn.onclick = () => {
+    state.selfMarks[btn.dataset.id] = btn.dataset.self;
+    renderImmersive();
+    updateStats();
+  });
+
+  $('immPrevBtn').disabled = immIndex === 0;
+  $('immNextBtn').disabled = immIndex === immQuestions.length - 1;
+  renderImmersiveGrid();
+}
+
+$('immPrevBtn').onclick = () => { if (immIndex > 0) { immIndex--; renderImmersive(); } };
+$('immNextBtn').onclick = () => { if (immIndex < immQuestions.length - 1) { immIndex++; renderImmersive(); } };
+
+window.addEventListener('keydown', e => {
+  if (!isImmersive) return;
+  const tagName = e.target.tagName.toLowerCase();
+  if (tagName === 'input' || tagName === 'textarea') return;
+  if (!immQuestions.length) return;
+  const q = immQuestions[immIndex];
+
+  if (e.key === 'ArrowLeft') {
+    if (immIndex > 0) { immIndex--; renderImmersive(); }
+    e.preventDefault();
+  } else if (e.key === 'ArrowRight') {
+    if (immIndex < immQuestions.length - 1) { immIndex++; renderImmersive(); }
+    e.preventDefault();
+  } else if (e.key === 'Enter') {
+    immSubmittedIds.add(q.id);
+    renderImmersive();
+    updateStats();
+    e.preventDefault();
+  } else {
+    const keyMap = { '1': 0, 'a': 0, '2': 1, 'b': 1, '3': 2, 'c': 2, '4': 3, 'd': 3, 't': 0, 'f': 1 };
+    const k = e.key.toLowerCase();
+    if (keyMap[k] !== undefined && q.type !== 'text') {
+      const idx = keyMap[k];
+      let mappedKey = null;
+      if (q.type === 'judge') {
+        if (idx === 0) mappedKey = '√';
+        else if (idx === 1) mappedKey = '×';
+      } else if (q.options && q.options.length > idx) {
+        mappedKey = q.options[idx].key;
+      }
+      if (mappedKey !== null) {
+        state.answers[q.id] = mappedKey;
+        renderImmersive();
+        updateStats();
+        e.preventDefault();
+      }
+    }
+  }
+});
+
+const bgmAudio = document.getElementById('bgmAudio');
+const bgmToggleBtn = document.getElementById('bgmToggleBtn');
+if (bgmToggleBtn && bgmAudio) {
+  bgmToggleBtn.addEventListener('click', () => {
+    if (bgmAudio.paused) {
+      bgmAudio.play();
+      bgmToggleBtn.classList.add('playing');
+    } else {
+      bgmAudio.pause();
+      bgmToggleBtn.classList.remove('playing');
+    }
+  });
+}
+</script>
+</body>
+</html>

@@ -83,6 +83,13 @@ export default withMermaid(
                 { text: '习题库', link: '/docs/期末复习/软项目管' },
                 { text: '高频考点', link: '/docs/期末复习/软件项目管理高频考点' }
               ]
+            },
+            {
+              text: '软件体系结构与架构设计',
+              collapsed: true,
+              items: [
+                { text: '习题库', link: '/docs/期末复习/软件体系结构与架构设计习题库' }
+              ]
             }
           ]
         },
