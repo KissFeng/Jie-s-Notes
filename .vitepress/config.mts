@@ -90,6 +90,13 @@ export default withMermaid(
               items: [
                 { text: '习题库', link: '/docs/期末复习/软件体系结构与架构设计习题库' }
               ]
+            },
+            {
+              text: '移动应用开发',
+              collapsed: true,
+              items: [
+                { text: '习题库', link: '/docs/期末复习/移动应用开发习题库' }
+              ]
             }
           ]
         },

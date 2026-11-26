@@ -1,0 +1,6565 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>移动应用开发做题版</title>
+<style>
+:root { --bg:#f5f7fb; --card:#fff; --text:#1f2937; --muted:#6b7280; --primary:#2563eb; --ok:#16a34a; --bad:#dc2626; --line:#e5e7eb; --warn:#d97706; }
+* { box-sizing: border-box; }
+body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; color:var(--text); background:linear-gradient(180deg,#eef4ff 0,var(--bg) 260px); }
+header { position:sticky; top:0; z-index:10; background:rgba(255,255,255,.92); backdrop-filter: blur(12px); border-bottom:1px solid var(--line); }
+.header-inner { max-width:1180px; margin:auto; padding:16px 20px; display:flex; gap:16px; justify-content:space-between; align-items:center; flex-wrap:wrap; }
+h1 { font-size:22px; margin:0 0 6px; }
+.subtitle { color:var(--muted); font-size:13px; }
+.toolbar { display:flex; flex-wrap:wrap; gap:8px; }
+button, select { border:1px solid var(--line); background:#fff; color:var(--text); padding:9px 12px; border-radius:10px; cursor:pointer; font-size:14px; }
+button.primary { background:var(--primary); color:#fff; border-color:var(--primary); }
+button.danger { color:var(--bad); }
+button:disabled { opacity:.45; cursor:not-allowed; }
+main { max-width:1180px; margin:22px auto 80px; padding:0 20px; display:grid; grid-template-columns: 250px 1fr; gap:20px; }
+aside { position:sticky; top:92px; align-self:start; background:var(--card); border:1px solid var(--line); border-radius:18px; padding:16px; box-shadow:0 10px 28px rgba(15,23,42,.06); }
+.stats { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.stat { background:#f8fafc; border-radius:12px; padding:12px; }
+.stat b { display:block; font-size:22px; }
+.nav-title { margin:18px 0 10px; font-weight:700; }
+.section-tabs { display:grid; gap:8px; }
+.section-tabs button { text-align:left; }
+.section-tabs button.active { background:#dbeafe; border-color:#93c5fd; color:#1d4ed8; font-weight:700; }
+.content { display:grid; gap:16px; min-width:0; }
+.question-card { background:var(--card); border:1px solid var(--line); border-radius:18px; padding:18px; box-shadow:0 10px 28px rgba(15,23,42,.06); min-width:0; }
+.question-card.correct { border-color:#86efac; }
+.question-card.wrong { border-color:#fca5a5; }
+.q-head { display:flex; justify-content:space-between; gap:12px; margin-bottom:12px; }
+.badge { display:inline-flex; align-items:center; gap:6px; font-size:12px; padding:4px 9px; border-radius:999px; background:#eef2ff; color:#3730a3; white-space:nowrap; }
+.q-title { font-weight:700; line-height:1.7; white-space:pre-wrap; }
+.options { display:grid; gap:9px; margin-top:12px; }
+.option { display:flex; gap:10px; align-items:flex-start; border:1px solid var(--line); border-radius:12px; padding:11px 12px; cursor:pointer; }
+.option:hover { border-color:#93c5fd; background:#f8fbff; }
+.option input { margin-top:3px; }
+textarea { width:100%; min-height:120px; resize:vertical; border:1px solid var(--line); border-radius:12px; padding:12px; font:14px/1.7 ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace; margin-top:12px; }
+.result { display:none; margin-top:14px; padding:14px; border-radius:12px; background:#f8fafc; border:1px solid var(--line); line-height:1.7; }
+.result.show { display:block; }
+.result .ok { color:var(--ok); font-weight:700; }
+.result .bad { color:var(--bad); font-weight:700; }
+.analysis { margin-top:8px; white-space:pre-wrap; }
+.self-check { display:flex; gap:8px; margin-top:10px; align-items:center; flex-wrap:wrap; }
+.hidden { display:none !important; }
+.empty { text-align:center; color:var(--muted); padding:44px; background:#fff; border:1px dashed var(--line); border-radius:18px; }
+@media (max-width: 860px) { main { grid-template-columns:1fr; } aside { position:static; } }
+[data-theme="dark"] { --bg:#1e1e20; --card:#252529; --text:rgba(255, 255, 255, 0.87); --muted:rgba(235, 235, 245, 0.6); --line:#32363f; }
+[data-theme="dark"] body { background: linear-gradient(180deg, #1b1b1f 0, var(--bg) 260px); }
+[data-theme="dark"] header { background: rgba(30, 30, 32, 0.92); }
+[data-theme="dark"] button, [data-theme="dark"] select { background: #313136; color: var(--text); border-color: var(--line); }
+[data-theme="dark"] .stat { background: #313136; }
+[data-theme="dark"] .section-tabs button.active { background: #1a2a4b; border-color: #3451b2; color: #a8b1ff; }
+[data-theme="dark"] .badge { background: #262c45; color: #a8b1ff; }
+[data-theme="dark"] .option:hover { background: #313136; border-color: #3451b2; }
+[data-theme="dark"] .result { background: #313136; border-color: var(--line); }
+[data-theme="dark"] .empty { background: var(--card); }
+[data-theme="dark"] textarea { background: #1e1e20; color: var(--text); border-color: var(--line); }
+[data-theme="dark"] .question-card.correct { border-color: #1a4f32; }
+[data-theme="dark"] .question-card.wrong { border-color: #7f1d1d; }
+.theme-toggle { padding: 8px 10px; display: inline-flex; align-items: center; justify-content: center; }
+.theme-toggle svg { width: 16px; height: 16px; }
+.theme-toggle .moon { display: none; }
+[data-theme="dark"] .theme-toggle .sun { display: none; }
+[data-theme="dark"] .theme-toggle .moon { display: block; }
+
+/* 沉浸式刷题模式样式 */
+body.immersive-mode main { display: none !important; }
+body.immersive-mode header { display: none !important; }
+.immersive-container { display: none; }
+body.immersive-mode .immersive-container {
+  display: flex;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 20px;
+  height: 100vh;
+  gap: 20px;
+  background: var(--bg);
+}
+.immersive-sidebar {
+  width: 280px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 10px 28px rgba(15,23,42,.06);
+  transition: width 0.3s ease, padding 0.3s ease;
+  overflow: hidden;
+}
+.immersive-sidebar.collapsed {
+  width: 0;
+  padding: 0;
+  border: none;
+  opacity: 0;
+}
+.immersive-sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.immersive-sidebar-header h3 { margin: 0; font-size: 16px; }
+.immersive-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  overflow-y: auto;
+  padding-bottom: 20px;
+}
+.immersive-grid button {
+  padding: 8px 0;
+  text-align: center;
+  border-radius: 8px;
+  font-weight: bold;
+  border: 1px solid var(--line);
+  background: var(--card);
+  font-size: 13px;
+}
+.immersive-grid button.active {
+  border-color: var(--primary);
+  color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(37,99,235,0.2);
+}
+.immersive-grid button.correct { background: #dcfce7; border-color: #86efac; color: #166534; }
+.immersive-grid button.wrong { background: #fee2e2; border-color: #fca5a5; color: #991b1b; }
+.immersive-grid button.answered { background: #e0e7ff; border-color: #a5b4fc; color: #3730a3; }
+[data-theme="dark"] .immersive-grid button.correct { background: #052e16; border-color: #14532d; color: #4ade80; }
+[data-theme="dark"] .immersive-grid button.wrong { background: #450a0a; border-color: #7f1d1d; color: #f87171; }
+[data-theme="dark"] .immersive-grid button.answered { background: #1e1b4b; border-color: #312e81; color: #818cf8; }
+
+.immersive-content-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  min-width: 0;
+}
+.immersive-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.immersive-topbar button { padding: 6px 12px; }
+.immersive-main {
+  flex: 1;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: 0 10px 28px rgba(15,23,42,.06);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.immersive-question-area {
+  flex: 1;
+  padding: 30px;
+  overflow-y: auto;
+  font-size: 16px;
+}
+.immersive-question-area .question-card { border: none; box-shadow: none; padding: 0; margin: 0; }
+.immersive-question-area .q-title { font-size: 18px; margin-bottom: 24px; }
+.immersive-question-area .option { padding: 16px; font-size: 16px; }
+.immersive-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 30px;
+  border-top: 1px solid var(--line);
+  background: var(--card);
+}
+.immersive-footer .hints { color: var(--muted); font-size: 13px; }
+.bgm-btn { display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; background: #eef2ff; color: #4f46e5; border: 1px solid #c7d2fe; border-radius: 999px; cursor: pointer; transition: all 0.3s; font-weight: bold; margin-right: 8px; }
+.bgm-btn:hover { background: #e0e7ff; transform: scale(1.02); }
+[data-theme="dark"] .bgm-btn { background: #3730a3; color: #e0e7ff; border-color: #4338ca; }
+[data-theme="dark"] .bgm-btn:hover { background: #4338ca; }
+.bgm-btn.playing .icon-play { display: none; }
+.bgm-btn.playing .icon-pause { display: block !important; }
+
+.markdown-body { white-space: normal; line-height: 1.7; font-weight: 400; }
+.markdown-body p { margin: 0 0 0.6em; }
+.markdown-body ul, .markdown-body ol { margin: 0.3em 0 0.6em; padding-left: 1.5em; }
+.markdown-body li { margin: 0.25em 0; }
+.markdown-body h4 { margin: 1.2em 0 0.5em; font-size: 15px; }
+.markdown-body table { border-collapse: collapse; width: 100%; margin-bottom: 1em; }
+.markdown-body th, .markdown-body td { border: 1px solid var(--line); padding: 8px; text-align: left; }
+.markdown-body th { color: var(--text); }
+.markdown-body img { max-width: 100%; height: auto; }
+.markdown-body code { background-color: rgba(175, 184, 193, 0.2); padding: 0.2em 0.4em; border-radius: 6px; font-family: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace; font-size: 0.9em; }
+.markdown-body pre { background: #f3f4f6; border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; overflow-x: auto; margin: 10px 0 14px; }
+.markdown-body pre code { background: transparent; padding: 0; font-size: 13.5px; line-height: 1.6; }
+[data-theme="dark"] .markdown-body pre { background: #18181b; border-color: var(--line); }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+<header>
+  <div class="header-inner">
+    <div>
+      <h1>移动应用开发做题版</h1>
+      <div class="subtitle">单选题/多选题/判断题自动判分（多选题需全选正确），填空/简答/程序题支持对照参考答案自评，支持沉浸刷题与导出错题 HTML。</div>
+    </div>
+    <div class="toolbar">
+      <audio id="bgmAudio" src="/audio/study-music.mp3" loop></audio>
+      <button id="bgmToggleBtn" title="播放/暂停轻音乐" class="bgm-btn">
+        <svg class="icon-play" viewBox="0 0 24 24" width="16" height="16"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>
+        <svg class="icon-pause" viewBox="0 0 24 24" width="16" height="16" style="display:none;"><path fill="currentColor" d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+        <span>轻音乐</span>
+      </button>
+      <button id="themeToggleBtn" title="切换亮/暗模式" class="theme-toggle">
+        <svg class="sun" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M512 256a256 256 0 1 1 0 512 256 256 0 0 1 0-512m0 76.8a179.2 179.2 0 1 0 0 358.4 179.2 179.2 0 0 0 0-358.4M512 76.8a38.4 38.4 0 0 1 38.4 38.4v76.8a38.4 38.4 0 1 1-76.8 0v-76.8A38.4 38.4 0 0 1 512 76.8m0 716.8a38.4 38.4 0 0 1 38.4 38.4v76.8a38.4 38.4 0 1 1-76.8 0v-76.8a38.4 38.4 0 0 1 38.4-38.4M125.658 200.704a38.4 38.4 0 0 1 54.336-54.336l54.336 54.336a38.4 38.4 0 1 1-54.336 54.336zm565.44 565.44a38.4 38.4 0 0 1 54.336-54.336l54.336 54.336a38.4 38.4 0 1 1-54.336 54.336zM76.8 512a38.4 38.4 0 0 1 38.4-38.4h76.8a38.4 38.4 0 1 1 0 76.8h-76.8A38.4 38.4 0 0 1 76.8 512m716.8 0a38.4 38.4 0 0 1 38.4-38.4h76.8a38.4 38.4 0 1 1 0 76.8h-76.8a38.4 38.4 0 0 1-38.4-38.4M200.704 898.342a38.4 38.4 0 0 1-54.336-54.336l54.336-54.336a38.4 38.4 0 1 1 54.336 54.336zm565.44-565.44a38.4 38.4 0 0 1-54.336-54.336l54.336-54.336a38.4 38.4 0 1 1 54.336 54.336z"></path></svg>
+        <svg class="moon" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M240.448 240.448a384 384 0 1 0 559.424 542.4 384 384 0 0 1-542.4-559.424m-12.8-59.52A460.8 460.8 0 1 1 843.072 843.072 460.8 460.8 0 0 0 227.648 180.928"></path></svg>
+      </button>
+      <select id="sectionFilter"><option value="全部">全部章节</option></select>
+      <button class="primary" id="submitBtn">提交判分</button>
+      <button id="wrongOnlyBtn">只看错题</button>
+      <button id="exportBtn">导出错题</button>
+      <button class="danger" id="resetBtn">重新做题</button>
+    </div>
+  </div>
+</header>
+<main>
+  <aside>
+    <div class="stats">
+      <div class="stat"><span>总题数</span><b id="totalCount">0</b></div>
+      <div class="stat"><span>已答</span><b id="answeredCount">0</b></div>
+      <div class="stat"><span>正确</span><b id="correctCount">0</b></div>
+      <div class="stat"><span>错题</span><b id="wrongCount">0</b></div>
+    </div>
+    <div class="nav-title">章节导航</div>
+    <div class="section-tabs" id="sectionTabs"></div>
+  </aside>
+  <section class="content" id="questionList"></section>
+</main>
+
+<div class="immersive-container" id="immersiveContainer">
+  <div class="immersive-sidebar" id="immersiveSidebar">
+    <div class="immersive-sidebar-header">
+      <h3>题号导航</h3>
+      <button id="immCloseSidebarBtn" title="收起" style="padding:4px 8px;">◀</button>
+    </div>
+    <div class="immersive-grid" id="immersiveGrid"></div>
+  </div>
+  <div class="immersive-content-wrapper">
+    <div class="immersive-topbar">
+      <div>
+        <button id="immOpenSidebarBtn" class="hidden" title="展开题号">▶ 题号</button>
+      </div>
+      <div>
+        <button id="immSubmitAllBtn" class="primary" style="margin-right:8px;">交卷 (全部提交)</button>
+        <button id="immExitBtn" class="danger">退出沉浸模式</button>
+      </div>
+    </div>
+    <div class="immersive-main">
+      <div class="immersive-question-area" id="immersiveQuestionArea"></div>
+      <div class="immersive-footer">
+        <button id="immPrevBtn">上一题 (←)</button>
+        <div class="hints">快捷键: 1-4/A-D/T-F 选选项，Enter 确认当前，←/→ 切题</div>
+        <button id="immNextBtn">下一题 (→)</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const QUESTIONS = [
+  {
+    "id": "单选题-1",
+    "section": "单选题",
+    "type": "single",
+    "number": 1,
+    "question": "下列关于void类型的说法，错误的是？",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "void通常用于声明函数没有返回值"
+      },
+      {
+        "key": "B",
+        "text": "返回值为void的函数绝对不能返回任何值，包括undefined"
+      },
+      {
+        "key": "C",
+        "text": "void语义上表示调用者不应依赖函数的返回值进行操作"
+      },
+      {
+        "key": "D",
+        "text": "void表达的“空”语义包含undefined这种具体实现"
+      }
+    ]
+  },
+  {
+    "id": "单选题-2",
+    "section": "单选题",
+    "type": "single",
+    "number": 2,
+    "question": "在普通标签上使用 ref 属性时，ref 变量的正确创建方式是( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "用 reactive 创建并放入数据"
+      },
+      {
+        "key": "B",
+        "text": "用 ref( ) 创建、不放数据，变量名与模板中 ref 属性的值一致"
+      },
+      {
+        "key": "C",
+        "text": "用 defineProps 创建"
+      },
+      {
+        "key": "D",
+        "text": "直接声明成普通字符串变量"
+      }
+    ]
+  },
+  {
+    "id": "单选题-3",
+    "section": "单选题",
+    "type": "single",
+    "number": 3,
+    "question": "执行代码const items = new Set([1,2,3,4,5,5,5,5])后，items.size的值是？",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "8"
+      },
+      {
+        "key": "B",
+        "text": "5"
+      },
+      {
+        "key": "C",
+        "text": "4"
+      },
+      {
+        "key": "D",
+        "text": "undefined"
+      }
+    ]
+  },
+  {
+    "id": "单选题-4",
+    "section": "单选题",
+    "type": "single",
+    "number": 4,
+    "question": "在普通标签上使用 ref 属性标记元素，下列说法正确的是（ ）",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "ref 变量名可以与模板中 ref 属性的值不同"
+      },
+      {
+        "key": "B",
+        "text": "ref 变量必须用 reactive 创建"
+      },
+      {
+        "key": "C",
+        "text": "ref 变量名要与模板中 ref 属性的值一致，并用 ref 函数创建"
+      },
+      {
+        "key": "D",
+        "text": "ref 只能标记组件，不能标记普通标签"
+      }
+    ]
+  },
+  {
+    "id": "单选题-5",
+    "section": "单选题",
+    "type": "single",
+    "number": 5,
+    "question": "在 Vue 组件中标记元素时，建议尽量不要使用 id 属性的主要原因是（ ）",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "id 不能被 CSS 选中"
+      },
+      {
+        "key": "B",
+        "text": "不同组件中可能出现相同的 id，造成覆盖和干扰"
+      },
+      {
+        "key": "C",
+        "text": "id 的性能比其他属性差"
+      },
+      {
+        "key": "D",
+        "text": "id 只对表单元素有效"
+      }
+    ]
+  },
+  {
+    "id": "单选题-6",
+    "section": "单选题",
+    "type": "single",
+    "number": 6,
+    "question": "改用 <script setup> 语法糖后，可以省略的是( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "模板中的插值语法"
+      },
+      {
+        "key": "B",
+        "text": "export default 与 return 返回对象"
+      },
+      {
+        "key": "C",
+        "text": "style 标签"
+      },
+      {
+        "key": "D",
+        "text": "ref 的导入"
+      }
+    ]
+  },
+  {
+    "id": "单选题-7",
+    "section": "单选题",
+    "type": "single",
+    "number": 7,
+    "question": "关于组件的根节点，下列说法正确的是( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "Vue3 只能有一个根节点，Vue2 可以有多个"
+      },
+      {
+        "key": "B",
+        "text": "Vue3 可以有多个根节点，Vue2 只允许一个"
+      },
+      {
+        "key": "C",
+        "text": "Vue2 和 Vue3 都只能有一个"
+      },
+      {
+        "key": "D",
+        "text": "两者都不限制数量"
+      }
+    ]
+  },
+  {
+    "id": "单选题-8",
+    "section": "单选题",
+    "type": "single",
+    "number": 8,
+    "question": "已知let diceRoll:1 |2 |3 |4 |5 |6，下列赋值正确无警告的是？",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "diceRoll =0"
+      },
+      {
+        "key": "B",
+        "text": "diceRoll =3"
+      },
+      {
+        "key": "C",
+        "text": "diceRoll =7"
+      },
+      {
+        "key": "D",
+        "text": "diceRoll = '3'"
+      }
+    ]
+  },
+  {
+    "id": "单选题-9",
+    "section": "单选题",
+    "type": "single",
+    "number": 9,
+    "question": "在 <script> 中读取 ref 定义的数据，正确写法是( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "username"
+      },
+      {
+        "key": "B",
+        "text": "username.value"
+      },
+      {
+        "key": "C",
+        "text": "username.get( )"
+      },
+      {
+        "key": "D",
+        "text": "$username"
+      }
+    ]
+  },
+  {
+    "id": "单选题-10",
+    "section": "单选题",
+    "type": "single",
+    "number": 10,
+    "question": "根据支付成功或失败等条件跳转到不同页面，应使用哪种路由形式( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "<router-link>（声明式导航）"
+      },
+      {
+        "key": "B",
+        "text": "router.push()（编程式导航）"
+      },
+      {
+        "key": "C",
+        "text": "window.location.reload( )"
+      },
+      {
+        "key": "D",
+        "text": "route.params"
+      }
+    ]
+  },
+  {
+    "id": "单选题-11",
+    "section": "单选题",
+    "type": "single",
+    "number": 11,
+    "question": "关于 hash 模式，说法正确的是( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "URL 不带 #，比 history 模式更美观"
+      },
+      {
+        "key": "B",
+        "text": "URL 带 #，且不利于 SEO，多用于后台管理系统"
+      },
+      {
+        "key": "C",
+        "text": "上线后必须配置服务器回退，否则刷新 404"
+      },
+      {
+        "key": "D",
+        "text": "无法使用浏览器前进后退"
+      }
+    ]
+  },
+  {
+    "id": "单选题-12",
+    "section": "单选题",
+    "type": "single",
+    "number": 12,
+    "question": "关于 v-model，下列说法正确的是( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "只能实现数据到视图的单向绑定"
+      },
+      {
+        "key": "B",
+        "text": "可以实现数据与视图的双向绑定"
+      },
+      {
+        "key": "C",
+        "text": "等价于 v-bind"
+      },
+      {
+        "key": "D",
+        "text": "只能用于 div 元素"
+      }
+    ]
+  },
+  {
+    "id": "单选题-13",
+    "section": "单选题",
+    "type": "single",
+    "number": 13,
+    "question": "配置项 immediate:true 的作用是( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "开启深度监听"
+      },
+      {
+        "key": "B",
+        "text": "页面加载后立即执行一次监听回调"
+      },
+      {
+        "key": "C",
+        "text": "只监听一次"
+      },
+      {
+        "key": "D",
+        "text": "关闭监听"
+      }
+    ]
+  },
+  {
+    "id": "单选题-14",
+    "section": "单选题",
+    "type": "single",
+    "number": 14,
+    "question": "类实现一个接口时，以下说法错误的是？",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "必须实现接口中声明的所有属性"
+      },
+      {
+        "key": "B",
+        "text": "必须实现接口中声明的所有方法"
+      },
+      {
+        "key": "C",
+        "text": "一个类只能实现一个接口"
+      },
+      {
+        "key": "D",
+        "text": "接口可以作为类型来约束对象结构"
+      }
+    ]
+  },
+  {
+    "id": "单选题-15",
+    "section": "单选题",
+    "type": "single",
+    "number": 15,
+    "question": "定义一个可读可写的计算属性，computed() 的参数应是( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "一个回调函数"
+      },
+      {
+        "key": "B",
+        "text": "一个包含 get 和 set 方法的对象"
+      },
+      {
+        "key": "C",
+        "text": "一个数组"
+      },
+      {
+        "key": "D",
+        "text": "一个 ref"
+      }
+    ]
+  },
+  {
+    "id": "单选题-16",
+    "section": "单选题",
+    "type": "single",
+    "number": 16,
+    "question": "使用路由名称进行跳转的写法是( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "<router-link to=\"/product\">"
+      },
+      {
+        "key": "B",
+        "text": "<router-link :to=\"{name:'product'}\">"
+      },
+      {
+        "key": "C",
+        "text": "<router-link :to=\"{path:'/product'}\">"
+      },
+      {
+        "key": "D",
+        "text": "<a href=\"/product\">"
+      }
+    ]
+  },
+  {
+    "id": "单选题-17",
+    "section": "单选题",
+    "type": "single",
+    "number": 17,
+    "question": "执行let d = -99后，TypeScript会自动推断d的类型为？",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "any"
+      },
+      {
+        "key": "B",
+        "text": "number"
+      },
+      {
+        "key": "C",
+        "text": "string"
+      },
+      {
+        "key": "D",
+        "text": "boolean"
+      }
+    ]
+  },
+  {
+    "id": "单选题-18",
+    "section": "单选题",
+    "type": "single",
+    "number": 18,
+    "question": "定义函数function add(a: number, b: number) { return a + b }，该函数返回值的推断类型是？",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "void"
+      },
+      {
+        "key": "B",
+        "text": "string"
+      },
+      {
+        "key": "C",
+        "text": "number"
+      },
+      {
+        "key": "D",
+        "text": "any"
+      }
+    ]
+  },
+  {
+    "id": "单选题-19",
+    "section": "单选题",
+    "type": "single",
+    "number": 19,
+    "question": "MVVM 中 ViewModel（VM）的核心职责是（ ）",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "只负责渲染页面结构"
+      },
+      {
+        "key": "B",
+        "text": "作为 View 与 Model 之间的桥梁，把数据暴露给视图，并接收视图的交互写回数据"
+      },
+      {
+        "key": "C",
+        "text": "只负责把数据持久化到数据库"
+      },
+      {
+        "key": "D",
+        "text": "只负责路由跳转与权限校验"
+      }
+    ]
+  },
+  {
+    "id": "单选题-20",
+    "section": "单选题",
+    "type": "single",
+    "number": 20,
+    "question": "在 <script setup> 中导入子组件后( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "必须在 components 选项中注册"
+      },
+      {
+        "key": "B",
+        "text": "会自动注册，可直接在模板中使用"
+      },
+      {
+        "key": "C",
+        "text": "必须用 app.component 全局注册"
+      },
+      {
+        "key": "D",
+        "text": "只能通过 render 函数使用"
+      }
+    ]
+  },
+  {
+    "id": "单选题-21",
+    "section": "单选题",
+    "type": "single",
+    "number": 21,
+    "question": "clientX / clientY 是相对于什么的坐标( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "整个文档"
+      },
+      {
+        "key": "B",
+        "text": "浏览器视口左上角"
+      },
+      {
+        "key": "C",
+        "text": "屏幕左上角"
+      },
+      {
+        "key": "D",
+        "text": "目标元素"
+      }
+    ]
+  },
+  {
+    "id": "单选题-22",
+    "section": "单选题",
+    "type": "single",
+    "number": 22,
+    "question": "已知let a: string，下列赋值操作会触发TS类型警告的是？",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "a = 'world'"
+      },
+      {
+        "key": "B",
+        "text": "a = hello"
+      },
+      {
+        "key": "C",
+        "text": "a =123"
+      },
+      {
+        "key": "D",
+        "text": "a = ''"
+      }
+    ]
+  },
+  {
+    "id": "单选题-23",
+    "section": "单选题",
+    "type": "single",
+    "number": 23,
+    "question": "以下哪个场景不适合使用抽象类？",
+    "answer": "D",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "需要在多个子类之间共享通用代码"
+      },
+      {
+        "key": "B",
+        "text": "要求所有子类必须实现某些特定方法"
+      },
+      {
+        "key": "C",
+        "text": "禁止某个类被直接实例化"
+      },
+      {
+        "key": "D",
+        "text": "需要创建一个可以直接实例化的通用工具类"
+      }
+    ]
+  },
+  {
+    "id": "单选题-24",
+    "section": "单选题",
+    "type": "single",
+    "number": 24,
+    "question": "在 Vue 组件中标记元素时，建议尽量不使用 id 属性的主要原因是( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "id 不能被 CSS 选中"
+      },
+      {
+        "key": "B",
+        "text": "多个组件最终渲染到同一个 html，可能出现相同 id 造成覆盖和干扰"
+      },
+      {
+        "key": "C",
+        "text": "id 的性能比 ref 差"
+      },
+      {
+        "key": "D",
+        "text": "id 只能用于表单元素"
+      }
+    ]
+  },
+  {
+    "id": "单选题-25",
+    "section": "单选题",
+    "type": "single",
+    "number": 25,
+    "question": "以下关于接口和抽象类的区别，说法正确的是？",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "接口中可以包含具体实现的方法，抽象类不行"
+      },
+      {
+        "key": "B",
+        "text": "抽象类中可以包含具体实现的方法，接口中不允许包含具体实现方法"
+      },
+      {
+        "key": "C",
+        "text": "接口和抽象类都可以被直接实例化"
+      },
+      {
+        "key": "D",
+        "text": "类只能实现一个接口"
+      }
+    ]
+  },
+  {
+    "id": "单选题-26",
+    "section": "单选题",
+    "type": "single",
+    "number": 26,
+    "question": "项目需要同时对接多个服务商的接口、各自配置不同时，应( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "修改 defaults.baseURL"
+      },
+      {
+        "key": "B",
+        "text": "用 axios.create( ) 创建不同的 Axios 实例"
+      },
+      {
+        "key": "C",
+        "text": "每个请求都写完整 URL 即可无需配置"
+      },
+      {
+        "key": "D",
+        "text": "只能用原生 fetch"
+      }
+    ]
+  },
+  {
+    "id": "单选题-27",
+    "section": "单选题",
+    "type": "single",
+    "number": 27,
+    "question": "下列关于ECMAScript和JavaScript关系的描述，正确的是？",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "JavaScript是ECMAScript的规格，ECMAScript是JavaScript的实现"
+      },
+      {
+        "key": "B",
+        "text": "ECMAScript是JavaScript的规格，JavaScript是ECMAScript的一种实现"
+      },
+      {
+        "key": "C",
+        "text": "二者是完全独立的两种编程语言"
+      },
+      {
+        "key": "D",
+        "text": "ECMAScript就是JavaScript，二者没有任何区别"
+      }
+    ]
+  },
+  {
+    "id": "单选题-28",
+    "section": "单选题",
+    "type": "single",
+    "number": 28,
+    "question": "class=\"{ selected: isSelected }\" 表示( )",
+    "answer": "A",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "isSelected 为 true 时才添加 selected 类"
+      },
+      {
+        "key": "B",
+        "text": "isSelected 为 false 时才添加 selected 类"
+      },
+      {
+        "key": "C",
+        "text": "无论如何都添加 selected 类"
+      },
+      {
+        "key": "D",
+        "text": "把 isSelected 的值当作类名"
+      }
+    ]
+  },
+  {
+    "id": "单选题-29",
+    "section": "单选题",
+    "type": "single",
+    "number": 29,
+    "question": "已知let a: unknown = 'hello'，let x: string，下列操作不会产生警告的是？",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "x = a"
+      },
+      {
+        "key": "B",
+        "text": "x = a as string"
+      },
+      {
+        "key": "C",
+        "text": "a.toUpperCase()"
+      },
+      {
+        "key": "D",
+        "text": "x = a + ''"
+      }
+    ]
+  },
+  {
+    "id": "单选题-30",
+    "section": "单选题",
+    "type": "single",
+    "number": 30,
+    "question": "指明路由组件渲染出口的标签是( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "<router-link>"
+      },
+      {
+        "key": "B",
+        "text": "<router-view>"
+      },
+      {
+        "key": "C",
+        "text": "<component>"
+      },
+      {
+        "key": "D",
+        "text": "<slot>"
+      }
+    ]
+  },
+  {
+    "id": "单选题-31",
+    "section": "单选题",
+    "type": "single",
+    "number": 31,
+    "question": "已知let c: boolean，下列赋值操作符合类型要求的是？",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "c =1"
+      },
+      {
+        "key": "B",
+        "text": "c =0"
+      },
+      {
+        "key": "C",
+        "text": "c = true"
+      },
+      {
+        "key": "D",
+        "text": "c = 'true'"
+      }
+    ]
+  },
+  {
+    "id": "单选题-32",
+    "section": "单选题",
+    "type": "single",
+    "number": 32,
+    "question": "为 Axios 设置默认基础地址，正确写法是( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "Axios.baseURL = 'http://...'"
+      },
+      {
+        "key": "B",
+        "text": "Axios.defaults.baseURL = 'http://...'"
+      },
+      {
+        "key": "C",
+        "text": "Axios.create.baseURL = 'http://...'"
+      },
+      {
+        "key": "D",
+        "text": "axios.base = 'http://...'"
+      }
+    ]
+  },
+  {
+    "id": "单选题-33",
+    "section": "单选题",
+    "type": "single",
+    "number": 33,
+    "question": "下列选项中，不属于TypeScript新增数据类型的是？",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "any"
+      },
+      {
+        "key": "B",
+        "text": "unknown"
+      },
+      {
+        "key": "C",
+        "text": "string"
+      },
+      {
+        "key": "D",
+        "text": "never"
+      }
+    ]
+  },
+  {
+    "id": "单选题-34",
+    "section": "单选题",
+    "type": "single",
+    "number": 34,
+    "question": "通过 ref 变量获取对应 DOM 元素，应访问它的( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "变量本身"
+      },
+      {
+        "key": "B",
+        "text": "value 属性"
+      },
+      {
+        "key": "C",
+        "text": "get( ) 方法"
+      },
+      {
+        "key": "D",
+        "text": "$el 属性"
+      }
+    ]
+  },
+  {
+    "id": "单选题-35",
+    "section": "单选题",
+    "type": "single",
+    "number": 35,
+    "question": "定义动态路径参数的正确写法是( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "path:'product-detail?id'"
+      },
+      {
+        "key": "B",
+        "text": "path:'product-detail/:id'"
+      },
+      {
+        "key": "C",
+        "text": "path:'product-detail/{id}'"
+      },
+      {
+        "key": "D",
+        "text": "path:'product-detail/*'"
+      }
+    ]
+  },
+  {
+    "id": "单选题-36",
+    "section": "单选题",
+    "type": "single",
+    "number": 36,
+    "question": "用 ref函数包裹基本类型数据后，返回的是( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "原始字符串"
+      },
+      {
+        "key": "B",
+        "text": "RefImpl 对象，原值放在 value 属性上"
+      },
+      {
+        "key": "C",
+        "text": "Proxy 代理对象"
+      },
+      {
+        "key": "D",
+        "text": "一个数组"
+      }
+    ]
+  },
+  {
+    "id": "单选题-37",
+    "section": "单选题",
+    "type": "single",
+    "number": 37,
+    "question": "执行let person = {name: 'Alice', age:30}，TypeScript自动推断person的类型是？",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "any"
+      },
+      {
+        "key": "B",
+        "text": "object"
+      },
+      {
+        "key": "C",
+        "text": "{ name: string; age: number; }"
+      },
+      {
+        "key": "D",
+        "text": "unknown"
+      }
+    ]
+  },
+  {
+    "id": "单选题-38",
+    "section": "单选题",
+    "type": "single",
+    "number": 38,
+    "question": "下列ES6特性中，专门用于解决异步回调地狱问题的组合是？",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "解构赋值、扩展运算符"
+      },
+      {
+        "key": "B",
+        "text": "箭头函数、模板字符串"
+      },
+      {
+        "key": "C",
+        "text": "Promise、async/await"
+      },
+      {
+        "key": "D",
+        "text": "Set、Map"
+      }
+    ]
+  },
+  {
+    "id": "单选题-39",
+    "section": "单选题",
+    "type": "single",
+    "number": 39,
+    "question": "下列关于TypeScript中any类型的说法，错误的是？",
+    "answer": "D",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "声明为any类型的变量可以被赋值为任意类型的值"
+      },
+      {
+        "key": "B",
+        "text": "未显式声明类型且无初始值的变量会被隐式推断为any类型"
+      },
+      {
+        "key": "C",
+        "text": "any类型的变量可以赋值给任意其他类型的变量且无警告"
+      },
+      {
+        "key": "D",
+        "text": "开发中推荐大量使用any类型以简化类型编写"
+      }
+    ]
+  },
+  {
+    "id": "单选题-40",
+    "section": "单选题",
+    "type": "single",
+    "number": 40,
+    "question": "ES6中用于解决var变量提升、全局污染问题的声明关键字是？",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "var/function"
+      },
+      {
+        "key": "B",
+        "text": "let/const"
+      },
+      {
+        "key": "C",
+        "text": "class/extends"
+      },
+      {
+        "key": "D",
+        "text": "import/export"
+      }
+    ]
+  },
+  {
+    "id": "单选题-41",
+    "section": "单选题",
+    "type": "single",
+    "number": 41,
+    "question": "执行let values = [0,1, null]，TypeScript推断values的类型为？",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "number[]"
+      },
+      {
+        "key": "B",
+        "text": "null[]"
+      },
+      {
+        "key": "C",
+        "text": "(number | null)[]"
+      },
+      {
+        "key": "D",
+        "text": "any[]"
+      }
+    ]
+  },
+  {
+    "id": "单选题-42",
+    "section": "单选题",
+    "type": "single",
+    "number": 42,
+    "question": "关于 reactive( )，下列说法正确的是( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "既能用于对象，也能用于数字、字符串"
+      },
+      {
+        "key": "B",
+        "text": "只能用于对象等引用类型，不能用于原始类型"
+      },
+      {
+        "key": "C",
+        "text": "必须通过 .value 访问"
+      },
+      {
+        "key": "D",
+        "text": "默认不是深度响应式"
+      }
+    ]
+  },
+  {
+    "id": "单选题-43",
+    "section": "单选题",
+    "type": "single",
+    "number": 43,
+    "question": "下列关于ES6 Set数据结构的描述，错误的是？",
+    "answer": "D",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "Set类似于数组，成员值都是唯一的"
+      },
+      {
+        "key": "B",
+        "text": "Set本身是构造函数，需要通过new关键字生成实例"
+      },
+      {
+        "key": "C",
+        "text": "Set可以通过add()方法添加成员"
+      },
+      {
+        "key": "D",
+        "text": "Set允许添加重复的成员值"
+      }
+    ]
+  },
+  {
+    "id": "单选题-44",
+    "section": "单选题",
+    "type": "single",
+    "number": 44,
+    "question": "创建路由器并指定 history 模式，正确写法是( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "createRouter({ history: createWebHashHistory( ), routes })"
+      },
+      {
+        "key": "B",
+        "text": "createRouter({ history: createWebHistory( ), routes })"
+      },
+      {
+        "key": "C",
+        "text": "createApp({ history: createWebHistory() })"
+      },
+      {
+        "key": "D",
+        "text": "new Router({ mode: 'history' })"
+      }
+    ]
+  },
+  {
+    "id": "单选题-45",
+    "section": "单选题",
+    "type": "single",
+    "number": 45,
+    "question": "在模板插值 {{ }} 中使用 ref 数据时( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "必须写 .value"
+      },
+      {
+        "key": "B",
+        "text": "不需要写 .value，Vue 会自动解包"
+      },
+      {
+        "key": "C",
+        "text": "必须加 $ 前缀"
+      },
+      {
+        "key": "D",
+        "text": "必须放进 computed"
+      }
+    ]
+  },
+  {
+    "id": "单选题-46",
+    "section": "单选题",
+    "type": "single",
+    "number": 46,
+    "question": "根据条件跳转到不同路径（如支付成功/失败），应使用（ ）",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "<router-link>"
+      },
+      {
+        "key": "B",
+        "text": "router.push( )"
+      },
+      {
+        "key": "C",
+        "text": "window.location.href"
+      },
+      {
+        "key": "D",
+        "text": "route.params"
+      }
+    ]
+  },
+  {
+    "id": "单选题-47",
+    "section": "单选题",
+    "type": "single",
+    "number": 47,
+    "question": "props 的作用和数据流向是( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "子组件向父组件传值"
+      },
+      {
+        "key": "B",
+        "text": "父组件向子组件传值，单向数据流"
+      },
+      {
+        "key": "C",
+        "text": "双向绑定"
+      },
+      {
+        "key": "D",
+        "text": "兄弟组件之间传值"
+      }
+    ]
+  },
+  {
+    "id": "单选题-48",
+    "section": "单选题",
+    "type": "single",
+    "number": 48,
+    "question": "关于生命周期钩子的执行次数，正确的是（ ）",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "onMounted 每次更新都会执行"
+      },
+      {
+        "key": "B",
+        "text": "onUpdated 每更新一次就执行一次"
+      },
+      {
+        "key": "C",
+        "text": "onBeforeUnmount 每次更新都会执行"
+      },
+      {
+        "key": "D",
+        "text": "setup 每更新一次就执行一次"
+      }
+    ]
+  },
+  {
+    "id": "单选题-49",
+    "section": "单选题",
+    "type": "single",
+    "number": 49,
+    "question": "执行代码[...new Set('ababbc')].join('')得到的结果是？",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "'ababbc'"
+      },
+      {
+        "key": "B",
+        "text": "'abc'"
+      },
+      {
+        "key": "C",
+        "text": "'cba'"
+      },
+      {
+        "key": "D",
+        "text": "'aabbcc'"
+      }
+    ]
+  },
+  {
+    "id": "单选题-50",
+    "section": "单选题",
+    "type": "single",
+    "number": 50,
+    "question": "下列Promise状态变化路径中，合法的是？",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "pending → fulfilled → rejected"
+      },
+      {
+        "key": "B",
+        "text": "fulfilled → pending → rejected"
+      },
+      {
+        "key": "C",
+        "text": "pending → rejected"
+      },
+      {
+        "key": "D",
+        "text": "rejected → fulfilled"
+      }
+    ]
+  },
+  {
+    "id": "单选题-51",
+    "section": "单选题",
+    "type": "single",
+    "number": 51,
+    "question": "关于any和unknown类型的赋值兼容性，下列说法正确的是？",
+    "answer": "A",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "any类型可以接收任意值，也可以赋值给任意类型变量"
+      },
+      {
+        "key": "B",
+        "text": "unknown类型可以接收任意值，也可以直接赋值给任意类型变量"
+      },
+      {
+        "key": "C",
+        "text": "any类型不能接收string类型的值"
+      },
+      {
+        "key": "D",
+        "text": "unknown类型不能接收number类型的值"
+      }
+    ]
+  },
+  {
+    "id": "单选题-52",
+    "section": "单选题",
+    "type": "single",
+    "number": 52,
+    "question": "父组件在子组件标签上使用 ref 属性，得到的是（ ）",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "子组件的 DOM 元素"
+      },
+      {
+        "key": "B",
+        "text": "子组件的 props 对象"
+      },
+      {
+        "key": "C",
+        "text": "子组件实例（代理对象 Proxy）"
+      },
+      {
+        "key": "D",
+        "text": "子组件的模板字符串"
+      }
+    ]
+  },
+  {
+    "id": "单选题-53",
+    "section": "单选题",
+    "type": "single",
+    "number": 53,
+    "question": "关于 v-bind，下列说法正确的是( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "只能绑定响应式数据"
+      },
+      {
+        "key": "B",
+        "text": "与数据是否为响应式无关，普通数据也能绑定"
+      },
+      {
+        "key": "C",
+        "text": "只能绑定 class 和 style"
+      },
+      {
+        "key": "D",
+        "text": "必须配合 v-model 使用"
+      }
+    ]
+  },
+  {
+    "id": "单选题-54",
+    "section": "单选题",
+    "type": "single",
+    "number": 54,
+    "question": "在 setup 顶层直接打印 ref 变量，得到 undefined，原因是( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "没有从 vue 中导入 ref"
+      },
+      {
+        "key": "B",
+        "text": "此时页面尚未渲染完成，ref 变量要在渲染后才有值"
+      },
+      {
+        "key": "C",
+        "text": "ref 变量必须先手动赋值"
+      },
+      {
+        "key": "D",
+        "text": "组件没有挂载到 #app 上"
+      }
+    ]
+  },
+  {
+    "id": "单选题-55",
+    "section": "单选题",
+    "type": "single",
+    "number": 55,
+    "question": "关于自定义 Hook，说法正确的是（ ）",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "以 get 开头，可在任意 js 文件中使用"
+      },
+      {
+        "key": "B",
+        "text": "以 use 开头，只能在 <script setup> 或 setup( ) 函数中使用"
+      },
+      {
+        "key": "C",
+        "text": "以 use 开头，可在任意位置调用"
+      },
+      {
+        "key": "D",
+        "text": "命名无要求，只要能 return 对象即可"
+      }
+    ]
+  },
+  {
+    "id": "单选题-56",
+    "section": "单选题",
+    "type": "single",
+    "number": 56,
+    "question": "v-bind 指令的简写形式是( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "@"
+      },
+      {
+        "key": "B",
+        "text": ":"
+      },
+      {
+        "key": "C",
+        "text": "#"
+      },
+      {
+        "key": "D",
+        "text": "."
+      }
+    ]
+  },
+  {
+    "id": "单选题-57",
+    "section": "单选题",
+    "type": "single",
+    "number": 57,
+    "question": "下列关于TypeScript中any类型的说法，错误的是？",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "声明为any类型的变量可以被赋值任意类型的值"
+      },
+      {
+        "key": "B",
+        "text": "声明变量时未指定类型且未初始化，TS会将其推断为隐式any"
+      },
+      {
+        "key": "C",
+        "text": "any类型的变量不可以赋值给其他明确类型的变量"
+      },
+      {
+        "key": "D",
+        "text": "使用any类型会放弃对该变量的类型检查"
+      }
+    ]
+  },
+  {
+    "id": "单选题-58",
+    "section": "单选题",
+    "type": "single",
+    "number": 58,
+    "question": "在模板中使用只读计算属性 comArea，正确写法是( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "{{ comArea() }}"
+      },
+      {
+        "key": "B",
+        "text": "{{ comArea }}"
+      },
+      {
+        "key": "C",
+        "text": "{{ comArea.value }}"
+      },
+      {
+        "key": "D",
+        "text": "{{ $comArea }}"
+      }
+    ]
+  },
+  {
+    "id": "单选题-59",
+    "section": "单选题",
+    "type": "single",
+    "number": 59,
+    "question": "下列哪种函数的返回值类型适合声明为never？",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "计算两数之和的函数"
+      },
+      {
+        "key": "B",
+        "text": "打印日志且无return的函数"
+      },
+      {
+        "key": "C",
+        "text": "抛出错误终止程序的函数"
+      },
+      {
+        "key": "D",
+        "text": "返回用户信息对象的函数"
+      }
+    ]
+  },
+  {
+    "id": "单选题-60",
+    "section": "单选题",
+    "type": "single",
+    "number": 60,
+    "question": "defineProps( ) 的返回值是( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "一个数组"
+      },
+      {
+        "key": "B",
+        "text": "一个对象，包含父组件传过来的数据"
+      },
+      {
+        "key": "C",
+        "text": "一个 ref"
+      },
+      {
+        "key": "D",
+        "text": "undefined"
+      }
+    ]
+  },
+  {
+    "id": "单选题-61",
+    "section": "单选题",
+    "type": "single",
+    "number": 61,
+    "question": "非抽象类继承一个包含抽象方法的抽象类时，必须做什么？",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "直接继承即可，不需要额外操作"
+      },
+      {
+        "key": "B",
+        "text": "实现抽象类中所有的抽象方法"
+      },
+      {
+        "key": "C",
+        "text": "重写抽象类中的所有普通方法"
+      },
+      {
+        "key": "D",
+        "text": "将自身也声明为抽象类才能继承"
+      }
+    ]
+  },
+  {
+    "id": "单选题-62",
+    "section": "单选题",
+    "type": "single",
+    "number": 62,
+    "question": "v-for 中同时获取当前项及其索引的正确写法是( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "v-for=\"item in list\""
+      },
+      {
+        "key": "B",
+        "text": "v-for=\"(item, index) in list\""
+      },
+      {
+        "key": "C",
+        "text": "v-for=\"index in list\""
+      },
+      {
+        "key": "D",
+        "text": "v-for=\"item; index in list\""
+      }
+    ]
+  },
+  {
+    "id": "单选题-63",
+    "section": "单选题",
+    "type": "single",
+    "number": 63,
+    "question": "自定义 Hook（组合式函数）的命名约定是( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "以 get 开头"
+      },
+      {
+        "key": "B",
+        "text": "以 use 开头"
+      },
+      {
+        "key": "C",
+        "text": "以 hook 结尾"
+      },
+      {
+        "key": "D",
+        "text": "没有要求"
+      }
+    ]
+  },
+  {
+    "id": "单选题-64",
+    "section": "单选题",
+    "type": "single",
+    "number": 64,
+    "question": "在TypeScript中声明let a: object，下列赋值会产生类型警告的是？",
+    "answer": "D",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "a = {name: '张三'}"
+      },
+      {
+        "key": "B",
+        "text": "a = [1,2,3]"
+      },
+      {
+        "key": "C",
+        "text": "a = function(){}"
+      },
+      {
+        "key": "D",
+        "text": "a =123"
+      }
+    ]
+  },
+  {
+    "id": "单选题-65",
+    "section": "单选题",
+    "type": "single",
+    "number": 65,
+    "question": "给定代码：class Person{constructor(public readonly name:string, public age:number){}}，const p = new Person('jack',30)，以下操作会编译报错的是？",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "console.log(p.name)"
+      },
+      {
+        "key": "B",
+        "text": "p.age =31"
+      },
+      {
+        "key": "C",
+        "text": "p.name = 'tom'"
+      },
+      {
+        "key": "D",
+        "text": "console.log(p.age)"
+      }
+    ]
+  },
+  {
+    "id": "单选题-66",
+    "section": "单选题",
+    "type": "single",
+    "number": 66,
+    "question": "下列指令中不能与 v-else 搭配使用的是( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "v-if"
+      },
+      {
+        "key": "B",
+        "text": "v-show"
+      },
+      {
+        "key": "C",
+        "text": "v-else-if"
+      },
+      {
+        "key": "D",
+        "text": "以上都可以"
+      }
+    ]
+  },
+  {
+    "id": "单选题-67",
+    "section": "单选题",
+    "type": "single",
+    "number": 67,
+    "question": "若函数返回值类型声明为void，下列哪种return语句会产生警告？",
+    "answer": "D",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "return"
+      },
+      {
+        "key": "B",
+        "text": "return undefined"
+      },
+      {
+        "key": "C",
+        "text": "不写return语句"
+      },
+      {
+        "key": "D",
+        "text": "return 666"
+      }
+    ]
+  },
+  {
+    "id": "单选题-68",
+    "section": "单选题",
+    "type": "single",
+    "number": 68,
+    "question": "在TypeScript中，若声明函数function sum(x:number, y:number):number，下列调用方式不会产生类型警告的是？",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "sum(10, '20')"
+      },
+      {
+        "key": "B",
+        "text": "sum(10,20)"
+      },
+      {
+        "key": "C",
+        "text": "sum(10)"
+      },
+      {
+        "key": "D",
+        "text": "sum(10,20,30)"
+      }
+    ]
+  },
+  {
+    "id": "单选题-69",
+    "section": "单选题",
+    "type": "single",
+    "number": 69,
+    "question": "用于将ES6代码转译为ES5兼容代码，解决老旧浏览器兼容性问题的工程化工具是？",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "Vite"
+      },
+      {
+        "key": "B",
+        "text": "npm"
+      },
+      {
+        "key": "C",
+        "text": "Babel"
+      },
+      {
+        "key": "D",
+        "text": "Node.js"
+      }
+    ]
+  },
+  {
+    "id": "单选题-70",
+    "section": "单选题",
+    "type": "single",
+    "number": 70,
+    "question": "使用 v-for=\"(value, prop) in person\" 遍历对象时，value 表示( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "属性名"
+      },
+      {
+        "key": "B",
+        "text": "属性值"
+      },
+      {
+        "key": "C",
+        "text": "索引"
+      },
+      {
+        "key": "D",
+        "text": "对象本身"
+      }
+    ]
+  },
+  {
+    "id": "单选题-71",
+    "section": "单选题",
+    "type": "single",
+    "number": 71,
+    "question": "执行代码[...new Set([1,2,2,3,3,3])]得到的结果是？",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "[1,2,2,3,3,3]"
+      },
+      {
+        "key": "B",
+        "text": "[1,2,3]"
+      },
+      {
+        "key": "C",
+        "text": "{1,2,3}"
+      },
+      {
+        "key": "D",
+        "text": "1,2,3"
+      }
+    ]
+  },
+  {
+    "id": "单选题-72",
+    "section": "单选题",
+    "type": "single",
+    "number": 72,
+    "question": "下列关于unknown类型和any类型的对比，说法正确的是？",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "unknown和any完全没有区别"
+      },
+      {
+        "key": "B",
+        "text": "unknown是类型安全的any，使用前必须进行类型检查或断言"
+      },
+      {
+        "key": "C",
+        "text": "unknown类型变量可以直接调用任意属性和方法"
+      },
+      {
+        "key": "D",
+        "text": "any类型比unknown类型的类型安全性更强"
+      }
+    ]
+  },
+  {
+    "id": "单选题-73",
+    "section": "单选题",
+    "type": "single",
+    "number": 73,
+    "question": "关于 defineProps( ) 的参数，正确的是( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "必须是一个对象"
+      },
+      {
+        "key": "B",
+        "text": "必须是一个数组，只有一个参数也要用数组"
+      },
+      {
+        "key": "C",
+        "text": "必须是一个字符串"
+      },
+      {
+        "key": "D",
+        "text": "可以完全省略不写"
+      }
+    ]
+  },
+  {
+    "id": "单选题-74",
+    "section": "单选题",
+    "type": "single",
+    "number": 74,
+    "question": "类实现接口时，需要使用哪个关键字？",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "extends"
+      },
+      {
+        "key": "B",
+        "text": "implements"
+      },
+      {
+        "key": "C",
+        "text": "interface"
+      },
+      {
+        "key": "D",
+        "text": "abstract"
+      }
+    ]
+  },
+  {
+    "id": "单选题-75",
+    "section": "单选题",
+    "type": "single",
+    "number": 75,
+    "question": "下列选项中，不属于Promise三种基本状态的是？",
+    "answer": "D",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "pending（等待态）"
+      },
+      {
+        "key": "B",
+        "text": "fulfilled（成功态）"
+      },
+      {
+        "key": "C",
+        "text": "rejected（失败态）"
+      },
+      {
+        "key": "D",
+        "text": "pending（暂停态）"
+      }
+    ]
+  },
+  {
+    "id": "单选题-76",
+    "section": "单选题",
+    "type": "single",
+    "number": 76,
+    "question": "关于计算属性，下列说法正确的是( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "每次访问都会重新计算"
+      },
+      {
+        "key": "B",
+        "text": "首次访问时计算，之后从缓存返回，依赖变化时重新计算"
+      },
+      {
+        "key": "C",
+        "text": "不能依赖响应式数据"
+      },
+      {
+        "key": "D",
+        "text": "必须带括号调用"
+      }
+    ]
+  },
+  {
+    "id": "单选题-77",
+    "section": "单选题",
+    "type": "single",
+    "number": 77,
+    "question": "ES6的Map数据结构与传统Object的核心区别是？",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "Map只能使用字符串作为键名"
+      },
+      {
+        "key": "B",
+        "text": "Map的键可以是任意类型的值，不限于字符串"
+      },
+      {
+        "key": "C",
+        "text": "Map不能存储键值对结构"
+      },
+      {
+        "key": "D",
+        "text": "Object是更完善的Hash结构实现"
+      }
+    ]
+  },
+  {
+    "id": "单选题-78",
+    "section": "单选题",
+    "type": "single",
+    "number": 78,
+    "question": "关于 target 与 currentTarget，说法正确的是( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "target 是绑定监听器的元素，currentTarget 是实际触发的元素"
+      },
+      {
+        "key": "B",
+        "text": "target 是实际触发事件的元素，currentTarget 是当前绑定监听器的元素"
+      },
+      {
+        "key": "C",
+        "text": "二者永远相同"
+      },
+      {
+        "key": "D",
+        "text": "二者都是字符串"
+      }
+    ]
+  },
+  {
+    "id": "单选题-79",
+    "section": "单选题",
+    "type": "single",
+    "number": 79,
+    "question": "下列选项中，不属于ES5语法存在的缺陷的是？",
+    "answer": "D",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "var声明变量存在变量提升、全局污染问题"
+      },
+      {
+        "key": "B",
+        "text": "没有原生的模块化支持"
+      },
+      {
+        "key": "C",
+        "text": "异步代码容易产生回调地狱问题"
+      },
+      {
+        "key": "D",
+        "text": "不支持函数定义与调用"
+      }
+    ]
+  },
+  {
+    "id": "单选题-80",
+    "section": "单选题",
+    "type": "single",
+    "number": 80,
+    "question": "在 Pinia 中访问 store 里的 count（原本是 ref）时不需要写 .value，原因是( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "store 中的 count 已变成普通变量"
+      },
+      {
+        "key": "B",
+        "text": "store 是 reactive 代理对象，访问其中 ref 会自动解包"
+      },
+      {
+        "key": "C",
+        "text": "defineStore 会自动删除 value"
+      },
+      {
+        "key": "D",
+        "text": "必须写 .value，题目描述有误"
+      }
+    ]
+  },
+  {
+    "id": "单选题-81",
+    "section": "单选题",
+    "type": "single",
+    "number": 81,
+    "question": "用 ref 包裹对象 person 后，在脚本中修改其 username 属性的正确写法是( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "person.username='张三'"
+      },
+      {
+        "key": "B",
+        "text": "person.value.username='张三'"
+      },
+      {
+        "key": "C",
+        "text": "person.$username='张三'"
+      },
+      {
+        "key": "D",
+        "text": "person.get( ).username='张三'"
+      }
+    ]
+  },
+  {
+    "id": "单选题-82",
+    "section": "单选题",
+    "type": "single",
+    "number": 82,
+    "question": "下列钩子中，属于挂载前执行的是( )",
+    "answer": "A",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "onBeforeMount"
+      },
+      {
+        "key": "B",
+        "text": "onMounted"
+      },
+      {
+        "key": "C",
+        "text": "onBeforeUpdate"
+      },
+      {
+        "key": "D",
+        "text": "onBeforeUnmount"
+      }
+    ]
+  },
+  {
+    "id": "单选题-83",
+    "section": "单选题",
+    "type": "single",
+    "number": 83,
+    "question": "Promise实例的then方法主要用于监听哪个状态转变后的回调？",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "pending到rejected"
+      },
+      {
+        "key": "B",
+        "text": "pending到fulfilled（resolved）"
+      },
+      {
+        "key": "C",
+        "text": "fulfilled到rejected"
+      },
+      {
+        "key": "D",
+        "text": "rejected到pending"
+      }
+    ]
+  },
+  {
+    "id": "单选题-84",
+    "section": "单选题",
+    "type": "single",
+    "number": 84,
+    "question": "watch() 函数的返回值是( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "新的响应式数据"
+      },
+      {
+        "key": "B",
+        "text": "一个用于停止监听的函数"
+      },
+      {
+        "key": "C",
+        "text": "旧值"
+      },
+      {
+        "key": "D",
+        "text": "布尔值"
+      }
+    ]
+  },
+  {
+    "id": "单选题-85",
+    "section": "单选题",
+    "type": "single",
+    "number": 85,
+    "question": "ES6中用于提供更友好的面向对象写法的关键字是？",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "function"
+      },
+      {
+        "key": "B",
+        "text": "class"
+      },
+      {
+        "key": "C",
+        "text": "prototype"
+      },
+      {
+        "key": "D",
+        "text": "new"
+      }
+    ]
+  },
+  {
+    "id": "单选题-86",
+    "section": "单选题",
+    "type": "single",
+    "number": 86,
+    "question": "前后端分离时代，后端开发的核心特征是？",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "业务逻辑代码直接嵌入HTML中，数据、逻辑和UI紧密耦合"
+      },
+      {
+        "key": "B",
+        "text": "采用MVC模式实现逻辑、模型、视图的后端分层"
+      },
+      {
+        "key": "C",
+        "text": "聚焦业务逻辑，以API化方式提供数据服务"
+      },
+      {
+        "key": "D",
+        "text": "负责所有页面切图和交互效果实现"
+      }
+    ]
+  },
+  {
+    "id": "单选题-87",
+    "section": "单选题",
+    "type": "single",
+    "number": 87,
+    "question": "监听 ref 定义的对象数据时，若未开启 deep，监听到的是( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "对象内部任意属性的变化"
+      },
+      {
+        "key": "B",
+        "text": "对象地址值的变化"
+      },
+      {
+        "key": "C",
+        "text": "只有第一层属性的变化"
+      },
+      {
+        "key": "D",
+        "text": "什么都不会触发"
+      }
+    ]
+  },
+  {
+    "id": "单选题-88",
+    "section": "单选题",
+    "type": "single",
+    "number": 88,
+    "question": "要根据 isActive 的值在 active 和 selected 之间二选一，正确写法是( )",
+    "answer": "A",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": ":class=\"[isActive?'active':'selected']\""
+      },
+      {
+        "key": "B",
+        "text": ":class=\"{isActive}\""
+      },
+      {
+        "key": "C",
+        "text": ":class=\"isActive\""
+      },
+      {
+        "key": "D",
+        "text": "class=\"isActive?'active':'selected'\""
+      }
+    ]
+  },
+  {
+    "id": "单选题-89",
+    "section": "单选题",
+    "type": "single",
+    "number": 89,
+    "question": "在TypeScript中，若要在编译阶段检查子类方法是否正确重写了父类方法，需要在方法前使用哪个关键字？",
+    "answer": "A",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "override"
+      },
+      {
+        "key": "B",
+        "text": "overwrite"
+      },
+      {
+        "key": "C",
+        "text": "extends"
+      },
+      {
+        "key": "D",
+        "text": "implements"
+      }
+    ]
+  },
+  {
+    "id": "单选题-90",
+    "section": "单选题",
+    "type": "single",
+    "number": 90,
+    "question": "组件卸载前需要销毁定时器、WebSocket 等资源，应写在( )",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "onMounted"
+      },
+      {
+        "key": "B",
+        "text": "onUpdated"
+      },
+      {
+        "key": "C",
+        "text": "onBeforeUnmount"
+      },
+      {
+        "key": "D",
+        "text": "onBeforeMount"
+      }
+    ]
+  },
+  {
+    "id": "单选题-91",
+    "section": "单选题",
+    "type": "single",
+    "number": 91,
+    "question": "使用 v-for 时给元素绑定 key 的主要作用是( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "让元素获得唯一的 id"
+      },
+      {
+        "key": "B",
+        "text": "帮助 Vue 识别节点，提高性能并避免潜在渲染问题"
+      },
+      {
+        "key": "C",
+        "text": "自动生成样式"
+      },
+      {
+        "key": "D",
+        "text": "让数据变成响应式"
+      }
+    ]
+  },
+  {
+    "id": "单选题-92",
+    "section": "单选题",
+    "type": "single",
+    "number": 92,
+    "question": "某元素需要非常频繁地显示、隐藏切换，应优先使用( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "v-if"
+      },
+      {
+        "key": "B",
+        "text": "v-show"
+      },
+      {
+        "key": "C",
+        "text": "v-once"
+      },
+      {
+        "key": "D",
+        "text": "v-pre"
+      }
+    ]
+  },
+  {
+    "id": "单选题-93",
+    "section": "单选题",
+    "type": "single",
+    "number": 93,
+    "question": "Vue3 组件生命周期的四大阶段依次是（ ）",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "创建、渲染、更新、卸载"
+      },
+      {
+        "key": "B",
+        "text": "创建、挂载、更新、销毁"
+      },
+      {
+        "key": "C",
+        "text": "初始化、挂载、销毁"
+      },
+      {
+        "key": "D",
+        "text": "创建、编译、挂载、销毁"
+      }
+    ]
+  },
+  {
+    "id": "单选题-94",
+    "section": "单选题",
+    "type": "single",
+    "number": 94,
+    "question": "下列关于ES6代码相比ES5的优势，描述错误的是？",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "代码更简短，减少重复样板代码"
+      },
+      {
+        "key": "B",
+        "text": "可读性更高，逻辑更清晰"
+      },
+      {
+        "key": "C",
+        "text": "从根本上消除所有程序bug"
+      },
+      {
+        "key": "D",
+        "text": "语法设计更合理，减少因语法缺陷导致的错误"
+      }
+    ]
+  },
+  {
+    "id": "单选题-95",
+    "section": "单选题",
+    "type": "single",
+    "number": 95,
+    "question": "ES6中作为前端工程化基石，用于实现模块导入导出的语法是？",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "require/module.exports"
+      },
+      {
+        "key": "B",
+        "text": "import/export"
+      },
+      {
+        "key": "C",
+        "text": "define/require"
+      },
+      {
+        "key": "D",
+        "text": "include/import"
+      }
+    ]
+  },
+  {
+    "id": "单选题-96",
+    "section": "单选题",
+    "type": "single",
+    "number": 96,
+    "question": "Hooks 只能在( )中使用",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "任意 js 文件"
+      },
+      {
+        "key": "B",
+        "text": "<script setup> 或 setup( ) 函数"
+      },
+      {
+        "key": "C",
+        "text": "只能写在 main.ts"
+      },
+      {
+        "key": "D",
+        "text": "只能在 router/index.ts"
+      }
+    ]
+  },
+  {
+    "id": "单选题-97",
+    "section": "单选题",
+    "type": "single",
+    "number": 97,
+    "question": "下列TypeScript代码中，哪一行会产生类型警告？",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "let a: string = 'hello'"
+      },
+      {
+        "key": "B",
+        "text": "let b: number =666"
+      },
+      {
+        "key": "C",
+        "text": "function demo(x:number,y:number):number{ return x + y }; demo(100,'200')"
+      },
+      {
+        "key": "D",
+        "text": "let c: boolean = true"
+      }
+    ]
+  },
+  {
+    "id": "单选题-98",
+    "section": "单选题",
+    "type": "single",
+    "number": 98,
+    "question": "事件修饰符 .self 的作用是( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "阻止事件冒泡"
+      },
+      {
+        "key": "B",
+        "text": "仅当 event.target 是当前元素自身时才触发处理函数"
+      },
+      {
+        "key": "C",
+        "text": "只触发一次"
+      },
+      {
+        "key": "D",
+        "text": "阻止默认行为"
+      }
+    ]
+  },
+  {
+    "id": "单选题-99",
+    "section": "单选题",
+    "type": "single",
+    "number": 99,
+    "question": "关于 Axios 的 params 与 data，说法正确的是（ ）",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "params 用于把数据放进 post 请求体"
+      },
+      {
+        "key": "B",
+        "text": "params 会把参数拼接在 URL 后面（常用于 get），data 会把参数放进请求体（常用于 post）"
+      },
+      {
+        "key": "C",
+        "text": "两者完全等价，写哪个都一样"
+      },
+      {
+        "key": "D",
+        "text": "data 只能用于 get 请求"
+      }
+    ]
+  },
+  {
+    "id": "单选题-100",
+    "section": "单选题",
+    "type": "single",
+    "number": 100,
+    "question": "v-if 与 v-show 的本质区别是( )",
+    "answer": "A",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "v-if 操作 DOM，v-show 操作 CSS 的 display 属性"
+      },
+      {
+        "key": "B",
+        "text": "v-if 操作 display，v-show 操作 DOM"
+      },
+      {
+        "key": "C",
+        "text": "二者完全相同"
+      },
+      {
+        "key": "D",
+        "text": "v-if 只能用于组件"
+      }
+    ]
+  },
+  {
+    "id": "单选题-101",
+    "section": "单选题",
+    "type": "single",
+    "number": 101,
+    "question": "Vue官方团队推荐的用于替代Vuex的下一代状态管理库是？",
+    "answer": "A",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "Pinia"
+      },
+      {
+        "key": "B",
+        "text": "Redux"
+      },
+      {
+        "key": "C",
+        "text": "MobX"
+      },
+      {
+        "key": "D",
+        "text": "RxJS"
+      }
+    ]
+  },
+  {
+    "id": "单选题-102",
+    "section": "单选题",
+    "type": "single",
+    "number": 102,
+    "question": "对 reactive 定义的对象执行 person = { name:'李四' } 整体赋值，结果是( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "页面正常更新"
+      },
+      {
+        "key": "B",
+        "text": "丢失响应式，视图不再更新"
+      },
+      {
+        "key": "C",
+        "text": "报语法错误"
+      },
+      {
+        "key": "D",
+        "text": "自动转为 ref"
+      }
+    ]
+  },
+  {
+    "id": "单选题-103",
+    "section": "单选题",
+    "type": "single",
+    "number": 103,
+    "question": "Vue.js的定位是用于构建用户界面的（）JavaScript框架",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "重量级"
+      },
+      {
+        "key": "B",
+        "text": "渐进式"
+      },
+      {
+        "key": "C",
+        "text": "全栈式"
+      },
+      {
+        "key": "D",
+        "text": "服务端渲染"
+      }
+    ]
+  },
+  {
+    "id": "单选题-104",
+    "section": "单选题",
+    "type": "single",
+    "number": 104,
+    "question": "与传统Object对象相比，ES6新增的Map数据结构的核心优势是？",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "存储的键值对数量没有上限"
+      },
+      {
+        "key": "B",
+        "text": "键的范围不限于字符串，各种类型的值都可以作为键"
+      },
+      {
+        "key": "C",
+        "text": "读取属性的速度比Object更快"
+      },
+      {
+        "key": "D",
+        "text": "可以直接序列化为JSON字符串"
+      }
+    ]
+  },
+  {
+    "id": "单选题-105",
+    "section": "单选题",
+    "type": "single",
+    "number": 105,
+    "question": "Promise对象的状态一旦改变后，下列说法正确的是？",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "可以在fulfilled和rejected之间反复切换"
+      },
+      {
+        "key": "B",
+        "text": "状态凝固不会再改变，任何时候都可以得到这个结果"
+      },
+      {
+        "key": "C",
+        "text": "一段时间后会自动回到pending状态"
+      },
+      {
+        "key": "D",
+        "text": "无法通过任何方式获取最终的结果"
+      }
+    ]
+  },
+  {
+    "id": "单选题-106",
+    "section": "单选题",
+    "type": "single",
+    "number": 106,
+    "question": "若要监听 reactive 对象中的基本类型属性 person.name，正确写法是( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "watch(person.name, 回调函数)"
+      },
+      {
+        "key": "B",
+        "text": "watch(( ) => person.name, 回调函数)"
+      },
+      {
+        "key": "C",
+        "text": "watch('name', 回调函数)"
+      },
+      {
+        "key": "D",
+        "text": "watch(person, 回调函数, {deep:false})"
+      }
+    ]
+  },
+  {
+    "id": "单选题-107",
+    "section": "单选题",
+    "type": "single",
+    "number": 107,
+    "question": "使用非语法糖写法时，setup 函数中定义的数据和方法必须怎样做才能被模板使用( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "挂载到 window 上"
+      },
+      {
+        "key": "B",
+        "text": "通过 return 返回"
+      },
+      {
+        "key": "C",
+        "text": "用 reactive 包裹"
+      },
+      {
+        "key": "D",
+        "text": "注册到 components 中"
+      }
+    ]
+  },
+  {
+    "id": "单选题-108",
+    "section": "单选题",
+    "type": "single",
+    "number": 108,
+    "question": "TypeScript类中，若属性没有显式写访问权限修饰符，默认的访问权限是？",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "private"
+      },
+      {
+        "key": "B",
+        "text": "protected"
+      },
+      {
+        "key": "C",
+        "text": "public"
+      },
+      {
+        "key": "D",
+        "text": "readonly"
+      }
+    ]
+  },
+  {
+    "id": "单选题-109",
+    "section": "单选题",
+    "type": "single",
+    "number": 109,
+    "question": "关于 Vue3 中的 setup 函数，下列说法正确的是( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "只在组件挂载完成后执行一次"
+      },
+      {
+        "key": "B",
+        "text": "在组件初始化时最先执行，集中管理状态、方法与生命周期"
+      },
+      {
+        "key": "C",
+        "text": "每次数据变化都会重新执行"
+      },
+      {
+        "key": "D",
+        "text": "只负责定义模板结构"
+      }
+    ]
+  },
+  {
+    "id": "单选题-110",
+    "section": "单选题",
+    "type": "single",
+    "number": 110,
+    "question": "在前端框架中，一个路由本质上是一组 key-value，其中( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "key 是组件，value 是请求路径"
+      },
+      {
+        "key": "B",
+        "text": "key 是请求路径，value 是该路径对应的 Vue 组件"
+      },
+      {
+        "key": "C",
+        "text": "key 是接口地址，value 是后端方法"
+      },
+      {
+        "key": "D",
+        "text": "key 是文件名，value 是页面内容"
+      }
+    ]
+  },
+  {
+    "id": "单选题-111",
+    "section": "单选题",
+    "type": "single",
+    "number": 111,
+    "question": "下列选项中，不属于Map实例常用操作方法的是？",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "set() 设置键值对"
+      },
+      {
+        "key": "B",
+        "text": "get() 获取键对应的值"
+      },
+      {
+        "key": "C",
+        "text": "add() 添加成员"
+      },
+      {
+        "key": "D",
+        "text": "has() 判断键是否存在"
+      }
+    ]
+  },
+  {
+    "id": "单选题-112",
+    "section": "单选题",
+    "type": "single",
+    "number": 112,
+    "question": "下列主流前端技术栈中，不是基于ES6+语法开发的是？",
+    "answer": "D",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "Vue3"
+      },
+      {
+        "key": "B",
+        "text": "React"
+      },
+      {
+        "key": "C",
+        "text": "微信小程序"
+      },
+      {
+        "key": "D",
+        "text": "基于ES5编写的老旧jQuery项目"
+      }
+    ]
+  },
+  {
+    "id": "单选题-113",
+    "section": "单选题",
+    "type": "single",
+    "number": 113,
+    "question": "下列关于Promise对象状态的描述，错误的是？",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "Promise一共有pending、fulfilled、rejected三种状态"
+      },
+      {
+        "key": "B",
+        "text": "Promise的状态只能由异步操作的结果决定，外界无法直接修改"
+      },
+      {
+        "key": "C",
+        "text": "Promise状态从pending变为fulfilled后，还可以再次变为rejected"
+      },
+      {
+        "key": "D",
+        "text": "Promise状态一旦改变就会凝固，不会再发生变化"
+      }
+    ]
+  },
+  {
+    "id": "单选题-114",
+    "section": "单选题",
+    "type": "single",
+    "number": 114,
+    "question": "storeToRefs 的作用是( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "把 ref 转成 reactive"
+      },
+      {
+        "key": "B",
+        "text": "把 store 中的数据转换成 ref，解构后仍保持响应式"
+      },
+      {
+        "key": "C",
+        "text": "深拷贝 store 数据"
+      },
+      {
+        "key": "D",
+        "text": "删除 store 中的指定数据"
+      }
+    ]
+  },
+  {
+    "id": "单选题-115",
+    "section": "单选题",
+    "type": "single",
+    "number": 115,
+    "question": "给定代码：class Person{constructor(public name:string, public age:number){}}，执行new Person('张三',20)创建对象后，以下说法正确的是？",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "对象上不存在name和age属性"
+      },
+      {
+        "key": "B",
+        "text": "需要在类中单独声明name和age属性才能访问"
+      },
+      {
+        "key": "C",
+        "text": "构造参数加public修饰符会自动将参数声明为类的属性并赋值"
+      },
+      {
+        "key": "D",
+        "text": "该写法是TypeScript的语法错误"
+      }
+    ]
+  },
+  {
+    "id": "单选题-116",
+    "section": "单选题",
+    "type": "single",
+    "number": 116,
+    "question": "关于 input 与 change 事件，说法正确的是( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "input 在失焦时触发，change 每次输入都触发"
+      },
+      {
+        "key": "B",
+        "text": "input 每次内容变化都触发，change 在值改变且失去焦点时触发"
+      },
+      {
+        "key": "C",
+        "text": "二者完全等价"
+      },
+      {
+        "key": "D",
+        "text": "change 只能用于 div"
+      }
+    ]
+  },
+  {
+    "id": "单选题-117",
+    "section": "单选题",
+    "type": "single",
+    "number": 117,
+    "question": "已知let a: string = 'test'，在if(typeof a === 'string'){...}else{...}的else分支中，TS推断a的类型为？",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "string"
+      },
+      {
+        "key": "B",
+        "text": "any"
+      },
+      {
+        "key": "C",
+        "text": "never"
+      },
+      {
+        "key": "D",
+        "text": "unknown"
+      }
+    ]
+  },
+  {
+    "id": "单选题-118",
+    "section": "单选题",
+    "type": "single",
+    "number": 118,
+    "question": "在TypeScript中进行常规类型声明时，下列写法推荐使用的是？",
+    "answer": "D",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "let str: String"
+      },
+      {
+        "key": "B",
+        "text": "let num: Number"
+      },
+      {
+        "key": "C",
+        "text": "let bool: Boolean"
+      },
+      {
+        "key": "D",
+        "text": "let str: string"
+      }
+    ]
+  },
+  {
+    "id": "单选题-119",
+    "section": "单选题",
+    "type": "single",
+    "number": 119,
+    "question": "Vue官方推荐的创建Vue3工程的方式是？",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "基于webpack的vue-cli创建"
+      },
+      {
+        "key": "B",
+        "text": "基于Vite创建"
+      },
+      {
+        "key": "C",
+        "text": "直接引入CDN链接创建"
+      },
+      {
+        "key": "D",
+        "text": "基于Grunt创建"
+      }
+    ]
+  },
+  {
+    "id": "单选题-120",
+    "section": "单选题",
+    "type": "single",
+    "number": 120,
+    "question": "下列关于Vite构建工具的描述，错误的是？",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "由尤雨溪团队研发，是新一代前端构建工具"
+      },
+      {
+        "key": "B",
+        "text": "利用浏览器原生ES Module特性实现按需加载"
+      },
+      {
+        "key": "C",
+        "text": "采用先打包所有模块再启动服务的运行机制"
+      },
+      {
+        "key": "D",
+        "text": "具备极速热更新、启动和构建速度快的优势"
+      }
+    ]
+  },
+  {
+    "id": "单选题-121",
+    "section": "单选题",
+    "type": "single",
+    "number": 121,
+    "question": "使用 :value=\"username\" 绑定input输入框后，在输入框中修改内容，h2 中显示的值( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "同步改变"
+      },
+      {
+        "key": "B",
+        "text": "不改变，因为只实现了单向绑定"
+      },
+      {
+        "key": "C",
+        "text": "变为 undefined"
+      },
+      {
+        "key": "D",
+        "text": "直接报错"
+      }
+    ]
+  },
+  {
+    "id": "单选题-122",
+    "section": "单选题",
+    "type": "single",
+    "number": 122,
+    "question": "关于 onUpdated 的执行次数，正确的是( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "只在首次渲染后执行一次"
+      },
+      {
+        "key": "B",
+        "text": "每更新一次执行一次"
+      },
+      {
+        "key": "C",
+        "text": "只执行两次"
+      },
+      {
+        "key": "D",
+        "text": "不会执行"
+      }
+    ]
+  },
+  {
+    "id": "单选题-123",
+    "section": "单选题",
+    "type": "single",
+    "number": 123,
+    "question": "在TypeScript中，若Teacher类继承自Person类，在Teacher的构造方法中调用父类构造方法的正确写法是？",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "this.super()"
+      },
+      {
+        "key": "B",
+        "text": "super()"
+      },
+      {
+        "key": "C",
+        "text": "Person.constructor()"
+      },
+      {
+        "key": "D",
+        "text": "parent()"
+      }
+    ]
+  },
+  {
+    "id": "单选题-124",
+    "section": "单选题",
+    "type": "single",
+    "number": 124,
+    "question": "已知let direction: 'north' | 'south' | 'east' | 'west'，下列赋值会报错的是？",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "direction = 'north'"
+      },
+      {
+        "key": "B",
+        "text": "direction = 'south'"
+      },
+      {
+        "key": "C",
+        "text": "direction = 'up'"
+      },
+      {
+        "key": "D",
+        "text": "direction = 'west'"
+      }
+    ]
+  },
+  {
+    "id": "单选题-125",
+    "section": "单选题",
+    "type": "single",
+    "number": 125,
+    "question": "监听 reactive 定义的对象数据时，默认( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "不开启深度监听"
+      },
+      {
+        "key": "B",
+        "text": "开启深度监听，可用 deep:false 关闭"
+      },
+      {
+        "key": "C",
+        "text": "只能监听第一层属性"
+      },
+      {
+        "key": "D",
+        "text": "必须手动写 deep:true"
+      }
+    ]
+  },
+  {
+    "id": "单选题-126",
+    "section": "单选题",
+    "type": "single",
+    "number": 126,
+    "question": "下列函数中，返回值类型适合声明为never的是？",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "function add(a:number, b:number) { return a + b }"
+      },
+      {
+        "key": "B",
+        "text": "function log(msg:string) { console.log(msg) }"
+      },
+      {
+        "key": "C",
+        "text": "function throwErr(msg:string) { throw new Error(msg) }"
+      },
+      {
+        "key": "D",
+        "text": "function getName() { return 'Tom' }"
+      }
+    ]
+  },
+  {
+    "id": "单选题-127",
+    "section": "单选题",
+    "type": "single",
+    "number": 127,
+    "question": "项目启动后访问根路径 /，但该路径没有对应组件，应配置( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "删除该路由"
+      },
+      {
+        "key": "B",
+        "text": "redirect 重定向到某路径"
+      },
+      {
+        "key": "C",
+        "text": "把根路径写成 /"
+      },
+      {
+        "key": "D",
+        "text": "使用 hash 模式"
+      }
+    ]
+  },
+  {
+    "id": "单选题-128",
+    "section": "单选题",
+    "type": "single",
+    "number": 128,
+    "question": "下列关于Webpack构建工具的描述，正确的是？",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "由尤雨溪团队研发，是Vue官方推荐的首选构建工具"
+      },
+      {
+        "key": "B",
+        "text": "将所有模块打包成bundle后再交给浏览器运行"
+      },
+      {
+        "key": "C",
+        "text": "利用浏览器原生ES Module实现按需加载"
+      },
+      {
+        "key": "D",
+        "text": "启动速度极快，支持极速热更新"
+      }
+    ]
+  },
+  {
+    "id": "单选题-129",
+    "section": "单选题",
+    "type": "single",
+    "number": 129,
+    "question": "已知abstract class Shape {abstract getArea():number}，class Circle extends Shape {radius:number; constructor(r:number){super(); this.radius=r}}，该Circle类会？",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "正常编译，可以创建实例"
+      },
+      {
+        "key": "B",
+        "text": "编译报错，因为非抽象类没有实现父类的抽象方法getArea"
+      },
+      {
+        "key": "C",
+        "text": "运行时才会报错"
+      },
+      {
+        "key": "D",
+        "text": "自动继承getArea方法，不需要实现"
+      }
+    ]
+  },
+  {
+    "id": "单选题-130",
+    "section": "单选题",
+    "type": "single",
+    "number": 130,
+    "question": "TypeScript中进行常规类型声明时，下列哪种类型写法是不推荐的？",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "let str: string"
+      },
+      {
+        "key": "B",
+        "text": "let num: number"
+      },
+      {
+        "key": "C",
+        "text": "let bool: Boolean"
+      },
+      {
+        "key": "D",
+        "text": "let flag: boolean"
+      }
+    ]
+  },
+  {
+    "id": "单选题-131",
+    "section": "单选题",
+    "type": "single",
+    "number": 131,
+    "question": "执行let d = -99; d = false后，TypeScript会给出什么提示？",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "无任何警告"
+      },
+      {
+        "key": "B",
+        "text": "不能将类型“boolean”分配给类型“number”"
+      },
+      {
+        "key": "C",
+        "text": "不能将类型“number”分配给类型“boolean”"
+      },
+      {
+        "key": "D",
+        "text": "变量d未声明类型"
+      }
+    ]
+  },
+  {
+    "id": "单选题-132",
+    "section": "单选题",
+    "type": "single",
+    "number": 132,
+    "question": "下列返回值类型声明为void的函数中，会触发TS警告的是？",
+    "answer": "D",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "function f1():void{}"
+      },
+      {
+        "key": "B",
+        "text": "function f2():void{ return }"
+      },
+      {
+        "key": "C",
+        "text": "function f3():void{ return undefined }"
+      },
+      {
+        "key": "D",
+        "text": "function f4():void{ return 123 }"
+      }
+    ]
+  },
+  {
+    "id": "单选题-133",
+    "section": "单选题",
+    "type": "single",
+    "number": 133,
+    "question": "offsetX / offsetY 是相对于什么的位置( )",
+    "answer": "C",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "浏览器视口"
+      },
+      {
+        "key": "B",
+        "text": "整个文档"
+      },
+      {
+        "key": "C",
+        "text": "目标元素的 padding 边缘"
+      },
+      {
+        "key": "D",
+        "text": "屏幕"
+      }
+    ]
+  },
+  {
+    "id": "单选题-134",
+    "section": "单选题",
+    "type": "single",
+    "number": 134,
+    "question": "需要整体替换一个对象且保持响应式，应优先使用( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "reactive"
+      },
+      {
+        "key": "B",
+        "text": "ref"
+      },
+      {
+        "key": "C",
+        "text": "普通对象"
+      },
+      {
+        "key": "D",
+        "text": "Object.freeze"
+      }
+    ]
+  },
+  {
+    "id": "单选题-135",
+    "section": "单选题",
+    "type": "single",
+    "number": 135,
+    "question": "父组件要访问子组件内部的数据或方法，子组件必须( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "用 defineProps 接收"
+      },
+      {
+        "key": "B",
+        "text": "用 defineExpose 把数据和函数暴露出去"
+      },
+      {
+        "key": "C",
+        "text": "用 defineEmits 声明事件"
+      },
+      {
+        "key": "D",
+        "text": "用 provide/inject 注入"
+      }
+    ]
+  },
+  {
+    "id": "单选题-136",
+    "section": "单选题",
+    "type": "single",
+    "number": 136,
+    "question": "@click=\"greet\" 与 @click=\"greet( )\" 的区别是( )",
+    "answer": "B",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "没有区别"
+      },
+      {
+        "key": "B",
+        "text": "前者是方法事件处理器，会自动接收原生事件对象；后者是内联事件处理器"
+      },
+      {
+        "key": "C",
+        "text": "后者才是方法事件处理器"
+      },
+      {
+        "key": "D",
+        "text": "前者会直接报错"
+      }
+    ]
+  },
+  {
+    "id": "多选题-137",
+    "section": "多选题",
+    "type": "multi",
+    "number": 137,
+    "question": "关于路由，说法正确的有( )",
+    "answer": "ABC",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "一个路由是 key（请求路径）到 value（组件）的映射"
+      },
+      {
+        "key": "B",
+        "text": "用于解决 SPA 中的页面跳转问题"
+      },
+      {
+        "key": "C",
+        "text": "使用路由后浏览器的前进后退仍然可用"
+      },
+      {
+        "key": "D",
+        "text": "每次切换路由都会向服务器请求一个新的 html 文件"
+      }
+    ]
+  },
+  {
+    "id": "多选题-138",
+    "section": "多选题",
+    "type": "multi",
+    "number": 138,
+    "question": "关于 reactive，说法正确的有( )",
+    "answer": "ABC",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "只能用于对象等引用类型"
+      },
+      {
+        "key": "B",
+        "text": "底层使用 Proxy 实现"
+      },
+      {
+        "key": "C",
+        "text": "默认支持深层响应式"
+      },
+      {
+        "key": "D",
+        "text": "整体赋值替换后仍保持响应式"
+      }
+    ]
+  },
+  {
+    "id": "多选题-139",
+    "section": "多选题",
+    "type": "multi",
+    "number": 139,
+    "question": "关于 setup 函数，说法正确的有( )",
+    "answer": "ABC",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "是 Vue3 组合式 API 的核心入口函数"
+      },
+      {
+        "key": "B",
+        "text": "在组件初始化时最先执行"
+      },
+      {
+        "key": "C",
+        "text": "非语法糖写法下数据和方法必须 return 才能被模板使用"
+      },
+      {
+        "key": "D",
+        "text": "每次视图更新都会重新执行"
+      }
+    ]
+  },
+  {
+    "id": "多选题-140",
+    "section": "多选题",
+    "type": "multi",
+    "number": 140,
+    "question": "关于 Axios 的基本用法，说法正确的有( )",
+    "answer": "ABC",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "用 npm install axios 安装"
+      },
+      {
+        "key": "B",
+        "text": "Axios.get(url).then( ) 可发起 get 请求"
+      },
+      {
+        "key": "C",
+        "text": "可用 Axios.defaults.baseURL 设置默认基础地址"
+      },
+      {
+        "key": "D",
+        "text": "then( ) 是请求失败时的回调"
+      }
+    ]
+  },
+  {
+    "id": "多选题-141",
+    "section": "多选题",
+    "type": "multi",
+    "number": 141,
+    "question": "关于计算属性，说法正确的有( )",
+    "answer": "ABCD",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "需要从 vue 引入 computed"
+      },
+      {
+        "key": "B",
+        "text": "参数是回调函数，返回值就是计算属性的值"
+      },
+      {
+        "key": "C",
+        "text": "具有缓存特性"
+      },
+      {
+        "key": "D",
+        "text": "依赖的响应式数据变化时会重新计算"
+      }
+    ]
+  },
+  {
+    "id": "多选题-142",
+    "section": "多选题",
+    "type": "multi",
+    "number": 142,
+    "question": "关于 watch 的用法，说法正确的有( )",
+    "answer": "ABC",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "deep:true 用于开启深度监听"
+      },
+      {
+        "key": "B",
+        "text": "immediate:true 让回调在页面加载后立即执行一次"
+      },
+      {
+        "key": "C",
+        "text": "watch 的返回值是停止监听的函数"
+      },
+      {
+        "key": "D",
+        "text": "watch 必须设置 deep"
+      }
+    ]
+  },
+  {
+    "id": "多选题-143",
+    "section": "多选题",
+    "type": "multi",
+    "number": 143,
+    "question": "关于 ref 属性，说法正确的有( )",
+    "answer": "ABC",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "可以替代 id 用于标记元素"
+      },
+      {
+        "key": "B",
+        "text": "在普通标签上可获取 DOM"
+      },
+      {
+        "key": "C",
+        "text": "在组件标签上可获取子组件实例"
+      },
+      {
+        "key": "D",
+        "text": "不同组件中使用同名 ref 会互相覆盖"
+      }
+    ]
+  },
+  {
+    "id": "多选题-144",
+    "section": "多选题",
+    "type": "multi",
+    "number": 144,
+    "question": "下列关于TypeScript接口的说法，正确的有？",
+    "answer": "AB",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "接口可以用来定义类需要遵守的结构契约"
+      },
+      {
+        "key": "B",
+        "text": "接口可以用来约束对象的结构，支持可选属性和只读属性"
+      },
+      {
+        "key": "C",
+        "text": "接口中可以编写已经实现具体逻辑的普通方法"
+      },
+      {
+        "key": "D",
+        "text": "接口只能用来定义对象的结构，不能定义函数的类型结构"
+      }
+    ]
+  },
+  {
+    "id": "多选题-145",
+    "section": "多选题",
+    "type": "multi",
+    "number": 145,
+    "question": "关于 Axios 的配置项，说法正确的有( )",
+    "answer": "ABC",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "params 用于 get 请求，参数拼在 URL 后面"
+      },
+      {
+        "key": "B",
+        "text": "data 用于 post 请求，参数放在请求体里"
+      },
+      {
+        "key": "C",
+        "text": "timeout 为 0 表示无超时时间"
+      },
+      {
+        "key": "D",
+        "text": "responseType 的默认值是 text"
+      }
+    ]
+  },
+  {
+    "id": "多选题-146",
+    "section": "多选题",
+    "type": "multi",
+    "number": 146,
+    "question": "关于 Pinia，说法正确的有( )",
+    "answer": "ABC",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "是 Vue3 的状态（数据）管理库，用于集中式管理数据"
+      },
+      {
+        "key": "B",
+        "text": "用 defineStore(仓库名, 回调函数) 定义仓库并导出"
+      },
+      {
+        "key": "C",
+        "text": "store 是 reactive 代理对象，访问其中的 ref 不需要 .value"
+      },
+      {
+        "key": "D",
+        "text": "直接用 { } 解构 store，响应式不会丢失"
+      }
+    ]
+  },
+  {
+    "id": "多选题-147",
+    "section": "多选题",
+    "type": "multi",
+    "number": 147,
+    "question": "关于 props，说法正确的有( )",
+    "answer": "ABD",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "实现父组件向子组件传值"
+      },
+      {
+        "key": "B",
+        "text": "子组件通过 defineProps 接收"
+      },
+      {
+        "key": "C",
+        "text": "子组件可以直接修改接收到的 props"
+      },
+      {
+        "key": "D",
+        "text": "数据可以是静态的，也可以是动态绑定的"
+      }
+    ]
+  },
+  {
+    "id": "多选题-148",
+    "section": "多选题",
+    "type": "multi",
+    "number": 148,
+    "question": "关于 ref，说法正确的有( )",
+    "answer": "ABC",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "可以包装基本类型数据"
+      },
+      {
+        "key": "B",
+        "text": "返回 RefImpl 对象，值放在 value 属性上"
+      },
+      {
+        "key": "C",
+        "text": "脚本中需 .value，模板中自动解包"
+      },
+      {
+        "key": "D",
+        "text": "只能用于基本类型，不能放对象"
+      }
+    ]
+  },
+  {
+    "id": "多选题-149",
+    "section": "多选题",
+    "type": "multi",
+    "number": 149,
+    "question": "下列属于TypeScript类型推断场景的有？",
+    "answer": "ABCD",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "根据变量初始值自动推导变量类型"
+      },
+      {
+        "key": "B",
+        "text": "根据函数return的值自动推导函数返回值类型"
+      },
+      {
+        "key": "C",
+        "text": "根据对象字面量的属性自动推导对象结构类型"
+      },
+      {
+        "key": "D",
+        "text": "为数组元素推导包含所有元素类型的最佳通用联合类型"
+      }
+    ]
+  },
+  {
+    "id": "多选题-150",
+    "section": "多选题",
+    "type": "multi",
+    "number": 150,
+    "question": "下列钩子与应用场景对应正确的有( )",
+    "answer": "ABC",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "onMounted：页面渲染完毕后执行一些操作"
+      },
+      {
+        "key": "B",
+        "text": "onUpdated：数据更新后调整图表容器尺寸"
+      },
+      {
+        "key": "C",
+        "text": "onBeforeUnmount：销毁定时器、WebSocket 等资源"
+      },
+      {
+        "key": "D",
+        "text": "onBeforeMount：在 setup 之前执行"
+      }
+    ]
+  },
+  {
+    "id": "多选题-151",
+    "section": "多选题",
+    "type": "multi",
+    "number": 151,
+    "question": "下列关于TypeScript抽象类的说法，正确的有？",
+    "answer": "AB",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "抽象类中可以定义已经实现了具体逻辑的普通方法"
+      },
+      {
+        "key": "B",
+        "text": "抽象类中可以定义只有签名、没有实现的抽象方法"
+      },
+      {
+        "key": "C",
+        "text": "抽象类可以直接通过new关键字创建实例对象"
+      },
+      {
+        "key": "D",
+        "text": "继承抽象类的非抽象子类，可以不用实现父类的抽象方法"
+      }
+    ]
+  },
+  {
+    "id": "多选题-152",
+    "section": "多选题",
+    "type": "multi",
+    "number": 152,
+    "question": "关于 v-for 中的 key，说法正确的有( )",
+    "answer": "ABC",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "帮助 Vue 识别节点"
+      },
+      {
+        "key": "B",
+        "text": "可以提高性能"
+      },
+      {
+        "key": "C",
+        "text": "通常绑定数据中具有唯一性的 id"
+      },
+      {
+        "key": "D",
+        "text": "不写 key 不会有任何影响"
+      }
+    ]
+  },
+  {
+    "id": "多选题-153",
+    "section": "多选题",
+    "type": "multi",
+    "number": 153,
+    "question": "关于 ref 与 reactive 的区别，说法正确的有( )",
+    "answer": "ABC",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "ref 适合基本类型，也可以放对象"
+      },
+      {
+        "key": "B",
+        "text": "reactive 定义的对象不能直接整体替换"
+      },
+      {
+        "key": "C",
+        "text": "ref 可以通过 .value 整体替换对象"
+      },
+      {
+        "key": "D",
+        "text": "reactive 访问属性时需要写 .value"
+      }
+    ]
+  },
+  {
+    "id": "多选题-154",
+    "section": "多选题",
+    "type": "multi",
+    "number": 154,
+    "question": "下列属于Vite构建工具核心优势的有（）",
+    "answer": "ABC",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "轻量快速的热重载，实现极速服务启动"
+      },
+      {
+        "key": "B",
+        "text": "对TypeScript、JSX、CSS等支持开箱即用"
+      },
+      {
+        "key": "C",
+        "text": "真正的按需编译，无需等待整个应用编译完成"
+      },
+      {
+        "key": "D",
+        "text": "启动时提前分析打包所有模块，再启动服务"
+      }
+    ]
+  },
+  {
+    "id": "多选题-155",
+    "section": "多选题",
+    "type": "multi",
+    "number": 155,
+    "question": "Vue3 中 watch 可以监听的源包括( )",
+    "answer": "ABCD",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "一个返回值的 getter 函数"
+      },
+      {
+        "key": "B",
+        "text": "一个 ref"
+      },
+      {
+        "key": "C",
+        "text": "一个 reactive 对象"
+      },
+      {
+        "key": "D",
+        "text": "由以上类型组成的数组"
+      }
+    ]
+  },
+  {
+    "id": "多选题-156",
+    "section": "多选题",
+    "type": "multi",
+    "number": 156,
+    "question": "关于路由传参与导航，说法正确的有( )",
+    "answer": "ABC",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "path:'product-detail/:id' 定义动态路径参数"
+      },
+      {
+        "key": "B",
+        "text": "params 中的参数名要与动态参数名一致"
+      },
+      {
+        "key": "C",
+        "text": "query 用于获取 URL 中的查询参数"
+      },
+      {
+        "key": "D",
+        "text": "router.push( ) 属于声明式导航"
+      }
+    ]
+  },
+  {
+    "id": "多选题-157",
+    "section": "多选题",
+    "type": "multi",
+    "number": 157,
+    "question": "使用 <script setup> 语法糖后，可以实现的有( )",
+    "answer": "ABC",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "省略 export default"
+      },
+      {
+        "key": "B",
+        "text": "省略 return 返回对象"
+      },
+      {
+        "key": "C",
+        "text": "import 的子组件自动注册"
+      },
+      {
+        "key": "D",
+        "text": "省略 template 标签"
+      }
+    ]
+  },
+  {
+    "id": "多选题-158",
+    "section": "多选题",
+    "type": "multi",
+    "number": 158,
+    "question": "下列返回值声明为void的函数中，不会产生类型警告的有？",
+    "answer": "ABC",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "function demo():void{ console.log('hi') }"
+      },
+      {
+        "key": "B",
+        "text": "function demo():void{ return }"
+      },
+      {
+        "key": "C",
+        "text": "function demo():void{ return undefined }"
+      },
+      {
+        "key": "D",
+        "text": "function demo():void{ return 123 }"
+      }
+    ]
+  },
+  {
+    "id": "多选题-159",
+    "section": "多选题",
+    "type": "multi",
+    "number": 159,
+    "question": "已知let a: unknown = 'hello'; let x: string，下列能安全完成x=a赋值且无警告的写法有？",
+    "answer": "ABC",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "if(typeof a === 'string'){ x = a }"
+      },
+      {
+        "key": "B",
+        "text": "x = a as string"
+      },
+      {
+        "key": "C",
+        "text": "x = <string>a"
+      },
+      {
+        "key": "D",
+        "text": "x = a"
+      }
+    ]
+  },
+  {
+    "id": "多选题-160",
+    "section": "多选题",
+    "type": "multi",
+    "number": 160,
+    "question": "下列关于Set数据结构的描述，正确的有？",
+    "answer": "ABCD",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "Set是构造函数，需要通过new关键字生成Set实例"
+      },
+      {
+        "key": "B",
+        "text": "Set成员的值都是唯一的，不会存储重复值"
+      },
+      {
+        "key": "C",
+        "text": "Set可以接收数组作为初始化参数"
+      },
+      {
+        "key": "D",
+        "text": "Set实例的size属性可以获取当前成员的数量"
+      }
+    ]
+  },
+  {
+    "id": "多选题-161",
+    "section": "多选题",
+    "type": "multi",
+    "number": 161,
+    "question": "关于 Hooks，说法正确的有( )",
+    "answer": "ABC",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "通常以 use 开头命名"
+      },
+      {
+        "key": "B",
+        "text": "只能在 <script setup> 或 setup( ) 中使用"
+      },
+      {
+        "key": "C",
+        "text": "Hook 中可以使用生命周期钩子、计算属性和 watch"
+      },
+      {
+        "key": "D",
+        "text": "返回的数据不用 ref/reactive 包装也能保持响应式"
+      }
+    ]
+  },
+  {
+    "id": "多选题-162",
+    "section": "多选题",
+    "type": "multi",
+    "number": 162,
+    "question": "下列属于ES6为解决ES5开发痛点新增的特性有？",
+    "answer": "ABC",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "let/const关键字，解决var变量提升、全局污染问题"
+      },
+      {
+        "key": "B",
+        "text": "Promise、async/await，解决异步回调地狱问题"
+      },
+      {
+        "key": "C",
+        "text": "class语法，提供更友好的面向对象写法"
+      },
+      {
+        "key": "D",
+        "text": "var关键字，实现变量的块级作用域绑定"
+      }
+    ]
+  },
+  {
+    "id": "多选题-163",
+    "section": "多选题",
+    "type": "multi",
+    "number": 163,
+    "question": "关于Vue3组合式API开发组件的生命周期，说法正确的有( )",
+    "answer": "ABC",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "分为创建、挂载、更新、销毁四个阶段"
+      },
+      {
+        "key": "B",
+        "text": "创建阶段就是 setup 函数的执行"
+      },
+      {
+        "key": "C",
+        "text": "onUpdated 每更新一次执行一次"
+      },
+      {
+        "key": "D",
+        "text": "onUnmounted 在组件卸载前执行"
+      }
+    ]
+  },
+  {
+    "id": "多选题-164",
+    "section": "多选题",
+    "type": "multi",
+    "number": 164,
+    "question": "把功能封装成 Hooks 的优势有( )",
+    "answer": "ABC",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "把一个功能相关的数据与方法打包在一起"
+      },
+      {
+        "key": "B",
+        "text": "逻辑可以在多个组件中复用"
+      },
+      {
+        "key": "C",
+        "text": "提高代码可读性与可维护性"
+      },
+      {
+        "key": "D",
+        "text": "可以完全替代组件"
+      }
+    ]
+  },
+  {
+    "id": "多选题-165",
+    "section": "多选题",
+    "type": "multi",
+    "number": 165,
+    "question": "关于路由配置，说法正确的有( )",
+    "answer": "ABC",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "用 createRouter( ) 创建路由器"
+      },
+      {
+        "key": "B",
+        "text": "在 routes 数组中配置路由规则"
+      },
+      {
+        "key": "C",
+        "text": "根路径可配置 redirect 重定向到首页"
+      },
+      {
+        "key": "D",
+        "text": "子路由的 path 必须以 / 开头"
+      }
+    ]
+  },
+  {
+    "id": "多选题-166",
+    "section": "多选题",
+    "type": "multi",
+    "number": 166,
+    "question": "关于 v-for，说法正确的有( )",
+    "answer": "ABC",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "基本语法是 item in items"
+      },
+      {
+        "key": "B",
+        "text": "可以写成 (item, index) in items 获取索引"
+      },
+      {
+        "key": "C",
+        "text": "可以遍历对象，写成 (value, prop) in person"
+      },
+      {
+        "key": "D",
+        "text": "v-for=\"n in 10\" 的取值从 0 开始"
+      }
+    ]
+  },
+  {
+    "id": "多选题-167",
+    "section": "多选题",
+    "type": "multi",
+    "number": 167,
+    "question": "下列关于never类型的说法，正确的有？",
+    "answer": "ABC",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "never类型表示任何值都不是，变量声明为never后不能赋值任何值"
+      },
+      {
+        "key": "B",
+        "text": "抛出异常的函数返回值可以声明为never"
+      },
+      {
+        "key": "C",
+        "text": "包含无限循环无法到达终点的函数返回值可以声明为never"
+      },
+      {
+        "key": "D",
+        "text": "普通无return语句的函数返回值默认为never"
+      }
+    ]
+  },
+  {
+    "id": "多选题-168",
+    "section": "多选题",
+    "type": "multi",
+    "number": 168,
+    "question": "下列属于 Vue3 组合式 API 生命周期钩子的有（ ）",
+    "answer": "ABD",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "onMounted"
+      },
+      {
+        "key": "B",
+        "text": "onBeforeUpdate"
+      },
+      {
+        "key": "C",
+        "text": "onBeforeDestroy"
+      },
+      {
+        "key": "D",
+        "text": "onUnmounted"
+      }
+    ]
+  },
+  {
+    "id": "多选题-169",
+    "section": "多选题",
+    "type": "multi",
+    "number": 169,
+    "question": "下列关于学习ES6必要性的描述，正确的有？",
+    "answer": "ABC",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "ES6是现代前端开发的标准语法，Vue3、React、小程序等项目均基于ES6+开发"
+      },
+      {
+        "key": "B",
+        "text": "ES6解决了ES5中var变量污染、无块级作用域、回调地狱等诸多痛点"
+      },
+      {
+        "key": "C",
+        "text": "ES6 Module是前端工程化的基石，支撑项目的代码拆分与复用"
+      },
+      {
+        "key": "D",
+        "text": "ES6无法在老旧浏览器运行，因此企业开发仍以ES5为主要语法"
+      }
+    ]
+  },
+  {
+    "id": "多选题-170",
+    "section": "多选题",
+    "type": "multi",
+    "number": 170,
+    "question": "下列属于TypeScript在JavaScript基础上新增的数据类型的有？",
+    "answer": "ACD",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "any"
+      },
+      {
+        "key": "B",
+        "text": "string"
+      },
+      {
+        "key": "C",
+        "text": "enum"
+      },
+      {
+        "key": "D",
+        "text": "tuple"
+      }
+    ]
+  },
+  {
+    "id": "多选题-171",
+    "section": "多选题",
+    "type": "multi",
+    "number": 171,
+    "question": "下列属于Map实例常用操作方法的有？",
+    "answer": "ABCD",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "set(key, value)：设置键名key对应的键值为value"
+      },
+      {
+        "key": "B",
+        "text": "get(key)：读取key对应的键值"
+      },
+      {
+        "key": "C",
+        "text": "has(key)：判断某个键是否在当前Map实例中"
+      },
+      {
+        "key": "D",
+        "text": "delete(key)：删除某个键，返回布尔值表示是否删除成功"
+      }
+    ]
+  },
+  {
+    "id": "多选题-172",
+    "section": "多选题",
+    "type": "multi",
+    "number": 172,
+    "question": "下列关于Pinia的描述，正确的有（）",
+    "answer": "ABC",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "是Vue官方团队推荐的下一代状态管理库"
+      },
+      {
+        "key": "B",
+        "text": "设计目标是替代Vuex"
+      },
+      {
+        "key": "C",
+        "text": "相比Vuex，API更简洁、类型推断更好"
+      },
+      {
+        "key": "D",
+        "text": "模块化设计不自然，配置复杂"
+      }
+    ]
+  },
+  {
+    "id": "多选题-173",
+    "section": "多选题",
+    "type": "multi",
+    "number": 173,
+    "question": "下列关于Promise的描述，正确的有？",
+    "answer": "ABC",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "Promise是ES6提供的异步编程解决方案"
+      },
+      {
+        "key": "B",
+        "text": "Promise可以解决传统异步编程中的回调地狱问题"
+      },
+      {
+        "key": "C",
+        "text": "Promise提供统一的API，让各种异步操作可以用相同方式处理"
+      },
+      {
+        "key": "D",
+        "text": "Promise实例创建后会立即进入fulfilled状态"
+      }
+    ]
+  },
+  {
+    "id": "多选题-174",
+    "section": "多选题",
+    "type": "multi",
+    "number": 174,
+    "question": "关于 v-if 与 v-show，说法正确的有( )",
+    "answer": "ABD",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "v-if 是真正的条件渲染，条件为假时不渲染 DOM"
+      },
+      {
+        "key": "B",
+        "text": "v-show 通过 CSS 的 display 属性切换"
+      },
+      {
+        "key": "C",
+        "text": "v-show 可以与 v-else 搭配使用"
+      },
+      {
+        "key": "D",
+        "text": "切换非常频繁时优先使用 v-show"
+      }
+    ]
+  },
+  {
+    "id": "多选题-175",
+    "section": "多选题",
+    "type": "multi",
+    "number": 175,
+    "question": "关于 Vue Router，说法正确的有（ ）",
+    "answer": "ABC",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "<router-view> 是路由组件的渲染出口"
+      },
+      {
+        "key": "B",
+        "text": "to 可以写成字符串，也可以写成带 path 或 name 的对象"
+      },
+      {
+        "key": "C",
+        "text": "子路由通过 children 配置"
+      },
+      {
+        "key": "D",
+        "text": "hash 模式上线后需要服务器配置回退，否则刷新会 404"
+      }
+    ]
+  },
+  {
+    "id": "多选题-176",
+    "section": "多选题",
+    "type": "multi",
+    "number": 176,
+    "question": "下列属于正确的 class 绑定写法的有( )",
+    "answer": "ABCD",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": ":class=\"{ selected: true, active: false }\""
+      },
+      {
+        "key": "B",
+        "text": ":class=\"['active','selected']\""
+      },
+      {
+        "key": "C",
+        "text": ":class=\"[isActive?'active':'selected']\""
+      },
+      {
+        "key": "D",
+        "text": ":class=\"[{active:isActive},'selected']\""
+      }
+    ]
+  },
+  {
+    "id": "多选题-177",
+    "section": "多选题",
+    "type": "multi",
+    "number": 177,
+    "question": "关于可读可写的计算属性，说法正确的有( )",
+    "answer": "ABC",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "参数是一个包含 get 和 set 方法的对象"
+      },
+      {
+        "key": "B",
+        "text": "TS 中类型可写为 WritableComputedRef"
+      },
+      {
+        "key": "C",
+        "text": "修改其 value 时会触发 set 方法"
+      },
+      {
+        "key": "D",
+        "text": "只读计算属性也可以直接赋值修改"
+      }
+    ]
+  },
+  {
+    "id": "多选题-178",
+    "section": "多选题",
+    "type": "multi",
+    "number": 178,
+    "question": "关于其他指令，说法正确的有( )",
+    "answer": "ABCD",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "v-text 设置 textContent，会覆盖元素原有内容"
+      },
+      {
+        "key": "B",
+        "text": "v-html 渲染原始 HTML，存在 XSS 风险"
+      },
+      {
+        "key": "C",
+        "text": "v-once 只渲染一次，后续数据变化不更新"
+      },
+      {
+        "key": "D",
+        "text": "v-pre 用于跳过编译，可展示 Vue 模板代码"
+      }
+    ]
+  },
+  {
+    "id": "多选题-179",
+    "section": "多选题",
+    "type": "multi",
+    "number": 179,
+    "question": "下列关于Promise的then方法的描述，正确的有？",
+    "answer": "AB",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "then方法用于注册Promise状态变为fulfilled时的回调函数"
+      },
+      {
+        "key": "B",
+        "text": "then方法的回调函数可以接收异步操作成功返回的结果作为参数"
+      },
+      {
+        "key": "C",
+        "text": "then方法会在Promise实例创建后立即同步执行"
+      },
+      {
+        "key": "D",
+        "text": "一个Promise实例只能调用一次then方法"
+      }
+    ]
+  },
+  {
+    "id": "多选题-180",
+    "section": "多选题",
+    "type": "multi",
+    "number": 180,
+    "question": "下列事件修饰符与其作用对应正确的有( )",
+    "answer": "ABCD",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": ".stop 阻止事件继续传播"
+      },
+      {
+        "key": "B",
+        "text": ".prevent 取消默认行为"
+      },
+      {
+        "key": "C",
+        "text": ".self 仅当 target 是自身时触发"
+      },
+      {
+        "key": "D",
+        "text": ".once 只触发一次"
+      }
+    ]
+  },
+  {
+    "id": "多选题-181",
+    "section": "多选题",
+    "type": "multi",
+    "number": 181,
+    "question": "下列关于前后端分离时代Web开发特征的描述，正确的有（）",
+    "answer": "ABD",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "前端开发工作占比逐渐增大，jQuery逐步被Vue、React等框架替代"
+      },
+      {
+        "key": "B",
+        "text": "后端以API化为核心特征，聚焦业务逻辑与数据服务"
+      },
+      {
+        "key": "C",
+        "text": "后端需要深度耦合UI表现，负责页面渲染逻辑"
+      },
+      {
+        "key": "D",
+        "text": "后端开始关注性能提升、自动化测试、持续部署、DevOps等能力"
+      }
+    ]
+  },
+  {
+    "id": "多选题-182",
+    "section": "多选题",
+    "type": "multi",
+    "number": 182,
+    "question": "在普通标签上使用 ref 的要点包括( )",
+    "answer": "ABC",
+    "analysis": "",
+    "options": [
+      {
+        "key": "A",
+        "text": "用 ref( ) 创建，不要放数据进去"
+      },
+      {
+        "key": "B",
+        "text": "变量名与模板中 ref 属性的值一致"
+      },
+      {
+        "key": "C",
+        "text": "通过 .value 获取对应 DOM"
+      },
+      {
+        "key": "D",
+        "text": "在 setup 顶层即可直接拿到值"
+      }
+    ]
+  },
+  {
+    "id": "填空题-183",
+    "section": "填空题",
+    "type": "text",
+    "number": 183,
+    "question": "Promise.all()只有所有 promise 都成功才进入 then 回调；只要任意一个 promise 失败就立刻进入____回调。",
+    "answer": "`catch`",
+    "analysis": ""
+  },
+  {
+    "id": "填空题-184",
+    "section": "填空题",
+    "type": "text",
+    "number": 184,
+    "question": "在 setup 顶层直接访问 ref 变量，得到的结果是____，因为这些变量要在页面渲染完成后才有值。",
+    "answer": "`undefined`",
+    "analysis": ""
+  },
+  {
+    "id": "填空题-185",
+    "section": "填空题",
+    "type": "text",
+    "number": 185,
+    "question": "在项目中安装 axios 的命令是 ____。",
+    "answer": "`npm install axios`（或 `npm i axios`）",
+    "analysis": ""
+  },
+  {
+    "id": "填空题-186",
+    "section": "填空题",
+    "type": "text",
+    "number": 186,
+    "question": "TypeScript中，____类型被称为类型安全的any，要求开发者在使用该类型变量前必须进行类型检查",
+    "answer": "`unknown`",
+    "analysis": ""
+  },
+  {
+    "id": "填空题-187",
+    "section": "填空题",
+    "type": "text",
+    "number": 187,
+    "question": "Vue3组合式API中，用于实现基本数据类型响应式的API是____。",
+    "answer": "`ref`",
+    "analysis": ""
+  },
+  {
+    "id": "填空题-188",
+    "section": "填空题",
+    "type": "text",
+    "number": 188,
+    "question": "数组解构let [x, , y] = [10,20,30]执行后，x=_____，y=______。",
+    "answer": "`10`；`30`",
+    "analysis": ""
+  },
+  {
+    "id": "填空题-189",
+    "section": "填空题",
+    "type": "text",
+    "number": 189,
+    "question": "若要实现视图输入反向修改数据的双向绑定效果，需要使用____指令。",
+    "answer": "`v-model`",
+    "analysis": ""
+  },
+  {
+    "id": "填空题-190",
+    "section": "填空题",
+    "type": "text",
+    "number": 190,
+    "question": "传统异步编程中多层嵌套回调导致代码难以维护的问题，通常被称为____。",
+    "answer": "回调地狱",
+    "analysis": ""
+  },
+  {
+    "id": "填空题-191",
+    "section": "填空题",
+    "type": "text",
+    "number": 191,
+    "question": "数组方法____返回满足条件的所有元素组成新数组；____返回第一个满足条件的元素。",
+    "answer": "`filter`；`find`",
+    "analysis": ""
+  },
+  {
+    "id": "填空题-192",
+    "section": "填空题",
+    "type": "text",
+    "number": 192,
+    "question": "______指令可以在当前目录下创建TypeScript编译控制文件tsconfig.json",
+    "answer": "`tsc --init`",
+    "analysis": ""
+  },
+  {
+    "id": "填空题-193",
+    "section": "填空题",
+    "type": "text",
+    "number": 193,
+    "question": "箭头函数获取可变参数不能使用 arguments 对象，需要使用____参数",
+    "answer": "剩余（rest / `...args`）",
+    "analysis": ""
+  },
+  {
+    "id": "填空题-194",
+    "section": "填空题",
+    "type": "text",
+    "number": 194,
+    "question": "在TypeScript中，若要声明一个参数x和y均为数字、返回值也为数字的求和函数，函数定义的写法为function demo(x:number,y:number):____{ return x + y }。",
+    "answer": "`number`",
+    "analysis": ""
+  },
+  {
+    "id": "填空题-195",
+    "section": "填空题",
+    "type": "text",
+    "number": 195,
+    "question": "Vue模板中绑定点击事件的指令v-on:click，可以简写为____。",
+    "answer": "`@click`",
+    "analysis": ""
+  },
+  {
+    "id": "填空题-196",
+    "section": "填空题",
+    "type": "text",
+    "number": 196,
+    "question": "若要去除数组arr中的重复元素，可以使用表达式[...new ____(arr)]实现。",
+    "answer": "`Set`",
+    "analysis": ""
+  },
+  {
+    "id": "填空题-197",
+    "section": "填空题",
+    "type": "text",
+    "number": 197,
+    "question": "在Vue3中使用setup语法糖编写TS组件时，<script>标签需要同时声明lang='ts'和____属性，即可省略export default包裹与return暴露步骤。",
+    "answer": "`setup`",
+    "analysis": ""
+  },
+  {
+    "id": "填空题-198",
+    "section": "填空题",
+    "type": "text",
+    "number": 198,
+    "question": "ES6提供的Map数据结构中，____的范围不限于字符串，各种类型的值都可以作为其类型。",
+    "answer": "键（key）",
+    "analysis": ""
+  },
+  {
+    "id": "填空题-199",
+    "section": "填空题",
+    "type": "text",
+    "number": 199,
+    "question": "Promise对象的状态一旦从pending变为fulfilled或rejected，就会凝固不再改变，这个状态也被称为____状态。",
+    "answer": "settled（已定型 / 已敲定）",
+    "analysis": ""
+  },
+  {
+    "id": "填空题-200",
+    "section": "填空题",
+    "type": "text",
+    "number": 200,
+    "question": "ES6新增的Set数据结构类似于数组，但其成员的值都是____的。",
+    "answer": "唯一（不重复）",
+    "analysis": ""
+  },
+  {
+    "id": "填空题-201",
+    "section": "填空题",
+    "type": "text",
+    "number": 201,
+    "question": "ES6 模块化中，____用于导出模块接口，____用于导入其他模块的接口",
+    "answer": "`export`；`import`",
+    "analysis": ""
+  },
+  {
+    "id": "填空题-202",
+    "section": "填空题",
+    "type": "text",
+    "number": 202,
+    "question": "编译TypeScript的编译器为______",
+    "answer": "`tsc`",
+    "analysis": ""
+  },
+  {
+    "id": "填空题-203",
+    "section": "填空题",
+    "type": "text",
+    "number": 203,
+    "question": "for…of 可以遍历数组、Set、Map 等拥有____接口的数据结构；普通对象____（能 / 不能）直接使用 for…of 遍历。",
+    "answer": "`Iterator`（迭代器）；不能",
+    "analysis": ""
+  },
+  {
+    "id": "填空题-204",
+    "section": "填空题",
+    "type": "text",
+    "number": 204,
+    "question": "Promise对象的三种状态分别是pending、fulfilled和____。",
+    "answer": "`rejected`",
+    "analysis": ""
+  },
+  {
+    "id": "填空题-205",
+    "section": "填空题",
+    "type": "text",
+    "number": 205,
+    "question": "TypeScript中，若变量被声明为____类型，将放弃对该变量的所有类型检查，可被赋值为任意类型值",
+    "answer": "`any`",
+    "analysis": ""
+  },
+  {
+    "id": "填空题-206",
+    "section": "填空题",
+    "type": "text",
+    "number": 206,
+    "question": "ECMAScript6.0（ES6）正式发布的年份是____年。",
+    "answer": "`2015`",
+    "analysis": ""
+  },
+  {
+    "id": "填空题-207",
+    "section": "填空题",
+    "type": "text",
+    "number": 207,
+    "question": "在TypeScript中，若一个函数始终抛出异常或存在无限循环导致无法正常到达终点，该函数的返回值类型应声明为____。",
+    "answer": "`never`",
+    "analysis": ""
+  },
+  {
+    "id": "填空题-208",
+    "section": "填空题",
+    "type": "text",
+    "number": 208,
+    "question": "Vue3组合式API的核心入口函数是____，它在组件初始化时最先执行，用于集中管理当前组件的状态、方法、生命周期等逻辑。",
+    "answer": "`setup`",
+    "analysis": ""
+  },
+  {
+    "id": "填空题-209",
+    "section": "填空题",
+    "type": "text",
+    "number": 209,
+    "question": "Vue模板中用于输出数据、表达式结果的插值语法的书写格式为______。",
+    "answer": "`{{ }}`",
+    "analysis": ""
+  },
+  {
+    "id": "填空题-210",
+    "section": "填空题",
+    "type": "text",
+    "number": 210,
+    "question": "TypeScript类中，若属性或方法没有显式指定访问权限修饰符，默认的访问权限是____。",
+    "answer": "`public`",
+    "analysis": ""
+  },
+  {
+    "id": "填空题-211",
+    "section": "填空题",
+    "type": "text",
+    "number": 211,
+    "question": "Vue3 组件的生命周期包括 ____、____、____、____四个阶段。",
+    "answer": "创建、挂载、更新、销毁（卸载）",
+    "analysis": ""
+  },
+  {
+    "id": "填空题-212",
+    "section": "填空题",
+    "type": "text",
+    "number": 212,
+    "question": "ES6中声明块级作用域变量使用____，声明只读常量使用____。",
+    "answer": "`let`；`const`",
+    "analysis": ""
+  },
+  {
+    "id": "填空题-213",
+    "section": "填空题",
+    "type": "text",
+    "number": 213,
+    "question": "使用vite创建完成Vue3项目后，终止运行中的开发服务的快捷键是______（使用+号连接组合键）。",
+    "answer": "`Ctrl+C`",
+    "analysis": ""
+  },
+  {
+    "id": "填空题-214",
+    "section": "填空题",
+    "type": "text",
+    "number": 214,
+    "question": "typescript进行自动化编译的指令为_______",
+    "answer": "`tsc --watch`（或 `tsc -w`）",
+    "analysis": ""
+  },
+  {
+    "id": "填空题-215",
+    "section": "填空题",
+    "type": "text",
+    "number": 215,
+    "question": "ES6提供的____模块化语法是前端工程化的基石，支持项目中多个js文件的互相导入导出。",
+    "answer": "`ES6 Module`（或 `ESM` / `import/export`）",
+    "analysis": ""
+  },
+  {
+    "id": "填空题-216",
+    "section": "填空题",
+    "type": "text",
+    "number": 216,
+    "question": "Vue单文件组件中，若要让编写的样式仅对当前组件生效、避免全局污染，需要给<style>标签添加____属性。",
+    "answer": "`scoped`",
+    "analysis": ""
+  },
+  {
+    "id": "填空题-217",
+    "section": "填空题",
+    "type": "text",
+    "number": 217,
+    "question": "props 用于实现____组件向____组件传递数据，它是单向数据流。",
+    "answer": "父；子",
+    "analysis": ""
+  },
+  {
+    "id": "填空题-218",
+    "section": "填空题",
+    "type": "text",
+    "number": 218,
+    "question": "若一个函数没有显式返回任何业务值，仅执行打印等操作，其返回值类型通常声明为____",
+    "answer": "`void`",
+    "analysis": ""
+  },
+  {
+    "id": "填空题-219",
+    "section": "填空题",
+    "type": "text",
+    "number": 219,
+    "question": "对于const obj={a:1}，我们____(可以/不可以)修改obj内部的属性，____(可以/不可以)把obj重新赋值为新对象。",
+    "answer": "可以；不可以",
+    "analysis": ""
+  },
+  {
+    "id": "填空题-220",
+    "section": "填空题",
+    "type": "text",
+    "number": 220,
+    "question": "子组件要用 ____把数据或函数暴露出去，父组件才能通过子组件实例访问到它们。",
+    "answer": "`defineExpose`",
+    "analysis": ""
+  },
+  {
+    "id": "填空题-221",
+    "section": "填空题",
+    "type": "text",
+    "number": 221,
+    "question": "组件挂载完成后执行的生命周期钩子是 ____。",
+    "answer": "`onMounted`",
+    "analysis": ""
+  },
+  {
+    "id": "填空题-222",
+    "section": "填空题",
+    "type": "text",
+    "number": 222,
+    "question": "在TypeScript中，若函数没有显式返回值、仅用于执行操作，通常将其返回值类型声明为____，该类型允许函数隐式或显式返回undefined。",
+    "answer": "`void`",
+    "analysis": ""
+  },
+  {
+    "id": "填空题-223",
+    "section": "填空题",
+    "type": "text",
+    "number": 223,
+    "question": "补全npm全局模块的安装指令npm i express ____",
+    "answer": "`-g`（或 `--global`）",
+    "analysis": ""
+  },
+  {
+    "id": "填空题-224",
+    "section": "填空题",
+    "type": "text",
+    "number": 224,
+    "question": "在TypeScript中，若要声明一个只能存储布尔值的变量isDone，应写为let isDone: ____",
+    "answer": "`boolean`",
+    "analysis": ""
+  },
+  {
+    "id": "填空题-225",
+    "section": "填空题",
+    "type": "text",
+    "number": 225,
+    "question": "Vue中通过computed定义的只读计算属性具备____特性，当它依赖的响应式数据未发生变化时，多次访问不会重复执行计算逻辑，而是直接返回上次计算的结果，执行效率高于普通方法。",
+    "answer": "缓存",
+    "analysis": ""
+  },
+  {
+    "id": "填空题-226",
+    "section": "填空题",
+    "type": "text",
+    "number": 226,
+    "question": "在TypeScript中，若子类要重写父类的方法，为了在编译阶段检查该方法是否正确重写了父类方法，需要在方法前使用____关键字。",
+    "answer": "`override`",
+    "analysis": ""
+  },
+  {
+    "id": "填空题-227",
+    "section": "填空题",
+    "type": "text",
+    "number": 227,
+    "question": "ES6新增的____和const关键字，解决了ES5中var存在的变量提升、全局污染问题。",
+    "answer": "`let`",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-228",
+    "section": "判断题",
+    "type": "judge",
+    "number": 228,
+    "question": "TypeScript是一种动态类型的语言",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-229",
+    "section": "判断题",
+    "type": "judge",
+    "number": 229,
+    "question": "Vue3 的模板中允许存在多个根节点。( )",
+    "answer": "√",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-230",
+    "section": "判断题",
+    "type": "judge",
+    "number": 230,
+    "question": "ref 只能用于基本类型数据，不能用于对象。( )",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-231",
+    "section": "判断题",
+    "type": "judge",
+    "number": 231,
+    "question": "在TypeScript中进行类型声明时，通常推荐使用大写的Number、String、Boolean作为基础类型注解，而不是小写的number、string、boolean。",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-232",
+    "section": "判断题",
+    "type": "judge",
+    "number": 232,
+    "question": "执行代码[...new Set([1,2,2,3,3,3])]得到的结果是[1,2,3]。",
+    "answer": "√",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-233",
+    "section": "判断题",
+    "type": "judge",
+    "number": 233,
+    "question": "在TypeScript中，function add(a: number, b: number) { return a + b }的返回值会被自动推断为number类型，将其返回值赋值给string类型变量会报错。",
+    "answer": "√",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-234",
+    "section": "判断题",
+    "type": "judge",
+    "number": 234,
+    "question": "在TypeScript中，unknown类型的变量可以直接调用toUpperCase()方法，不会触发类型警告。",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-235",
+    "section": "判断题",
+    "type": "judge",
+    "number": 235,
+    "question": "对 reactive 定义的对象整体赋值替换后，页面仍能保持响应式更新。( )",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-236",
+    "section": "判断题",
+    "type": "judge",
+    "number": 236,
+    "question": "监听 ref 定义的对象数据时，默认就能监听到对象内部属性的变化。( )",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-237",
+    "section": "判断题",
+    "type": "judge",
+    "number": 237,
+    "question": "ECMAScript是JavaScript的实现，JavaScript是ECMAScript的规格标准。",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-238",
+    "section": "判断题",
+    "type": "judge",
+    "number": 238,
+    "question": "TypeScript中，一个类实现某个接口时，必须实现接口中声明的所有属性和方法，否则会编译报错。",
+    "answer": "√",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-239",
+    "section": "判断题",
+    "type": "judge",
+    "number": 239,
+    "question": "Promise的then方法用于指定异步操作成功（状态从pending变为fulfilled）后的回调函数。",
+    "answer": "√",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-240",
+    "section": "判断题",
+    "type": "judge",
+    "number": 240,
+    "question": "v-bind 只能绑定响应式数据，普通数据绑定后不会生效。( )",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-241",
+    "section": "判断题",
+    "type": "judge",
+    "number": 241,
+    "question": "SPA 中多个组件最终渲染到同一个 html，因此组件内标记元素应尽量不用 id 而改用 ref。( )",
+    "answer": "√",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-242",
+    "section": "判断题",
+    "type": "judge",
+    "number": 242,
+    "question": "使用基于Vite创建Vue3项目时，开发服务器会在启动阶段就完成所有模块的打包工作，用户访问页面时直接返回打包完成的静态资源，因此启动速度极快。",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-243",
+    "section": "判断题",
+    "type": "judge",
+    "number": 243,
+    "question": "v-show 不能与 v-else 搭配使用。( )",
+    "answer": "√",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-244",
+    "section": "判断题",
+    "type": "judge",
+    "number": 244,
+    "question": "Pinia是Vue官方团队推荐的下一代状态管理库，可用于替代Vuex，相比Vuex具备API更简洁、类型推断更好、模块化更自然的优势。",
+    "answer": "√",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-245",
+    "section": "判断题",
+    "type": "judge",
+    "number": 245,
+    "question": "在TypeScript中，声明变量时不指定类型且没有初始化值（如let b），TS会将其隐式推断为any类型，对该变量赋值任意类型都不会触发警告。",
+    "answer": "√",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-246",
+    "section": "判断题",
+    "type": "judge",
+    "number": 246,
+    "question": "hash 模式的 URL 不带 #，因此比 history 模式更有利于 SEO。( )",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-247",
+    "section": "判断题",
+    "type": "judge",
+    "number": 247,
+    "question": "Map结构的set方法用于设置键值对，get方法用于读取对应键的值，delete方法用于删除指定键。",
+    "answer": "√",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-248",
+    "section": "判断题",
+    "type": "judge",
+    "number": 248,
+    "question": "onUpdated 只在组件第一次渲染后执行一次。( )",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-249",
+    "section": "判断题",
+    "type": "judge",
+    "number": 249,
+    "question": "v-if 是惰性的，初始条件为假时不会渲染对应的 DOM，直到条件第一次为真。( )",
+    "answer": "√",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-250",
+    "section": "判断题",
+    "type": "judge",
+    "number": 250,
+    "question": "在TypeScript中，返回值类型声明为void的函数，既可以不写return语句，也可以显式return undefined，都不会触发类型警告。",
+    "answer": "√",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-251",
+    "section": "判断题",
+    "type": "judge",
+    "number": 251,
+    "question": "TypeScript中的抽象类可以直接通过new关键字创建实例对象。",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-252",
+    "section": "判断题",
+    "type": "judge",
+    "number": 252,
+    "question": "onMounted 在组件挂载完成后执行，且正常情况下只执行一次。( )",
+    "answer": "√",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-253",
+    "section": "判断题",
+    "type": "judge",
+    "number": 253,
+    "question": "在子组件标签上使用 ref，父组件拿到的是该子组件的根 DOM 元素。( )",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-254",
+    "section": "判断题",
+    "type": "judge",
+    "number": 254,
+    "question": "使用 <script setup> 后，导入的子组件仍必须在 components 选项中手动注册。( )",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-255",
+    "section": "判断题",
+    "type": "judge",
+    "number": 255,
+    "question": "在TypeScript中，若a为unknown类型且值为'hello'，可以通过x = a as string的类型断言方式将a赋值给string类型的变量x，不会产生警告。",
+    "answer": "√",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-256",
+    "section": "判断题",
+    "type": "judge",
+    "number": 256,
+    "question": "在模板中使用 ref 定义的数据username时，必须写成 username.value。( )",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-257",
+    "section": "判断题",
+    "type": "judge",
+    "number": 257,
+    "question": "TypeScript可以直接在浏览器中执行",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-258",
+    "section": "判断题",
+    "type": "judge",
+    "number": 258,
+    "question": "自定义 Hook 可以在任意普通 js 文件中随意调用。( )",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-259",
+    "section": "判断题",
+    "type": "judge",
+    "number": 259,
+    "question": "Set结构中的成员值可以重复，通过size属性可以获取Set的成员总数。",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-260",
+    "section": "判断题",
+    "type": "judge",
+    "number": 260,
+    "question": "TypeScript会在编译阶段纠错",
+    "answer": "√",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-261",
+    "section": "判断题",
+    "type": "judge",
+    "number": 261,
+    "question": "由于部分老旧浏览器不支持ES6语法，开发者需要手动编写ES5兼容代码才能保证项目在这些浏览器中运行。",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-262",
+    "section": "判断题",
+    "type": "judge",
+    "number": 262,
+    "question": "在Web开发的服务器端MVC时代，就已经出现了明确的前后端分离开发模式，前后端工作完全独立互不依赖。",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-263",
+    "section": "判断题",
+    "type": "judge",
+    "number": 263,
+    "question": "TypeScript中，被readonly修饰的属性，一旦在构造函数中完成初始化后，就不能再被重新赋值。",
+    "answer": "√",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-264",
+    "section": "判断题",
+    "type": "judge",
+    "number": 264,
+    "question": "reactive 可以直接用于数字、字符串等原始类型。( )",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-265",
+    "section": "判断题",
+    "type": "judge",
+    "number": 265,
+    "question": "在TypeScript中声明let diceRoll:1 |2 |3 |4 |5 |6后，将7赋值给diceRoll是合法操作，不会报错。",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-266",
+    "section": "判断题",
+    "type": "judge",
+    "number": 266,
+    "question": "当需要使用对象作为键来存储键值对时，使用传统Object比Map结构更合适。",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-267",
+    "section": "判断题",
+    "type": "judge",
+    "number": 267,
+    "question": "Promise的出现主要是为了解决传统异步编程中的回调地狱问题，让异步代码更清晰易维护。",
+    "answer": "√",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-268",
+    "section": "判断题",
+    "type": "judge",
+    "number": 268,
+    "question": "setup 是 Vue3 组合式 API 的核心入口函数，在组件初始化时最先执行。( )",
+    "answer": "√",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-269",
+    "section": "判断题",
+    "type": "judge",
+    "number": 269,
+    "question": "在TypeScript中，声明let a: never后，可以将undefined或null赋值给a，不会触发警告。",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-270",
+    "section": "判断题",
+    "type": "judge",
+    "number": 270,
+    "question": "在TypeScript中执行let a: string后，将数字100赋值给变量a不会触发类型警告。",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-271",
+    "section": "判断题",
+    "type": "judge",
+    "number": 271,
+    "question": "使用 axios.create() 可以为不同服务商创建不同配置的 Axios 实例。( )",
+    "answer": "√",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-272",
+    "section": "判断题",
+    "type": "judge",
+    "number": 272,
+    "question": "TypeScript中，抽象类里的所有方法都必须是抽象方法，不能存在有具体实现的方法。",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-273",
+    "section": "判断题",
+    "type": "judge",
+    "number": 273,
+    "question": "Set构造函数只能接收数组作为初始化参数，不能接收字符串等其他数据结构。",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-274",
+    "section": "判断题",
+    "type": "judge",
+    "number": 274,
+    "question": "计算属性在依赖的响应式数据没有变化时，会直接从缓存返回结果，不会重新计算。( )",
+    "answer": "√",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-275",
+    "section": "判断题",
+    "type": "judge",
+    "number": 275,
+    "question": "JavaScript是一种静态类型的语言",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-276",
+    "section": "判断题",
+    "type": "judge",
+    "number": 276,
+    "question": "JavaScript是TypeScript的超集",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-277",
+    "section": "判断题",
+    "type": "judge",
+    "number": 277,
+    "question": "TypeScript的类型推断是万能的，面对任何复杂场景都能准确推导类型，因此开发中完全不需要手动写类型注解。",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-278",
+    "section": "判断题",
+    "type": "judge",
+    "number": 278,
+    "question": "ES6 Module的import/export语法是前端工程化的基石，Vite、Webpack等构建工具都支持处理ES6模块。",
+    "answer": "√",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-279",
+    "section": "判断题",
+    "type": "judge",
+    "number": 279,
+    "question": "node.js中安装模块的指令是pip install 模块名",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-280",
+    "section": "判断题",
+    "type": "judge",
+    "number": 280,
+    "question": "不同组件中使用同名的 ref，会发生覆盖和混乱。( )",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-281",
+    "section": "判断题",
+    "type": "judge",
+    "number": 281,
+    "question": "ES5中使用var声明变量存在变量提升、全局变量污染的问题，且ES5没有原生的块级作用域与模块化支持。",
+    "answer": "√",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-282",
+    "section": "判断题",
+    "type": "judge",
+    "number": 282,
+    "question": "ES6中的async/await、箭头函数、class语法都是为了解决ES5的开发痛点、提升编码效率而新增的特性。",
+    "answer": "√",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-283",
+    "section": "判断题",
+    "type": "judge",
+    "number": 283,
+    "question": "reactive 包裹的对象默认支持深层响应式。( )",
+    "answer": "√",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-284",
+    "section": "判断题",
+    "type": "judge",
+    "number": 284,
+    "question": "Vite和Webpack都属于前端构建工具，作用是将开发者编写的源代码和资源经过转换、打包、优化等处理，最终生成生产环境可部署的静态文件。",
+    "answer": "√",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-285",
+    "section": "判断题",
+    "type": "judge",
+    "number": 285,
+    "question": "Promise对象的状态可以在fulfilled和rejected之间随意切换，只要调用对应的回调函数就可以改变状态。",
+    "answer": "×",
+    "analysis": ""
+  },
+  {
+    "id": "判断题-286",
+    "section": "判断题",
+    "type": "judge",
+    "number": 286,
+    "question": "如果将DOM节点作为传统Object的键，该DOM节点会被自动转换为字符串类型。",
+    "answer": "√",
+    "analysis": ""
+  },
+  {
+    "id": "简答题-287",
+    "section": "简答题",
+    "type": "text",
+    "number": 287,
+    "question": "比较 Vue Router 的 history 模式与 hash 模式的优缺点及适用场景。",
+    "answer": "1. **history 模式（`createWebHistory()`）**\n   - **优点**：URL 不带 `#`，路径美观规范，更利于 SEO 搜索引擎抓取；\n   - **缺点**：依赖 HTML5 History API，上线后服务端必须配置路由回退（将未知路径重定向到 `index.html`），否则直接刷新页面会出现 404；\n   - **适用场景**：面向公众的 C 端网站、门户官网、电商站点等注重 URL 美观与 SEO 的项目。\n2. **hash 模式（`createWebHashHistory()`）**\n   - **优点**：兼容性好，URL 中 `#` 后的内容不会发送给服务器，部署无需服务端额外回退配置，刷新不会 404；\n   - **缺点**：URL 带有 `#` 不够美观，且不利于 SEO；\n   - **适用场景**：后台管理系统、企业内部系统或无法修改服务器配置的项目。",
+    "analysis": ""
+  },
+  {
+    "id": "简答题-288",
+    "section": "简答题",
+    "type": "text",
+    "number": 288,
+    "question": "请简述Vue3中ref和reactive两个响应式API的核心区别",
+    "answer": "1. **支持的数据类型**：`ref` 既可定义基本类型（number/string/boolean 等），也可定义对象/数组等引用类型；`reactive` 只能定义对象、数组等引用类型。\n2. **访问与修改方式**：`ref` 在 `<script>` 中必须通过 `.value` 读写（模板中自动解包）；`reactive` 直接访问和修改对象属性，无需 `.value`。\n3. **整体替换**：`ref` 可直接通过 `obj.value = newObj` 整体替换且保持响应式；`reactive` 直接整体重新赋值会丢失响应式（需用 `Object.assign` 或改用 `ref`）。\n4. **底层实现**：`ref` 返回 `RefImpl` 对象（基本类型靠 getter/setter，引用类型内部仍借助 `reactive`）；`reactive` 直接基于 ES6 `Proxy` 实现深层响应式。",
+    "analysis": ""
+  },
+  {
+    "id": "简答题-289",
+    "section": "简答题",
+    "type": "text",
+    "number": 289,
+    "question": "请简单描述MVVM模式包含哪几个核心部分，他们的定义分别是什么",
+    "answer": "MVVM（Model-View-ViewModel）包含三个核心部分：\n1. **Model（模型层）**：负责封装业务数据、状态以及与后端的数据交互逻辑（如接口请求、数据结构）。\n2. **View（视图层）**：即用户看到的页面 UI 结构（HTML/CSS 模板），负责数据展示与触发用户交互事件。\n3. **ViewModel（视图模型层）**：作为 View 与 Model 之间的核心桥梁，通过**数据绑定**将 Model 的数据自动同步渲染到 View，同时通过**事件监听**把 View 的用户操作反向写回 Model，实现视图与数据的双向同步解耦。",
+    "analysis": ""
+  },
+  {
+    "id": "简答题-290",
+    "section": "简答题",
+    "type": "text",
+    "number": 290,
+    "question": "写出 Vue3 组件生命周期的四个阶段及 7 个钩子，并选出三个钩子举例说明其应用场景。",
+    "answer": "- **四个阶段与 7 个核心钩子**：\n  1. **创建阶段**：`setup()`（组合式 API 入口，替代 Vue 2 的 `beforeCreate` / `created`）\n  2. **挂载阶段**：`onBeforeMount`（挂载前）、`onMounted`（挂载后）\n  3. **更新阶段**：`onBeforeUpdate`（更新前）、`onUpdated`（更新后）\n  4. **销毁（卸载）阶段**：`onBeforeUnmount`（卸载前）、`onUnmounted`（卸载后）\n- **三个钩子的典型应用场景**：\n  1. `onMounted`：组件首次渲染到 DOM 后执行，常用于**发起初始化接口请求**、**操作 DOM 或初始化第三方图表（如 ECharts）**；\n  2. `onUpdated`：响应式数据变化导致 DOM 重新渲染后执行，常用于**更新后重新计算 DOM 尺寸或调整图表大小**；\n  3. `onBeforeUnmount`：组件卸载前执行，常用于**清除定时器（`clearInterval`）、断开 WebSocket 连接、解绑全局事件监听**，防止内存泄漏。",
+    "analysis": ""
+  },
+  {
+    "id": "简答题-291",
+    "section": "简答题",
+    "type": "text",
+    "number": 291,
+    "question": "请对比Vue中计算属性和普通方法在实现数据加工逻辑时的核心差异，分别说明两者的执行特点与适用场景。",
+    "answer": "1. **核心差异（缓存机制）**：\n   - **计算属性（`computed`）**：具有**缓存特性**，只有当其依赖的响应式数据发生变化时才会重新计算，否则多次访问直接返回缓存结果；\n   - **普通方法（`methods` / 函数）**：**没有缓存**，每次模板重新渲染或被调用时都会重新执行一次函数体。\n2. **调用与执行特点**：\n   - 计算属性在模板中像普通属性一样直接引用（`{{ total }}`），不带括号，适合声明式派生状态；\n   - 普通方法调用需带括号（`{{ calcTotal() }}`），支持动态传参。\n3. **适用场景**：\n   - **计算属性**：适合根据已有响应式数据派生新值（如购物车总价、列表过滤/排序、全名拼接），尤其是计算开销较大或被多次引用的场景；\n   - **普通方法**：适合事件处理回调、需要接收动态参数的格式化计算，或每次调用都必须重新执行（如获取当前时间戳）的场景。",
+    "analysis": ""
+  },
+  {
+    "id": "简答题-292",
+    "section": "简答题",
+    "type": "text",
+    "number": 292,
+    "question": "请简单描述MVVM模式包含哪几个核心部分，他们的定义分别是什么",
+    "answer": "MVVM（Model-View-ViewModel）包含三个核心部分：\n1. **Model（模型层）**：负责封装应用的数据状态与业务逻辑（如从后端接口获取的数据）。\n2. **View（视图层）**：用户直接交互的界面（HTML 模板与样式），负责将数据可视化展示给用户。\n3. **ViewModel（视图模型层）**：连接 View 与 Model 的桥梁，负责将 Model 数据暴露给 View 自动渲染，并监听 View 的交互事件将变更同步回 Model，从而彻底解耦视图与数据。",
+    "analysis": ""
+  },
+  {
+    "id": "简答题-293",
+    "section": "简答题",
+    "type": "text",
+    "number": 293,
+    "question": "简述 ref 在 Vue 3 组合式 API 中的作用。",
+    "answer": "`ref` 在 Vue 3 组合式 API 中主要有两大核心作用：\n1. **定义响应式数据**：可包裹基本类型（如数字、字符串、布尔值）或引用类型（对象、数组），返回 `RefImpl` 对象；在 `<script>` 中通过 `.value` 读写（支持整体替换对象），在 `<template>` 中自动解包无需 `.value`。\n2. **模板引用（获取 DOM 元素或子组件实例）**：通过创建空 `ref()` 且变量名与模板中的 `ref=\"xxx\"` 属性一致，组件挂载后可通过 `.value` 获取普通标签的真实 DOM 元素，或在子组件标签上获取子组件实例（配合 `defineExpose` 访问子组件内部数据与方法）。",
+    "analysis": ""
+  },
+  {
+    "id": "程序题-294",
+    "section": "程序题",
+    "type": "text",
+    "number": 294,
+    "question": "现有utils.js，文件内容如下：\nexport const PI = 3.1415; export function calcCircle(r){ return PI*r*r; }\n在main.js中导入utils.js里声明的常量及函数，并计算半径为 5 的圆面积，输出结果",
+    "answer": "```js\n// main.js\nimport { PI, calcCircle } from './utils.js';\n\nconst area = calcCircle(5);\nconsole.log('PI =', PI);\nconsole.log('半径为 5 的圆面积 =', area); // 78.5375\n```",
+    "analysis": ""
+  },
+  {
+    "id": "程序题-295",
+    "section": "程序题",
+    "type": "text",
+    "number": 295,
+    "question": "现有const arr = [11,22,22,33,11,44,55,44]\n①使用 Set＋扩展运算符完成去重；\n②把去重后的数组和[66,77]合并为一个新数组，输出最终结果。",
+    "answer": "```js\nconst arr = [11, 22, 22, 33, 11, 44, 55, 44];\n\n// ① 使用 Set + 扩展运算符去重\nconst uniqueArr = [...new Set(arr)];\n\n// ② 与 [66, 77] 合并为新数组并输出\nconst result = [...uniqueArr, 66, 77];\nconsole.log(result); // [11, 22, 33, 44, 55, 66, 77]\n```",
+    "analysis": ""
+  },
+  {
+    "id": "程序题-296",
+    "section": "程序题",
+    "type": "text",
+    "number": 296,
+    "question": "后端返回对象\nconst res = { code:200, msg:\"查询成功\", data:{ uid:1005, uname:\"wangwu\", phone:\"13900139000\" }}\n使用对象解构赋值取出code、uid、uname，如果后端没有返回 phone 字段，phone 默认值设置为\"未知手机号\"，并在控制台打印这三个变量",
+    "answer": "```js\nconst res = {\n  code: 200,\n  msg: \"查询成功\",\n  data: { uid: 1005, uname: \"wangwu\", phone: \"13900139000\" }\n};\n\nconst {\n  code,\n  data: { uid, uname, phone = \"未知手机号\" }\n} = res;\n\nconsole.log(code, uid, uname); // 200 1005 'wangwu'\nconsole.log(phone);            // '13900139000'（若缺少 phone 字段则为 '未知手机号'）\n```",
+    "analysis": ""
+  },
+  {
+    "id": "程序题-297",
+    "section": "程序题",
+    "type": "text",
+    "number": 297,
+    "question": "给定用户列表，\nconst userList = [ {id:1,name:\"张三\",age:17}, {id:2,name:\"李四\",age:21}, {id:3,name:\"王五\",age:19}, {id:4,name:\"赵六\",age:24} ]\n①用 filter 筛选出年龄≥18 岁的成年用户；\n②用 map 提取这些用户的 name 组成新数组；\n③打印最终姓名数组。",
+    "answer": "```js\nconst userList = [\n  { id: 1, name: \"张三\", age: 17 },\n  { id: 2, name: \"李四\", age: 21 },\n  { id: 3, name: \"王五\", age: 19 },\n  { id: 4, name: \"赵六\", age: 24 }\n];\n\n// ① 筛选年龄 >= 18 岁的成年用户\nconst adultUsers = userList.filter(user => user.age >= 18);\n\n// ② 提取这些用户的 name 组成新数组\nconst adultNames = adultUsers.map(user => user.name);\n\n// ③ 打印最终姓名数组\nconsole.log(adultNames); // ['李四', '王五', '赵六']\n```",
+    "analysis": ""
+  }
+];
+const state = { answers: {}, submitted: false, wrongOnly: false, selfMarks: {} };
+const sections = ['全部', ...Array.from(new Set(QUESTIONS.map(q => q.section)))];
+const $ = id => document.getElementById(id);
+const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+
+function isMulti(q) { return q.type === 'multi' || q.type === 'multiple'; }
+function isJudge(q) { return q.type === 'judge'; }
+
+function isAnswered(q) {
+  if (isMulti(q)) {
+    const sel = state.answers[q.id];
+    return Array.isArray(sel) && sel.length > 0;
+  }
+  return Boolean(state.answers[q.id]);
+}
+
+function isCorrect(q) {
+  if (q.type === 'text') return state.selfMarks && state.selfMarks[q.id] === 'correct';
+  if (isMulti(q)) {
+    const sel = state.answers[q.id];
+    if (!Array.isArray(sel) || sel.length === 0) return false;
+    const correct = q.answer.split('').sort().join('');
+    const selected = [...sel].sort().join('');
+    return correct === selected;
+  }
+  return state.answers[q.id] === q.answer;
+}
+
+function isWrong(q) {
+  if (q.type === 'text') return state.selfMarks && state.selfMarks[q.id] === 'wrong';
+  if (!state.submitted) return false;
+  if (!isAnswered(q)) return false;
+  return !isCorrect(q);
+}
+
+function getMultiDisplay(q) {
+  const sel = state.answers[q.id] || [];
+  return Array.isArray(sel) ? [...sel].sort().join('') : '';
+}
+
+function renderFilters() {
+  const currentSection = $('sectionFilter').value || '全部';
+  $('sectionFilter').innerHTML = sections.map(s => '<option value="' + escapeHtml(s) + '">' + escapeHtml(s) + '</option>').join('');
+  $('sectionFilter').value = sections.includes(currentSection) ? currentSection : '全部';
+  $('sectionTabs').innerHTML = sections.map(s => '<button data-section="' + escapeHtml(s) + '" class="' + (s === $('sectionFilter').value ? 'active' : '') + '">' + escapeHtml(s) + '（' + (s==='全部'?QUESTIONS.length:QUESTIONS.filter(q=>q.section===s).length) + '）</button>').join('');
+  document.querySelectorAll('#sectionTabs button').forEach(btn => btn.onclick = () => {
+    $('sectionFilter').value = btn.dataset.section;
+    render();
+    $('questionList').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+}
+
+function renderQuestion(q) {
+  const statusClass = state.submitted || q.type === 'text' ? (isCorrect(q) ? 'correct' : isWrong(q) ? 'wrong' : '') : '';
+  const answer = isMulti(q) ? getMultiDisplay(q) : (state.answers[q.id] || '');
+  const resultVisible = state.submitted ? 'show' : '';
+  const multiHint = isMulti(q) ? '<div style="margin-top:6px;font-size:12px;color:var(--warn);">多选题：需选中全部正确选项才能得分</div>' : '';
+  let objectiveResult = '';
+  if (state.submitted && q.type !== 'text') {
+    const analysisHtml = q.analysis ? '<div class="analysis">解析：' + escapeHtml(q.analysis) + '</div>' : '';
+    objectiveResult = '<div class="result ' + resultVisible + '"><div class="' + (isCorrect(q) ? 'ok' : 'bad') + '">' + (isCorrect(q) ? '回答正确' : answer ? '回答错误' : '未作答') + '</div><div>你的答案：' + escapeHtml(answer || '未作答') + '；正确答案：' + escapeHtml(q.answer) + '</div>' + analysisHtml + '</div>';
+  }
+  const textResult = q.type === 'text' && state.submitted ? '<div class="result show"><div><b>参考答案：</b></div><div class="analysis markdown-body">' + (typeof marked !== 'undefined' ? marked.parse(q.answer) : escapeHtml(q.answer).replace(/\n/g, '<br>')) + '</div><div class="self-check"><button data-self="correct" data-id="' + q.id + '">我答对了</button><button data-self="wrong" data-id="' + q.id + '">我答错了</button><span class="badge">' + (state.selfMarks && state.selfMarks[q.id] === 'correct' ? '已标记正确' : state.selfMarks && state.selfMarks[q.id] === 'wrong' ? '已加入错题' : '待自评') + '</span></div></div>' : '';
+  let body = '';
+  if (q.type === 'text') {
+    body = '<textarea data-text="' + q.id + '" placeholder="在这里输入你的答案，提交后对照参考答案自评。">' + escapeHtml(answer) + '</textarea>';
+  } else if (isJudge(q)) {
+    body = '<div class="options"><label class="option"><input type="radio" name="' + q.id + '" value="√" ' + (answer==='√'?'checked':'') + '> <b>√</b> <span>正确</span></label><label class="option"><input type="radio" name="' + q.id + '" value="×" ' + (answer==='×'?'checked':'') + '> <b>×</b> <span>错误</span></label></div>';
+  } else if (isMulti(q)) {
+    const sel = state.answers[q.id] || [];
+    body = '<div class="options">' + q.options.map(opt => '<label class="option"><input type="checkbox" data-multi="' + q.id + '" value="' + escapeHtml(opt.key) + '" ' + (Array.isArray(sel) && sel.includes(opt.key) ? 'checked' : '') + '> <b>' + escapeHtml(opt.key) + '.</b> <span>' + escapeHtml(opt.text) + '</span></label>').join('') + '</div>' + multiHint;
+  } else {
+    body = '<div class="options">' + q.options.map(opt => '<label class="option"><input type="radio" name="' + q.id + '" value="' + escapeHtml(opt.key) + '" ' + (answer===opt.key?'checked':'') + '> <b>' + escapeHtml(opt.key) + '.</b> <span>' + escapeHtml(opt.text) + '</span></label>').join('') + '</div>';
+  }
+  const typeBadge = q.type === 'text' ? '主观题' : isMulti(q) ? '多选题' : isJudge(q) ? '判断题' : '单选题';
+  const qTitleContent = (q.type === 'text' && typeof marked !== 'undefined') ? marked.parse(q.question.replace(/<(\/?[a-zA-Z][^>]*)>/g, '&lt;$1&gt;')) : escapeHtml(q.question);
+  const titleClass = q.type === 'text' ? 'q-title markdown-body' : 'q-title';
+  return '<article class="question-card ' + statusClass + '" data-id="' + q.id + '"><div class="q-head"><div class="badge">' + escapeHtml(q.section) + ' · 第 ' + q.number + ' 题</div><div class="badge">' + typeBadge + '</div></div><div class="' + titleClass + '">' + qTitleContent + '</div>' + body + objectiveResult + textResult + '</article>';
+}
+
+function filteredQuestions() {
+  const section = $('sectionFilter').value || '全部';
+  return QUESTIONS.filter(q => {
+    if (section !== '全部' && q.section !== section) return false;
+    if (state.wrongOnly && !isWrong(q)) return false;
+    return true;
+  });
+}
+
+function render() {
+  renderFilters();
+  const list = filteredQuestions();
+  $('questionList').innerHTML = list.length ? list.map(renderQuestion).join('') : '<div class="empty">当前筛选条件下没有题目。</div>';
+  bindInputs();
+  updateStats();
+}
+
+function bindInputs() {
+  document.querySelectorAll('textarea[data-text]').forEach(input => input.oninput = e => { state.answers[e.target.dataset.text] = e.target.value; updateStats(); });
+  document.querySelectorAll('button[data-self]').forEach(btn => btn.onclick = () => { if (!state.selfMarks) state.selfMarks = {}; state.selfMarks[btn.dataset.id] = btn.dataset.self; render(); });
+  document.querySelectorAll('input[type="radio"]').forEach(input => input.onchange = e => {
+    state.answers[e.target.name] = e.target.value;
+    updateStats();
+  });
+  document.querySelectorAll('input[type="checkbox"][data-multi]').forEach(input => input.onchange = e => {
+    const qid = e.target.dataset.multi;
+    if (!Array.isArray(state.answers[qid])) state.answers[qid] = [];
+    const val = e.target.value;
+    if (e.target.checked) {
+      if (!state.answers[qid].includes(val)) state.answers[qid].push(val);
+    } else {
+      state.answers[qid] = state.answers[qid].filter(v => v !== val);
+    }
+    updateStats();
+  });
+}
+
+function updateStats() {
+  $('totalCount').textContent = QUESTIONS.length;
+  $('answeredCount').textContent = QUESTIONS.filter(isAnswered).length;
+  $('correctCount').textContent = QUESTIONS.filter(q => (state.submitted || q.type === 'text') && isCorrect(q)).length;
+  $('wrongCount').textContent = QUESTIONS.filter(isWrong).length;
+}
+
+function exportWrong() {
+  const wrong = QUESTIONS.filter(isWrong);
+  if (!wrong.length) { alert('当前没有错题可导出。'); return; }
+  const nl = String.fromCharCode(10);
+  const br = '<br>';
+  const rows = wrong.map(q => {
+    const yourAnswer = isMulti(q) ? getMultiDisplay(q) : (state.answers[q.id] || '未作答');
+    const typeStr = q.type === 'text' ? '主观题' : isMulti(q) ? '多选' : isJudge(q) ? '判断' : '单选';
+    const analysisRow = (q.type !== 'text' && q.analysis) ? '<p><b>解析：</b>' + escapeHtml(q.analysis).split(nl).join(br) + '</p>' : '';
+    return '<section><h2>' + escapeHtml(q.section) + ' 第 ' + q.number + ' 题（' + typeStr + '）</h2><p>' + escapeHtml(q.question).split(nl).join(br) + '</p><p><b>你的答案：</b>' + escapeHtml(yourAnswer || '未作答').split(nl).join(br) + '</p><p><b>正确答案：</b>' + escapeHtml(q.answer).split(nl).join(br) + '</p>' + analysisRow + '</section>';
+  }).join(nl);
+  const doc = '<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"><title>移动应用开发错题导出</title><style>body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif;line-height:1.7;max-width:920px;margin:30px auto;padding:0 18px}section{border:1px solid #ddd;border-radius:12px;padding:16px;margin:14px 0}h1{color:#1d4ed8}</style></head><body><h1>移动应用开发错题导出</h1><p>共 ' + wrong.length + ' 道错题，导出时间：' + new Date().toLocaleString() + '</p>' + rows + '</body></html>';
+  const blob = new Blob([doc], { type: 'text/html;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '移动应用开发错题导出.html';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+$('submitBtn').onclick = () => { state.submitted = true; state.wrongOnly = false; $('wrongOnlyBtn').textContent = '只看错题'; render(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+$('wrongOnlyBtn').onclick = () => { state.wrongOnly = !state.wrongOnly; $('wrongOnlyBtn').textContent = state.wrongOnly ? '查看全部' : '只看错题'; render(); };
+$('exportBtn').onclick = exportWrong;
+$('resetBtn').onclick = () => { if (!confirm('确定要清空所有作答记录吗？')) return; state.answers = {}; state.submitted = false; state.wrongOnly = false; state.selfMarks = {}; immSubmittedIds.clear(); $('wrongOnlyBtn').textContent = '只看错题'; render(); };
+$('sectionFilter').onchange = render;
+render();
+
+const themeToggleBtn = $('themeToggleBtn');
+function setTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('quiz-theme', theme);
+}
+const savedTheme = localStorage.getItem('quiz-theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+setTheme(savedTheme);
+themeToggleBtn.onclick = () => {
+  const currentTheme = document.documentElement.getAttribute('data-theme');
+  setTheme(currentTheme === 'dark' ? 'light' : 'dark');
+};
+
+// ================= 沉浸式刷题逻辑 =================
+let isImmersive = false;
+let immIndex = 0;
+let immQuestions = [];
+let immSubmittedIds = new Set();
+
+const enterBtn = document.createElement('button');
+enterBtn.textContent = '沉浸模式';
+enterBtn.style.fontWeight = 'bold';
+enterBtn.style.color = 'var(--primary)';
+enterBtn.style.borderColor = 'var(--primary)';
+enterBtn.onclick = () => {
+  isImmersive = true;
+  document.body.classList.add('immersive-mode');
+  immQuestions = filteredQuestions();
+  immIndex = 0;
+  renderImmersive();
+};
+document.querySelector('.toolbar').insertBefore(enterBtn, document.querySelector('.toolbar').firstChild);
+
+$('immExitBtn').onclick = () => {
+  isImmersive = false;
+  document.body.classList.remove('immersive-mode');
+  render();
+};
+
+$('immSubmitAllBtn').onclick = () => {
+  if (confirm('确认全部提交（交卷）吗？')) {
+    state.submitted = true;
+    renderImmersive();
+    updateStats();
+  }
+};
+
+$('immCloseSidebarBtn').onclick = () => {
+  $('immersiveSidebar').classList.add('collapsed');
+  $('immOpenSidebarBtn').classList.remove('hidden');
+};
+$('immOpenSidebarBtn').onclick = () => {
+  $('immersiveSidebar').classList.remove('collapsed');
+  $('immOpenSidebarBtn').classList.add('hidden');
+};
+
+function renderImmersiveGrid() {
+  const originalSub = state.submitted;
+  $('immersiveGrid').innerHTML = immQuestions.map((q, i) => {
+    state.submitted = originalSub || immSubmittedIds.has(q.id);
+    let cls = '';
+    if (state.submitted || q.type === 'text') {
+      if (isCorrect(q)) cls = 'correct';
+      else if (isWrong(q)) cls = 'wrong';
+      else if (isAnswered(q)) cls = 'answered';
+    } else {
+      if (isAnswered(q)) cls = 'answered';
+    }
+    if (i === immIndex) cls += ' active';
+    return `<button class="${cls}" data-imm-idx="${i}">${i + 1}</button>`;
+  }).join('');
+  state.submitted = originalSub;
+
+  document.querySelectorAll('#immersiveGrid button').forEach(btn => {
+    btn.onclick = () => { immIndex = parseInt(btn.dataset.immIdx, 10); renderImmersive(); };
+  });
+
+  const activeBtn = document.querySelector('#immersiveGrid button.active');
+  if (activeBtn) activeBtn.scrollIntoView({ block: 'nearest' });
+}
+
+function renderImmersive() {
+  if (!immQuestions.length) {
+    $('immersiveQuestionArea').innerHTML = '<div class="empty">当前没有题目可刷</div>';
+    return;
+  }
+  if (immIndex >= immQuestions.length) immIndex = immQuestions.length - 1;
+  if (immIndex < 0) immIndex = 0;
+
+  const q = immQuestions[immIndex];
+  const originalSub = state.submitted;
+  state.submitted = originalSub || immSubmittedIds.has(q.id);
+  const qHtml = renderQuestion(q);
+  state.submitted = originalSub;
+
+  $('immersiveQuestionArea').innerHTML = qHtml;
+
+  document.querySelectorAll('#immersiveQuestionArea input[type="radio"]').forEach(input => input.onchange = e => {
+    state.answers[e.target.name] = e.target.value;
+    renderImmersiveGrid();
+    updateStats();
+  });
+  document.querySelectorAll('#immersiveQuestionArea input[type="checkbox"][data-multi]').forEach(input => input.onchange = e => {
+    const qid = e.target.dataset.multi;
+    let arr = Array.isArray(state.answers[qid]) ? [...state.answers[qid]] : [];
+    if (e.target.checked) { if (!arr.includes(e.target.value)) arr.push(e.target.value); }
+    else { arr = arr.filter(v => v !== e.target.value); }
+    arr.sort();
+    state.answers[qid] = arr;
+    renderImmersiveGrid();
+    updateStats();
+  });
+  document.querySelectorAll('#immersiveQuestionArea textarea[data-text]').forEach(input => input.oninput = e => {
+    state.answers[e.target.dataset.text] = e.target.value;
+    renderImmersiveGrid();
+    updateStats();
+  });
+  document.querySelectorAll('#immersiveQuestionArea button[data-self]').forEach(btn => btn.onclick = () => {
+    state.selfMarks[btn.dataset.id] = btn.dataset.self;
+    renderImmersive();
+    updateStats();
+  });
+
+  $('immPrevBtn').disabled = immIndex === 0;
+  $('immNextBtn').disabled = immIndex === immQuestions.length - 1;
+  renderImmersiveGrid();
+}
+
+$('immPrevBtn').onclick = () => { if (immIndex > 0) { immIndex--; renderImmersive(); } };
+$('immNextBtn').onclick = () => { if (immIndex < immQuestions.length - 1) { immIndex++; renderImmersive(); } };
+
+window.addEventListener('keydown', e => {
+  if (!isImmersive) return;
+  const tagName = e.target.tagName.toLowerCase();
+  if (tagName === 'input' || tagName === 'textarea') return;
+  if (!immQuestions.length) return;
+  const q = immQuestions[immIndex];
+
+  if (e.key === 'ArrowLeft') {
+    if (immIndex > 0) { immIndex--; renderImmersive(); }
+    e.preventDefault();
+  } else if (e.key === 'ArrowRight') {
+    if (immIndex < immQuestions.length - 1) { immIndex++; renderImmersive(); }
+    e.preventDefault();
+  } else if (e.key === 'Enter') {
+    immSubmittedIds.add(q.id);
+    renderImmersive();
+    updateStats();
+    e.preventDefault();
+  } else {
+    const keyMap = { '1': 0, 'a': 0, '2': 1, 'b': 1, '3': 2, 'c': 2, '4': 3, 'd': 3, 't': 0, 'f': 1 };
+    const k = e.key.toLowerCase();
+    if (keyMap[k] !== undefined && q.type !== 'text') {
+      const idx = keyMap[k];
+      let mappedKey = null;
+      if (q.type === 'judge') {
+        if (idx === 0) mappedKey = '√';
+        else if (idx === 1) mappedKey = '×';
+      } else if (q.options && q.options.length > idx) {
+        mappedKey = q.options[idx].key;
+      }
+      if (mappedKey !== null) {
+        if (isMulti(q)) {
+          let arr = Array.isArray(state.answers[q.id]) ? [...state.answers[q.id]] : [];
+          if (arr.includes(mappedKey)) arr = arr.filter(v => v !== mappedKey);
+          else arr.push(mappedKey);
+          arr.sort();
+          state.answers[q.id] = arr;
+        } else {
+          state.answers[q.id] = mappedKey;
+        }
+        renderImmersive();
+        updateStats();
+        e.preventDefault();
+      }
+    }
+  }
+});
+
+const bgmAudio = document.getElementById('bgmAudio');
+const bgmToggleBtn = document.getElementById('bgmToggleBtn');
+if (bgmToggleBtn && bgmAudio) {
+  bgmToggleBtn.addEventListener('click', () => {
+    if (bgmAudio.paused) {
+      bgmAudio.play();
+      bgmToggleBtn.classList.add('playing');
+    } else {
+      bgmAudio.pause();
+      bgmToggleBtn.classList.remove('playing');
+    }
+  });
+}
+</script>
+</body>
+</html>
